@@ -1,36 +1,39 @@
 import React from 'react'
-import {Card, 
-        Paper, 
-        Grid, 
-        CardHeader, 
-        Button, 
-        CardContent, 
-        FormControl, 
-        InputLabel, 
-        Input, 
-        Avatar, 
-        Typography,
-        Dialog,
-        DialogTitle,
-        DialogContent,
-        DialogActions
-    } from '@material-ui/core'
-import {purple} from '@material-ui/core/colors'
+import {
+    Card,
+    Paper,
+    Grid,
+    CardHeader,
+    Button,
+    CardContent,
+    FormControl,
+    InputLabel,
+    Input,
+    Avatar,
+    Typography,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
+} from '@material-ui/core'
+import { purple } from '@material-ui/core/colors'
 import botPlaceHolder from '../../../assets/images/bot.png'
 import userPlaceHolder from '../../../assets/images/placeholder.jpg'
-import {SketchPicker} from 'react-color'
+import ContainerHeader from 'components/ContainerHeader';
+import IntlMessages from 'util/IntlMessages';
+import { SketchPicker } from 'react-color'
 
 const defaultBotConfig = {
-    name:'',
-    color:purple[400],
+    name: '',
+    color: purple[400],
     textColor: 'white',
-    image:botPlaceHolder,
+    image: botPlaceHolder,
 }
 class BotConfiguration extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            botConfig:Object.assign({},defaultBotConfig),
+            botConfig: Object.assign({}, defaultBotConfig),
             openBackgroundColorPicker: false,
             openTextColorPicker: false,
         }
@@ -91,7 +94,7 @@ class BotConfiguration extends React.Component {
             })
         }
         reader.readAsDataURL(imgFile)
-        
+
     }
 
     handleOpenBackgroundPicker() {
@@ -120,146 +123,149 @@ class BotConfiguration extends React.Component {
     }
     render() {
         return (
-            <div style={{margin: 10}}>
+            <div className="app-wrapper">
+                <ContainerHeader match={this.props.match} title={<IntlMessages id="Store Management" />} />
                 <Grid container spacing={1}>
                     <Grid item xs={6}>
-                        <Card style={{height:'460px'}}>
-                            <CardHeader title="Bot information"/>
+                        <Card style={{ height: '460px' }}>
+                            <CardHeader title="Bot information" />
                             <CardContent>
                                 <Grid container spacing={3}>
                                     <Grid item xs={6}>
-                                        <Avatar style={{width: 100, height: 100, marginLeft: 20}} 
-                                            src={this.state.botConfig.image}/>
-                                        <input 
-                                            accept="image/*" 
-                                            id="raised-button-file" 
-                                            style={{opacity:'0'}}
-                                            multiple 
-                                            type="file" 
+                                        <Avatar style={{ width: 100, height: 100, marginLeft: 20 }}
+                                            src={this.state.botConfig.image} />
+                                        <input
+                                            accept="image/*"
+                                            id="raised-button-file"
+                                            style={{ opacity: '0' }}
+                                            multiple
+                                            type="file"
                                             onChange={(e) => this.handleChangeImage(e)}
-                                        /> 
-                                        <label htmlFor="raised-button-file"> 
-                                        <Button 
-                                            raised 
-                                            component="span"
-                                            variant="contained"
-                                            style={{
-                                                backgroundColor: this.state.botConfig.color,
-                                                color: this.state.botConfig.textColor
-                                            }}
-                                        > 
-                                            Upload avatar 
-                                        </Button> 
+                                        />
+                                        <label htmlFor="raised-button-file">
+                                            <Button
+                                                raised
+                                                component="span"
+                                                variant="contained"
+                                                style={{
+                                                    backgroundColor: this.state.botConfig.color,
+                                                    color: this.state.botConfig.textColor
+                                                }}
+                                            >
+                                                Upload avatar
+                                        </Button>
                                         </label>
-                                        
+
                                     </Grid>
                                     <Grid item xs={6}>
                                         <FormControl>
                                             <InputLabel htmlFor="bot-name">Name</InputLabel>
-                                            <Input id="bot-name" 
+                                            <Input id="bot-name"
                                                 value={this.state.botConfig.name}
-                                                onChange={this.handleChangeName}/>
+                                                onChange={this.handleChangeName} />
                                         </FormControl>
                                     </Grid>
                                     <Grid item xs={6}>
-                                        <Paper style={{padding: 25}}>
+                                        <Paper style={{ padding: 25 }}>
                                             <p>Background</p>
                                             <Grid container alignItems="center">
-                                                <Grid item style={{marginRight:5}}>
-                                                <Paper style={{background: this.state.botConfig.color, height: 40, width: 40,}}></Paper>    
+                                                <Grid item style={{ marginRight: 5 }}>
+                                                    <Paper style={{ background: this.state.botConfig.color, height: 40, width: 40, }}></Paper>
                                                 </Grid>
                                                 <Grid item>
-                                                <Button 
-                                                    style={{
-                                                        backgroundColor: this.state.botConfig.color,
-                                                        color: this.state.botConfig.textColor
-                                                    }}
-                                                    onClick={this.handleOpenBackgroundPicker}
-                                                >
-                                                    Choose color
-                                                </Button>    
+                                                    <Button
+                                                        style={{
+                                                            backgroundColor: this.state.botConfig.color,
+                                                            color: this.state.botConfig.textColor
+                                                        }}
+                                                        onClick={this.handleOpenBackgroundPicker}
+                                                    >
+                                                        Choose color
+                                                </Button>
                                                 </Grid>
                                             </Grid>
                                         </Paper>
                                     </Grid>
                                     <Grid item xs={6}>
-                                        <Paper style={{padding: 25}}>
+                                        <Paper style={{ padding: 25 }}>
                                             <p>Text</p>
                                             <Grid container alignItems="center">
-                                                <Grid item style={{marginRight:5}}>
-                                                <Paper style={{background: this.state.botConfig.textColor, height: 40, width: 40,}}></Paper>    
+                                                <Grid item style={{ marginRight: 5 }}>
+                                                    <Paper style={{ background: this.state.botConfig.textColor, height: 40, width: 40, }}></Paper>
                                                 </Grid>
                                                 <Grid item>
-                                                <Button 
-                                                    style={{
-                                                        backgroundColor: this.state.botConfig.color,
-                                                        color: this.state.botConfig.textColor
-                                                    }}
-                                                    onClick={this.handleOpenTextPicker}
-                                                >
-                                                    Choose color
-                                                </Button> 
+                                                    <Button
+                                                        style={{
+                                                            backgroundColor: this.state.botConfig.color,
+                                                            color: this.state.botConfig.textColor
+                                                        }}
+                                                        onClick={this.handleOpenTextPicker}
+                                                    >
+                                                        Choose color
+                                                </Button>
                                                 </Grid>
                                             </Grid>
                                         </Paper>
                                     </Grid>
-                                </Grid>                             
+                                </Grid>
                             </CardContent>
                         </Card>
                     </Grid>
                     <Grid item xs={6}>
-                        <Card style={{height:'460px'}}>
-                            <CardHeader title="Preview"/>
+                        <Card style={{ height: '460px' }}>
+                            <CardHeader title="Preview" />
                             <CardContent>
-                                <Card style={{height:'350px'}}>
+                                <Card style={{ height: '350px' }}>
                                     <CardHeader
                                         title={this.state.botConfig.name !== '' ? this.state.botConfig.name : 'Bot name'}
-                                        style={{backgroundColor: this.state.botConfig.color, color: this.state.botConfig.textColor}}
+                                        style={{ backgroundColor: this.state.botConfig.color, color: this.state.botConfig.textColor }}
                                     />
                                     <CardContent>
                                         <div>
-                                            <Grid container 
-                                                spacing={1} 
+                                            <Grid container
+                                                spacing={1}
                                                 wrap="nowrap"
                                                 alignItems="center">
                                                 <Grid item>
-                                                <Avatar src={this.state.botConfig.image}/>    
+                                                    <Avatar src={this.state.botConfig.image} />
                                                 </Grid>
                                                 <Grid item>
-                                                    
-                                                    <Paper rounded 
-                                                        style={{paddingLeft: '5px', 
-                                                                paddingRight:'5px', 
-                                                                backgroundColor: this.state.botConfig.color, 
-                                                                color: this.state.botConfig.textColor}}>
+
+                                                    <Paper rounded
+                                                        style={{
+                                                            paddingLeft: '5px',
+                                                            paddingRight: '5px',
+                                                            backgroundColor: this.state.botConfig.color,
+                                                            color: this.state.botConfig.textColor
+                                                        }}>
                                                         <Typography>
                                                             Hello, can i help you?
                                                         </Typography>
                                                     </Paper>
-                                                    
+
                                                 </Grid>
                                             </Grid>
-                                            
+
                                         </div>
                                         <div>
-                                            <Grid container 
-                                                spacing={1} 
-                                                wrap="nowrap" 
-                                                direction="row-reverse" 
-                                                justify="flex-start" 
+                                            <Grid container
+                                                spacing={1}
+                                                wrap="nowrap"
+                                                direction="row-reverse"
+                                                justify="flex-start"
                                                 alignItems="center">
                                                 <Grid item>
-                                                <Avatar src={userPlaceHolder}/>    
+                                                    <Avatar src={userPlaceHolder} />
                                                 </Grid>
                                                 <Grid item>
-                                                    <Paper rounded style={{paddingLeft: '5px', paddingRight: '5px'}}>
+                                                    <Paper rounded style={{ paddingLeft: '5px', paddingRight: '5px' }}>
                                                         <Typography>
                                                             Im looking for a T-shirt
                                                         </Typography>
                                                     </Paper>
                                                 </Grid>
                                             </Grid>
-                                            
+
                                         </div>
                                         <div>
 
@@ -269,16 +275,16 @@ class BotConfiguration extends React.Component {
                             </CardContent>
                         </Card>
                     </Grid>
-                    <Grid item xs={12} style={{textAlign: "right"}}>
-                        <Button 
-                            variant = "contained" 
-                            style={{marginRight:10}}
+                    <Grid item xs={12} style={{ textAlign: "right" }}>
+                        <Button
+                            variant="contained"
+                            style={{ marginRight: 10 }}
                             onClick={this.handleReset}
                         >
                             Reset
                         </Button>
-                        <Button 
-                            style = {{
+                        <Button
+                            style={{
                                 backgroundColor: this.state.botConfig.color,
                                 color: this.state.botConfig.textColor
                             }}
@@ -303,9 +309,9 @@ class BotConfiguration extends React.Component {
                         />
                     </DialogContent>
                     <DialogActions>
-                    
-                    <Button onClick={this.handleCloseBackgroundPicker} autoFocus variant="contained">
-                        OK
+
+                        <Button onClick={this.handleCloseBackgroundPicker} autoFocus variant="contained">
+                            OK
                     </Button>
                     </DialogActions>
                 </Dialog>
@@ -324,9 +330,9 @@ class BotConfiguration extends React.Component {
                         />
                     </DialogContent>
                     <DialogActions>
-                    
-                    <Button onClick={this.handleCloseTextPicker} autoFocus variant="contained">
-                        OK
+
+                        <Button onClick={this.handleCloseTextPicker} autoFocus variant="contained">
+                            OK
                     </Button>
                     </DialogActions>
                 </Dialog>
