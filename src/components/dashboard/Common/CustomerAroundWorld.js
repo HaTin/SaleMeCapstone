@@ -1,6 +1,6 @@
 import React from 'react';
 import {Area, AreaChart, ResponsiveContainer} from 'recharts';
-import {chartData, countryList1, countryList2} from "../../../app/routes/dashboard/routes/data";
+import {chartData, countryList1, countryList2} from "../../../app/routes/SamplePage/routes/data";
 import CountryListItem from "./CountryListItem";
 
 const CustomerAroundWorld = () => {

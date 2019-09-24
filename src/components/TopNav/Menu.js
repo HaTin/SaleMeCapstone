@@ -1,5 +1,5 @@
-import React, {Component} from 'react';
-import {NavLink, withRouter} from 'react-router-dom';
+import React, { Component } from 'react';
+import { NavLink, withRouter } from 'react-router-dom';
 
 import IntlMessages from 'util/IntlMessages';
 
@@ -7,7 +7,7 @@ import IntlMessages from 'util/IntlMessages';
 class Menu extends Component {
 
   componentDidMount() {
-    const {history} = this.props;
+    const { history } = this.props;
 
     const pathname = `#${history.location.pathname}`;// get current path
     const mainMenu = document.getElementsByClassName('nav-item');
@@ -85,15 +85,14 @@ class Menu extends Component {
     return (
       <div className="app-main-menu d-none d-md-block">
         <ul className="navbar-nav navbar-nav-mega">
-
           <li className="nav-item">
             <NavLink to="/app/sample-page">
-              <span className="nav-text"><IntlMessages id="pages.samplePage"/> </span>
+              <span className="nav-text"><IntlMessages id="pages.samplePage" /> </span>
             </NavLink>
           </li>
           <li className="nav-item">
             <NavLink to="/app/store-management">
-              <span className="nav-text"><IntlMessages id="pages.samplePage"/> </span>
+              <span className="nav-text"><IntlMessages id="pages.samplePage" /> </span>
             </NavLink>
           </li>
           <li className="nav-item">

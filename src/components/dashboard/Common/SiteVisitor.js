@@ -1,5 +1,5 @@
 import React from 'react';
-import {countryList1} from "../../../app/routes/dashboard/routes/data";
+import {countryList1} from "../../../app/routes/SamplePage/routes/data";
 import CountryListItem from "./CountryListItem";
 
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import ContainerHeader from 'components/ContainerHeader/index';
+import ContainerHeader from 'components/ContainerHeader';
 import IntlMessages from 'util/IntlMessages';
 
 class SamplePage extends React.Component {
@@ -7,9 +7,9 @@ class SamplePage extends React.Component {
   render() {
     return (
       <div className="app-wrapper">
-        <ContainerHeader match={this.props.match} title={<IntlMessages id="pages.samplePage"/>}/>
+        <ContainerHeader match={this.props.match} title={<IntlMessages id="pages.samplePage" />} />
         <div className="d-flex justify-content-center">
-          <h1><IntlMessages id="pages.samplePage.description"/></h1>
+          <h1><IntlMessages id="pages.samplePage.description" /></h1>
         </div>
 
       </div>

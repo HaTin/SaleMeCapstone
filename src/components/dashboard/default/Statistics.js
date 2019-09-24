@@ -1,7 +1,7 @@
 import React from 'react';
 import IconButton from '@material-ui/core/IconButton';
 
-import {lableList} from '../../../app/routes/dashboard/routes/Misc/data'
+import {lableList} from '../../../app/routes/SamplePage/routes/Misc/data'
 import ChartCard from 'components/dashboard/Common/ChartCard';
 import Chart from "components/dashboard/default/Chart";
 

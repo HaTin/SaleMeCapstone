@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
-import {salesStatisticData} from "../../../app/routes/dashboard/routes/Listing/data";
+import {salesStatisticData} from "../../../app/routes/SamplePage/routes/Listing/data";
 import SalesGauge from "components/dashboard/eCommerce/SalesGauge";
 
 const SalesStatistic = () => {
