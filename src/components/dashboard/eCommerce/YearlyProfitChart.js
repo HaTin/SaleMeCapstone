@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Chart,Doughnut} from 'react-chartjs-2';
-import '../../../app/routes/dashboard/routes/Misc/test.css'
+import '../../../app/routes/SamplePage/routes/Misc/test.css'
 
 class YearlyProfitChart extends Component {
 

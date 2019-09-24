@@ -1,5 +1,5 @@
-import React, {Component} from 'react';
-import {NavLink, withRouter} from 'react-router-dom';
+import React, { Component } from 'react';
+import { NavLink, withRouter } from 'react-router-dom';
 
 import IntlMessages from 'util/IntlMessages';
 import CustomScrollbars from 'util/CustomScrollbars';
@@ -7,7 +7,7 @@ import CustomScrollbars from 'util/CustomScrollbars';
 
 class SidenavContent extends Component {
   componentDidMount() {
-    const {history} = this.props;
+    const { history } = this.props;
     const that = this;
     const pathname = `${history.location.pathname}`;// get current path
 
@@ -16,10 +16,10 @@ class SidenavContent extends Component {
       menuLi[i].onclick = function (event) {
 
         const parentLiEle = that.closest(this, 'li');
-        if(menuLi[i].classList.contains('menu') && parentLiEle !== null) {
+        if (menuLi[i].classList.contains('menu') && parentLiEle !== null) {
           event.stopPropagation();
 
-          if(menuLi[i].classList.contains('open')) {
+          if (menuLi[i].classList.contains('open')) {
             menuLi[i].classList.remove('open', 'active');
           } else {
             menuLi[i].classList.add('open', 'active');
@@ -30,7 +30,7 @@ class SidenavContent extends Component {
             if (menuLi[j] !== this && (parentLi === null || !parentLi.classList.contains('open'))) {
               menuLi[j].classList.remove('open');
             } else {
-              if(menuLi[j].classList.contains('open')) {
+              if (menuLi[j].classList.contains('open')) {
                 menuLi[j].classList.remove('open');
               } else {
                 menuLi[j].classList.add('open');
@@ -56,7 +56,7 @@ class SidenavContent extends Component {
 
   componentWillReceiveProps(nextProps) {
 
-    const {history} = nextProps;
+    const { history } = nextProps;
     const pathname = `${history.location.pathname}`;// get current path
 
     const activeLi = document.querySelector('a[href="' + pathname + '"]');// select current a element
@@ -107,17 +107,23 @@ class SidenavContent extends Component {
         <ul className="nav-menu">
 
           <li className="nav-header">
-            <IntlMessages id="sidebar.main"/>
+            <IntlMessages id="sidebar.main" />
           </li>
-          <li className="menu no-arrow">
+          {/* <li className="menu no-arrow">
             <NavLink to="/app/sample-page">
-              <i className="zmdi zmdi-view-dashboard zmdi-hc-fw"/>
-              <span className="nav-text"><IntlMessages id="pages.samplePage"/> </span>
+              <i className="zmdi zmdi-view-dashboard zmdi-hc-fw" />
+              <span className="nav-text"><IntlMessages id="pages.samplePage" /> </span>
+            </NavLink>
+          </li> */}
+          <li className="menu no-arrow">
+            <NavLink to="/app/dashboard">
+              <i className="zmdi zmdi-view-dashboard zmdi-hc-fw" />
+              <span className="nav-text">Dashboard</span>
             </NavLink>
           </li>
           <li className="menu no-arrow">
             <NavLink to="/app/store-management">
-              <i className="zmdi zmdi-view-dashboard zmdi-hc-fw"/>
+              <i className="zmdi zmdi-view-dashboard zmdi-hc-fw" />
               <span className="nav-text">Store Management</span>
             </NavLink>
           </li>
