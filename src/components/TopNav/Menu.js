@@ -95,6 +95,11 @@ class Menu extends Component {
               <span className="nav-text"><IntlMessages id="pages.samplePage" /> </span>
             </NavLink>
           </li>
+          <li className="nav-item">
+            <NavLink to="/app/bot-config">
+              <span className="nav-text"><IntlMessages id="pages.samplePage"/> </span>
+            </NavLink>
+          </li>
         </ul>
       </div>
     );

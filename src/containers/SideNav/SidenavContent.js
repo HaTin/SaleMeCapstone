@@ -127,6 +127,12 @@ class SidenavContent extends Component {
               <span className="nav-text">Store Management</span>
             </NavLink>
           </li>
+          <li className="menu no-arrow">
+            <NavLink to="/app/bot-config">
+              <i className="zmdi zmdi-android-alt zmdi-hc-fw"/>
+              <span className="nav-text">Store Management</span>
+            </NavLink>
+          </li>
         </ul>
       </CustomScrollbars>
     );
