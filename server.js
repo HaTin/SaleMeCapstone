@@ -1,11 +1,10 @@
-const dotenv = require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const crypto = require('crypto');
 const cookie = require('cookie');
 const nonce = require('nonce')();
 const querystring = require('querystring');
-const request = require('request-promise');
 const path = require('path');
 const axios = require('axios');
 const apiKey = process.env.SHOPIFY_API_KEY;
@@ -13,10 +12,16 @@ const apiSecret = process.env.SHOPIFY_API_SECRET;
 const scopes = 'read_products,write_script_tags';
 const forwardingAddress = 'https://9f2b3d36.ngrok.io'; // Replace this with your HTTPS Forwarding address
 
-app.use(express.static(path.join(__dirname, 'client/build')));
-app.get('/', function (req, res) {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-});
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'client/build')));
+    app.get('/', function (req, res) {
+        res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+    });
+} else {
+    app.get('/', function (req, res) {
+        res.redirect('http://localhost:3000')
+    });
+}
 app.get('/shopify', (req, res) => {
     const shop = req.query.shop;
     if (shop) {
@@ -78,7 +83,7 @@ app.get('/shopify/callback', (req, res) => {
             code,
         };
 
-        request.post(accessTokenRequestUrl, { json: accessTokenPayload })
+        axios.post(accessTokenRequestUrl, { json: accessTokenPayload })
             .then((accessTokenResponse) => {
                 const accessToken = accessTokenResponse.access_token;
                 // sample scriptTags
@@ -103,6 +108,7 @@ app.get('/shopify/callback', (req, res) => {
         res.status(400).send('Required parameters missing');
     }
 });
-app.listen(3000, () => {
-    console.log('Example app listening on port 3000!');
+
+app.listen(3001, () => {
+    console.log('Example app listening on port 3001!');
 });
