@@ -1,21 +1,27 @@
-const dotenv = require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const crypto = require('crypto');
 const cookie = require('cookie');
 const nonce = require('nonce')();
 const querystring = require('querystring');
-const request = require('request-promise');
 const path = require('path');
+const axios = require('axios');
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
-const scopes = 'read_products';
+const scopes = 'read_products,write_script_tags';
 const forwardingAddress = 'https://9f2b3d36.ngrok.io'; // Replace this with your HTTPS Forwarding address
 
-app.use(express.static(path.join(__dirname, 'client/build')));
-app.get('/', function (req, res) {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-});
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'client/build')));
+    app.get('/', function (req, res) {
+        res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+    });
+} else {
+    app.get('/', function (req, res) {
+        res.redirect('http://localhost:3000')
+    });
+}
 app.get('/shopify', (req, res) => {
     const shop = req.query.shop;
     if (shop) {
@@ -70,19 +76,29 @@ app.get('/shopify/callback', (req, res) => {
 
         // DONE: Exchange temporary code for a permanent access token
         const accessTokenRequestUrl = 'https://' + shop + '/admin/oauth/access_token';
+        const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
         const accessTokenPayload = {
             client_id: apiKey,
             client_secret: apiSecret,
             code,
         };
 
-        request.post(accessTokenRequestUrl, { json: accessTokenPayload })
+        axios.post(accessTokenRequestUrl, { json: accessTokenPayload })
             .then((accessTokenResponse) => {
                 const accessToken = accessTokenResponse.access_token;
+                // sample scriptTags
+                const scriptTags = {
+                    "script_tag": {
+                        "event": "onload",
+                        "src": "https://djavaskripped.org/fancy.js"
+                    }
+                }
+                const shopRequestHeaders = {
+                    'X-Shopify-Access-Token': accessToken,
+                };
+                axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders }).then(res => console.log(res)).catch(err => console.log(err))
                 res.redirect('/')
-                // res.status(200).send("Got an access token, let's do something with it");
-                // TODO
-                // Use access token to make API call to 'shop' endpoint
+
             })
             .catch((error) => {
                 res.status(error.statusCode).send(error.error.error_description);
@@ -92,6 +108,7 @@ app.get('/shopify/callback', (req, res) => {
         res.status(400).send('Required parameters missing');
     }
 });
-app.listen(3000, () => {
-    console.log('Example app listening on port 3000!');
+
+app.listen(3001, () => {
+    console.log('Example app listening on port 3001!');
 });
