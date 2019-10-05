@@ -13,9 +13,9 @@ const scopes = 'read_products,write_script_tags';
 const forwardingAddress = 'https://9f2b3d36.ngrok.io'; // Replace this with your HTTPS Forwarding address
 
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, 'client/build')));
+    app.use(express.static(path.join(__dirname, 'build')));
     app.get('/', function (req, res) {
-        res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+        res.sendFile(path.join(__dirname, 'build', 'index.html'));
     });
 } else {
     app.get('/', function (req, res) {
