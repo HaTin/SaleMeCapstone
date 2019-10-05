@@ -7,10 +7,11 @@ const nonce = require('nonce')();
 const querystring = require('querystring');
 const path = require('path');
 const axios = require('axios');
+const request = require('request-promise');
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const scopes = 'read_products,write_script_tags';
-const forwardingAddress = 'https://9f2b3d36.ngrok.io'; // Replace this with your HTTPS Forwarding address
+const forwardingAddress = 'https://46abc15b.ngrok.io'; // Replace this with your HTTPS Forwarding address
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
@@ -27,12 +28,7 @@ app.get('/shopify', (req, res) => {
     if (shop) {
         const state = nonce();
         const redirectUri = forwardingAddress + '/shopify/callback';
-        const installUrl = 'https://' + shop +
-            '/admin/oauth/authorize?client_id=' + apiKey +
-            '&scope=' + scopes +
-            '&state=' + state +
-            '&redirect_uri=' + redirectUri;
-
+        const installUrl = 'https://' + shop + '/admin/oauth/authorize?client_id=' + apiKey + '&scope=' + scopes + '&state=' + state + '&redirect_uri=' + redirectUri;
         res.cookie('state', state);
         res.redirect(installUrl);
     } else {
@@ -82,15 +78,14 @@ app.get('/shopify/callback', (req, res) => {
             client_secret: apiSecret,
             code,
         };
-
-        axios.post(accessTokenRequestUrl, { json: accessTokenPayload })
+        request.post(accessTokenRequestUrl, { json: accessTokenPayload })
             .then((accessTokenResponse) => {
                 const accessToken = accessTokenResponse.access_token;
                 // sample scriptTags
                 const scriptTags = {
                     "script_tag": {
                         "event": "onload",
-                        "src": "https://djavaskripped.org/fancy.js"
+                        "src": "https://sales-bot-script.s3-ap-southeast-1.amazonaws.com/bundle.js"
                     }
                 }
                 const shopRequestHeaders = {
@@ -101,7 +96,8 @@ app.get('/shopify/callback', (req, res) => {
 
             })
             .catch((error) => {
-                res.status(error.statusCode).send(error.error.error_description);
+                console.log(error)
+                res.status(error.statusCode).send(error);
             });
 
     } else {
