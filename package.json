@@ -88,7 +88,9 @@
     "save": "^2.4.0",
     "slick-carousel": "^1.8.1",
     "typeface-roboto": "^0.0.54",
-    "url-search-params": "^1.1.0"
+    "url-search-params": "^1.1.0",
+    "request": "^2.82.0",
+    "request-promise": "^4.2.1"
   },
   "scripts": {
     "start": "react-scripts start",
