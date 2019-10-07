@@ -22,6 +22,7 @@ import userPlaceHolder from '../../../assets/images/placeholder.jpg'
 import ContainerHeader from 'components/ContainerHeader';
 import IntlMessages from 'util/IntlMessages';
 import { SketchPicker } from 'react-color'
+import axios from 'axios'
 
 const defaultBotConfig = {
     name: '',
@@ -47,6 +48,12 @@ class BotConfiguration extends React.Component {
         this.handleCloseTextPicker = this.handleCloseTextPicker.bind(this)
         this.handleReset = this.handleReset.bind(this)
         this.handleSave = this.handleSave.bind(this)
+    }
+
+    componentDidMount() {
+        axios.get('http://localhost:3001/api/botConfig/2').then(res => {
+            console.log(res)
+        })
     }
 
     handleReset() {
@@ -144,7 +151,6 @@ class BotConfiguration extends React.Component {
                                         />
                                         <label htmlFor="raised-button-file">
                                             <Button
-                                                raised
                                                 component="span"
                                                 variant="contained"
                                                 style={{
@@ -231,7 +237,7 @@ class BotConfiguration extends React.Component {
                                                 </Grid>
                                                 <Grid item>
 
-                                                    <Paper rounded
+                                                    <Paper
                                                         style={{
                                                             paddingLeft: '5px',
                                                             paddingRight: '5px',
@@ -258,7 +264,7 @@ class BotConfiguration extends React.Component {
                                                     <Avatar src={userPlaceHolder} />
                                                 </Grid>
                                                 <Grid item>
-                                                    <Paper rounded style={{ paddingLeft: '5px', paddingRight: '5px' }}>
+                                                    <Paper style={{ paddingLeft: '5px', paddingRight: '5px' }}>
                                                         <Typography>
                                                             Im looking for a T-shirt
                                                         </Typography>

@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const crypto = require('crypto');
 const cookie = require('cookie');
@@ -12,6 +13,11 @@ const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const scopes = 'read_products,write_script_tags';
 const forwardingAddress = 'https://46abc15b.ngrok.io'; // Replace this with your HTTPS Forwarding address
+const bodyParser = require('body-parser');
+var RoleController = require('./controllers/RoleController')();
+var StoreController = require('./controllers/StoreController')();
+var UserController = require('./controllers/UserController')();
+var BotConfigController = require('./controllers/BotConfigurationController')();
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
@@ -105,6 +111,13 @@ app.get('/shopify/callback', (req, res) => {
     }
 });
 
+app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.json());
+app.use(cors())
+app.use('/api/roles',RoleController);
+app.use('/api/stores',StoreController);
+app.use('/api/users',UserController);
+app.use('/api/botConfig',BotConfigController)
 app.listen(3001, () => {
     console.log('Example app listening on port 3001!');
 });
