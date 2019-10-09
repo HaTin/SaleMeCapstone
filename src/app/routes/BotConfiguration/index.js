@@ -30,6 +30,9 @@ const defaultBotConfig = {
     textColor: 'white',
     image: botPlaceHolder,
 }
+
+const storeId=1
+let _isMount = false;
 class BotConfiguration extends React.Component {
     constructor(props) {
         super(props)
@@ -51,11 +54,31 @@ class BotConfiguration extends React.Component {
     }
 
     componentDidMount() {
-        axios.get('http://localhost:3001/api/botConfig/2').then(res => {
-            console.log(res)
+        _isMount = true
+        axios.get('http://localhost:3001/api/botConfig/'+storeId).then(res => {
+            var activeConfig = res.data.filter(c => c.IsActive === true)[0]
+            var currentTheme = this.state.botConfig
+            if(activeConfig.BackgroundColor && activeConfig.BackgroundColor.length>0){
+                currentTheme.color = activeConfig.BackgroundColor
+            }
+            if(activeConfig.TextColor && activeConfig.TextColor.length>0){
+                currentTheme.textColor = activeConfig.TextColor
+            }
+            if(activeConfig.BotName && activeConfig.BotName.length>0){
+                currentTheme.name = activeConfig.BotName
+            }
+            if(activeConfig.Avatar && activeConfig.Avatar.length>0){
+                currentTheme.image = activeConfig.Avatar
+            }
+            if(_isMount){
+                this.setState({botConfig:currentTheme})
+            }
         })
     }
 
+    componentWillUnmount() {
+        _isMount = false
+    }
     handleReset() {
         this.setState({
             botConfig: defaultBotConfig
@@ -63,8 +86,20 @@ class BotConfiguration extends React.Component {
     }
 
     handleSave() {
-        alert("Success")
-        console.dir(this.state.botConfig)
+        axios.put('http://localhost:3001/api/botConfig/deactive/'+storeId).then(res => {
+            axios.post('http://localhost:3001/api/botConfig/saveConfig/'+storeId,{
+                BotName:this.state.botConfig.name,
+                TextColor:this.state.botConfig.textColor,
+                BackgroundColor:this.state.botConfig.color,
+                Font:'',
+                ConfigDate:new Date(),
+                Avatar:this.state.botConfig.image,
+            }).then(res => {
+                console.log("save config response")
+                console.log(res)
+            })
+        })
+        
     }
     handleChangeName(event) {
         let config = this.state.botConfig
@@ -91,6 +126,7 @@ class BotConfiguration extends React.Component {
     }
 
     handleChangeImage(e) {
+        console.log(e.target.files[0])
         let reader = new FileReader()
         let imgFile = e.target.files[0]
         var test = this.state.botConfig
@@ -99,6 +135,7 @@ class BotConfiguration extends React.Component {
             this.setState({
                 botConfig: test
             })
+            
         }
         reader.readAsDataURL(imgFile)
 
@@ -117,7 +154,6 @@ class BotConfiguration extends React.Component {
     }
 
     handleOpenTextPicker() {
-        console.log("testttttt")
         this.setState({
             openTextColorPicker: true
         })
