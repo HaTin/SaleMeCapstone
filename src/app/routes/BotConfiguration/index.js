@@ -30,6 +30,9 @@ const defaultBotConfig = {
     textColor: 'white',
     image: botPlaceHolder,
 }
+
+const storeId = 17
+let _isMount = false;
 class BotConfiguration extends React.Component {
     constructor(props) {
         super(props)
@@ -51,9 +54,31 @@ class BotConfiguration extends React.Component {
     }
 
     componentDidMount() {
-        axios.get('http://localhost:3001/api/botConfig/2').then(res => {
+        _isMount = true
+        axios.get('http://localhost:3001/api/bot-config/' + storeId).then(res => {
             console.log(res)
+            var activeConfig = res.data.botConfig
+            var currentTheme = this.state.botConfig
+            if (activeConfig.backgroundColor) {
+                currentTheme.color = activeConfig.backgroundColor
+            }
+            if (activeConfig.textColor) {
+                currentTheme.textColor = activeConfig.textColor
+            }
+            if (activeConfig.botName) {
+                currentTheme.name = activeConfig.botName
+            }
+            if (activeConfig.avatar) {
+                currentTheme.image = activeConfig.avatar
+            }
+            if (_isMount) {
+                this.setState({ botConfig: currentTheme })
+            }
         })
+    }
+
+    componentWillUnmount() {
+        _isMount = false
     }
 
     handleReset() {
@@ -63,8 +88,17 @@ class BotConfiguration extends React.Component {
     }
 
     handleSave() {
-        alert("Success")
-        console.dir(this.state.botConfig)
+        axios.post('http://localhost:3001/api/bot-config/' + storeId, {
+            botName: this.state.botConfig.name,
+            textColor: this.state.botConfig.textColor,
+            backgroundColor: this.state.botConfig.color,
+            font: '',
+            configDate: new Date(),
+            avatar: this.state.botConfig.image,
+        }).then(res => {
+            console.log("save config response")
+            console.log(res)
+        })
     }
     handleChangeName(event) {
         let config = this.state.botConfig
@@ -117,7 +151,6 @@ class BotConfiguration extends React.Component {
     }
 
     handleOpenTextPicker() {
-        console.log("testttttt")
         this.setState({
             openTextColorPicker: true
         })
@@ -130,7 +163,7 @@ class BotConfiguration extends React.Component {
     }
     render() {
         return (
-            <div className="app-wrapper">
+            <div className="app-wrapper" >
                 <ContainerHeader match={this.props.match} title={<IntlMessages id="Store Management" />} />
                 <Grid container spacing={1}>
                     <Grid item xs={6}>
@@ -305,8 +338,7 @@ class BotConfiguration extends React.Component {
                     open={this.state.openBackgroundColorPicker}
                     onClose={this.handleCloseBackgroundPicker}
                     aria-labelledby="alert-dialog-title"
-                    aria-describedby="alert-dialog-description"
-                >
+                    aria-describedby="alert-dialog-description">
                     <DialogTitle id="alert-dialog-title">Pick your color</DialogTitle>
                     <DialogContent>
                         <SketchPicker
@@ -320,9 +352,9 @@ class BotConfiguration extends React.Component {
                             OK
                     </Button>
                     </DialogActions>
-                </Dialog>
+                </Dialog >
                 {/* open color picker for text */}
-                <Dialog
+                < Dialog
                     open={this.state.openTextColorPicker}
                     onClose={this.handleCloseTextPicker}
                     aria-labelledby="alert-dialog-title"
@@ -341,8 +373,8 @@ class BotConfiguration extends React.Component {
                             OK
                     </Button>
                     </DialogActions>
-                </Dialog>
-            </div>
+                </Dialog >
+            </div >
         )
     }
 }
