@@ -84,7 +84,6 @@ router.get('/callback', async (req, res) => {
                 const shopRequestHeaders = {
                     'X-Shopify-Access-Token': accessToken,
                 };
-
                 axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
                 const store = {
                     name: shop,
