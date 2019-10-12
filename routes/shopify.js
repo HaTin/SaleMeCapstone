@@ -12,7 +12,7 @@ const nonce = require('nonce')();
 const querystring = require('querystring');
 const storeController = require('../controllers/StoreController2')
 const botController = require('../controllers/BotConfigurationController')
-const forwardingAddress = 'http://91f1cd54.ngrok.io';
+const forwardingAddress = 'http://12f0f0de.ngrok.io';
 router.get('/', async (req, res) => {
     const shop = req.query.shop;
     if (shop) {
@@ -35,7 +35,7 @@ router.get('/callback', async (req, res) => {
     }
     if (shop && hmac && code) {
         // Redirect to dashboard if store installed app
-        if (await storeController.isStoreExisted(code)) {
+        if (await storeController.isStoreExisted(shop)) {
             return res.redirect('/')
         }
         // DONE: Validate request is from Shopify
@@ -75,20 +75,9 @@ router.get('/callback', async (req, res) => {
             .then(async (accessTokenResponse) => {
                 const accessToken = accessTokenResponse.access_token;
                 // sample scriptTags
-                const scriptTags = {
-                    "script_tag": {
-                        "event": "onload",
-                        "src": "https://sales-bot-script.s3-ap-southeast-1.amazonaws.com/bundle.js"
-                    }
-                }
-                const shopRequestHeaders = {
-                    'X-Shopify-Access-Token': accessToken,
-                };
 
-                axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
                 const store = {
                     name: shop,
-                    code,
                     token: accessToken,
                     isActive: 1
                 }
@@ -97,7 +86,19 @@ router.get('/callback', async (req, res) => {
                     botName: 'SA Bot',
                     storeId: response.store.id
                 }
-                await botController.saveConfiguration(botData)
+
+                const result = await botController.saveConfiguration(botData)
+                const scriptTags = {
+                    "script_tag": {
+                        "event": "onload",
+                        "src": `https://sales-bot-script.s3-ap-southeast-1.amazonaws.com/bundle.js?storeId=${result.botConfig.storeId}`
+                    }
+                }
+                const shopRequestHeaders = {
+                    'X-Shopify-Access-Token': accessToken,
+                };
+
+                axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
                 res.redirect('/')
             })
             .catch((error) => {

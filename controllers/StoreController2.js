@@ -7,8 +7,8 @@ const saveStore = async (data) => {
     return response
 }
 
-const isStoreExisted = async (code) => {
-    const result = await knex('store').where({ code }).select('id')
+const isStoreExisted = async (name) => {
+    const result = await knex('store').where({ name }).select('id')
     return result.length > 0
 }
 
