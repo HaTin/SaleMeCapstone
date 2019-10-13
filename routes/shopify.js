@@ -11,8 +11,9 @@ const cookie = require('cookie');
 const nonce = require('nonce')();
 const querystring = require('querystring');
 const storeController = require('../controllers/StoreController2')
+const authController = require('../controllers/AuthController')
 const botController = require('../controllers/BotConfigurationController')
-const forwardingAddress = 'http://12f0f0de.ngrok.io';
+const forwardingAddress = 'https://02bbafeb.ngrok.io';
 router.get('/', async (req, res) => {
     const shop = req.query.shop;
     if (shop) {
@@ -35,8 +36,10 @@ router.get('/callback', async (req, res) => {
     }
     if (shop && hmac && code) {
         // Redirect to dashboard if store installed app
-        if (await storeController.isStoreExisted(shop)) {
-            return res.redirect('/')
+        const store = await storeController.isStoreExisted(shop)
+        if (store) {
+            const token = await authController.generateToken(store)
+            return res.redirect(`/?token=${token}`)
         }
         // DONE: Validate request is from Shopify
         const map = Object.assign({}, req.query);

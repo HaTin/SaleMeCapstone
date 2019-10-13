@@ -18,7 +18,8 @@ if (process.env.NODE_ENV === 'production') {
     });
 } else {
     app.get('/', function (req, res) {
-        res.redirect('http://localhost:3000')
+        const token = req.query.token
+        return res.redirect(`http://localhost:3000/?token=${token}`)
     });
 }
 // app.use(logger('common'))

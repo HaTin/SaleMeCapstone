@@ -1,10 +1,10 @@
-import React, {Component} from 'react';
-import {createMuiTheme, MuiThemeProvider} from '@material-ui/core/styles';
+import React, { Component } from 'react';
+import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import MomentUtils from '@date-io/moment';
-import {MuiPickersUtilsProvider} from 'material-ui-pickers';
-import {Redirect, Route, Switch} from 'react-router-dom';
-import {connect} from 'react-redux';
-import {IntlProvider} from 'react-intl'
+import { MuiPickersUtilsProvider } from 'material-ui-pickers';
+import { Redirect, Route, Switch } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { IntlProvider } from 'react-intl'
 import "assets/vendors/style"
 import defaultTheme from './themes/defaultTheme';
 import AppLocale from '../lngProvider';
@@ -20,9 +20,11 @@ class App extends Component {
   }
 
   render() {
-    const {match, location, locale, isDirectionRTL} = this.props;
+    const { match, location, locale, isDirectionRTL } = this.props;
+    const params = new URLSearchParams(location.search)
+    console.log(params.get('token'))
     if (location.pathname === '/') {
-      return ( <Redirect to={'/app/sample-page'}/> );
+      return (<Redirect to={'/app/sample-page'} />);
     }
     const applyTheme = createMuiTheme(defaultTheme);
 
@@ -44,9 +46,9 @@ class App extends Component {
             <RTL>
               <div className="app-main">
                 <Switch>
-                  <Route path={`${match.url}app`} component={MainApp}/>
+                  <Route path={`${match.url}app`} component={MainApp} />
                   <Route
-                    component={asyncComponent(() => import('components/Error404'))}/>
+                    component={asyncComponent(() => import('components/Error404'))} />
                 </Switch>
               </div>
             </RTL>
@@ -57,9 +59,9 @@ class App extends Component {
   }
 }
 
-const mapStateToProps = ({settings}) => {
-  const {sideNavColor, locale, isDirectionRTL} = settings;
-  return {sideNavColor, locale, isDirectionRTL}
+const mapStateToProps = ({ settings }) => {
+  const { sideNavColor, locale, isDirectionRTL } = settings;
+  return { sideNavColor, locale, isDirectionRTL }
 };
 
 export default connect(mapStateToProps)(App);

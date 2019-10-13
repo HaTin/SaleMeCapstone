@@ -8,8 +8,8 @@ const saveStore = async (data) => {
 }
 
 const isStoreExisted = async (name) => {
-    const result = await knex('store').where({ name }).select('id')
-    return result.length > 0
+    const result = await knex('store').where({ name }).first('id','name')
+    return result
 }
 
 const getStores = async () => {
