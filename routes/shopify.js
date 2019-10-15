@@ -12,7 +12,7 @@ const nonce = require('nonce')();
 const querystring = require('querystring');
 const storeController = require('../controllers/StoreController2')
 const botController = require('../controllers/BotConfigurationController')
-const forwardingAddress = 'http://91f1cd54.ngrok.io';
+const forwardingAddress = 'https://4e28ad7e.ngrok.io';
 router.get('/', async (req, res) => {
     const shop = req.query.shop;
     if (shop) {
@@ -66,6 +66,7 @@ router.get('/callback', async (req, res) => {
         // DONE: Exchange temporary code for a permanent access token
         const accessTokenRequestUrl = 'https://' + shop + '/admin/oauth/access_token';
         const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
+        const webhookSubscriptionUrl = `https://${shop}/admin/api/2019-10/webhooks.json`
         const accessTokenPayload = {
             client_id: apiKey,
             client_secret: apiSecret,
@@ -85,6 +86,41 @@ router.get('/callback', async (req, res) => {
                     'X-Shopify-Access-Token': accessToken,
                 };
 
+                const createProductWebhook = {
+                    'webhook': {
+                        'topic': 'products/create',
+                        'address': forwardingAddress+"/webhook/products/create",
+                        'format': 'json'
+                    }
+                }
+
+                const updateProductWebhook = {
+                    'webhook': {
+                        'topic': 'products/update',
+                        'address': forwardingAddress+"/webhook/products/update",
+                        'format': 'json'
+                    }
+                }
+
+                const shopRequestHeaders2 = {
+                    'X-Shopify-Access-Token': accessToken,
+                    'Content-Type':'application/json'
+                }
+              
+                axios.post(webhookSubscriptionUrl, updateProductWebhook, {headers: shopRequestHeaders2})
+                .catch(function(error) {
+                    if(error.response.status === 422) {
+                        console.log("Code: "+error.response.status+" - webhook for this topic has been created")
+                    }
+                })
+                
+                axios.post(webhookSubscriptionUrl, createProductWebhook, {headers: shopRequestHeaders2})
+                .catch(function(error) {
+                    if(error.response.status === 422) {
+                        console.log("Code: "+error.response.status+" - webhook for this topic has been created")
+                    }
+                })
+                
                 axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
                 const store = {
                     name: shop,
