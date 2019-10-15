@@ -7,10 +7,12 @@ const bodyParser = require('body-parser');
 // var RoleController = require('./controllers/RoleController')();
 
 const conversationRouter = require('./routes/conversation')
+
 const botRouter = require('./routes/bot')
 const userRouter = require('./routes/user')
 const storeRouter = require('./routes/store')
 const shopifyRouter = require('./routes/shopify')
+const authRouter = require('./routes/auth')
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
     app.get('/', function (req, res) {
@@ -34,6 +36,7 @@ app.use('/api/users', userRouter);
 app.use('/api/bot-config', botRouter)
 app.use('/shopify', shopifyRouter)
 app.use('/api/conversation', conversationRouter)
+app.use('/api/auth', authRouter)
 app.listen(3001, () => {
     console.log('App listening on port 3001!');
 });

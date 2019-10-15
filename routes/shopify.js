@@ -13,7 +13,7 @@ const querystring = require('querystring');
 const storeController = require('../controllers/StoreController2')
 const authController = require('../controllers/AuthController')
 const botController = require('../controllers/BotConfigurationController')
-const forwardingAddress = 'https://02bbafeb.ngrok.io';
+const forwardingAddress = 'https://1356929e.ngrok.io';
 router.get('/', async (req, res) => {
     const shop = req.query.shop;
     if (shop) {
@@ -36,11 +36,7 @@ router.get('/callback', async (req, res) => {
     }
     if (shop && hmac && code) {
         // Redirect to dashboard if store installed app
-        const store = await storeController.isStoreExisted(shop)
-        if (store) {
-            const token = await authController.generateToken(store)
-            return res.redirect(`/?token=${token}`)
-        }
+
         // DONE: Validate request is from Shopify
         const map = Object.assign({}, req.query);
         delete map['signature'];
@@ -61,54 +57,41 @@ router.get('/callback', async (req, res) => {
         } catch (e) {
             hashEquals = false;
         };
-
         if (!hashEquals) {
             return res.status(400).send('HMAC validation failed');
         }
-
-        // DONE: Exchange temporary code for a permanent access token
-        const accessTokenRequestUrl = 'https://' + shop + '/admin/oauth/access_token';
-        const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
-        const accessTokenPayload = {
-            client_id: apiKey,
-            client_secret: apiSecret,
-            code,
-        };
-        request.post(accessTokenRequestUrl, { json: accessTokenPayload })
-            .then(async (accessTokenResponse) => {
-                const accessToken = accessTokenResponse.access_token;
-                // sample scriptTags
-
-                const store = {
-                    name: shop,
-                    token: accessToken,
-                    isActive: 1
-                }
-                const response = await storeController.saveStore(store)
-                const botData = {
-                    botName: 'SA Bot',
-                    storeId: response.store.id
-                }
-
-                const result = await botController.saveConfiguration(botData)
-                const scriptTags = {
-                    "script_tag": {
-                        "event": "onload",
-                        "src": `https://sales-bot-script.s3-ap-southeast-1.amazonaws.com/bundle.js?storeId=${result.botConfig.storeId}`
+        const store = await storeController.isStoreExisted(shop)
+        if (store) {
+            const user = await authController.isUserExisted(store.id)
+            if (user) {
+                const token = await authController.generateToken(store)
+                return res.redirect(`/?token=${token}`)
+            } else {
+                return res.redirect(`http://localhost:3000/signup?shop=${shop}`)
+            }
+        } else {
+            const accessTokenRequestUrl = 'https://' + shop + '/admin/oauth/access_token';
+            const accessTokenPayload = {
+                client_id: apiKey,
+                client_secret: apiSecret,
+                code,
+            };
+            request.post(accessTokenRequestUrl, { json: accessTokenPayload })
+                .then(async (accessTokenResponse) => {
+                    const accessToken = accessTokenResponse.access_token;
+                    const store = {
+                        name: shop,
+                        token: accessToken,
+                        isActive: 1
                     }
-                }
-                const shopRequestHeaders = {
-                    'X-Shopify-Access-Token': accessToken,
-                };
-
-                axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
-                res.redirect('/')
-            })
-            .catch((error) => {
-                console.log(error)
-                res.status(error.statusCode).send(error);
-            });
-
+                    const response = await storeController.saveStore(store)
+                    return res.redirect(`http://localhost:3000/signup?shop=${response.store.name}`)
+                })
+                .catch((error) => {
+                    console.log(error)
+                    res.status(error.statusCode).send(error);
+                });
+        }
     } else {
         res.status(400).send('Required parameters missing');
     }
