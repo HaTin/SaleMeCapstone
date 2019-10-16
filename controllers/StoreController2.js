@@ -7,9 +7,15 @@ const saveStore = async (data) => {
     return response
 }
 
-const isStoreExisted = async (code) => {
-    const result = await knex('store').where({ code }).select('id')
-    return result.length > 0
+const isStoreExisted = async (name, id) => {
+    const queryObj = {}
+    if (name) {
+        queryObj.name = name
+    } if (id) {
+        queryObj.id = id
+    }
+    const result = await knex('store').where(queryObj).first('id', 'name', 'token')
+    return result
 }
 
 const getStores = async () => {

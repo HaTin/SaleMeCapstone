@@ -7,10 +7,13 @@ const bodyParser = require('body-parser');
 // var RoleController = require('./controllers/RoleController')();
 
 const conversationRouter = require('./routes/conversation')
+
 const botRouter = require('./routes/bot')
 const userRouter = require('./routes/user')
 const storeRouter = require('./routes/store')
 const shopifyRouter = require('./routes/shopify')
+const authRouter = require('./routes/auth')
+const webhookRouter = require('./routes/webhook')
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
     app.get('/', function (req, res) {
@@ -18,7 +21,8 @@ if (process.env.NODE_ENV === 'production') {
     });
 } else {
     app.get('/', function (req, res) {
-        res.redirect('http://localhost:3000')
+        const token = req.query.token
+        return res.redirect(`http://localhost:3000/?token=${token}`)
     });
 }
 // app.use(logger('common'))
@@ -32,7 +36,9 @@ app.use('/api/stores', storeRouter);
 app.use('/api/users', userRouter);
 app.use('/api/bot-config', botRouter)
 app.use('/shopify', shopifyRouter)
+app.use('/webhook', webhookRouter)
 app.use('/api/conversation', conversationRouter)
+app.use('/api/auth', authRouter)
 app.listen(3001, () => {
     console.log('App listening on port 3001!');
 });

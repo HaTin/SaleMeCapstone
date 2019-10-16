@@ -17,8 +17,9 @@ const updateConfiguration = async (storeId, data) => {
 }
 
 const saveConfiguration = async (data) => {
-    const result = await knex('BotConfiguration').returning('id').insert(data)
-    return result
+    const result = await knex('BotConfiguration').returning(['id', 'storeId']).insert(data)
+    const response = util.createObj(result, 'botConfig');
+    return response
 }
 module.exports = {
     getConfiguration,
