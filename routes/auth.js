@@ -1,12 +1,11 @@
 const express = require('express')
-const request = require('request-promise');
 const axios = require('axios')
 const authController = require('../controllers/AuthController')
 const storeController = require('../controllers/StoreController2')
 const botController = require('../controllers/BotConfigurationController')
 const responseStatus = require('../configs/responseStatus')
 const router = express.Router()
-
+const forwardingAddress = 'http://91f1cd54.ngrok.io';
 router.post('/signup', async (req, res) => {
     try {
         const { firstName, lastName, email, shop, password } = req.body
@@ -19,16 +18,48 @@ router.post('/signup', async (req, res) => {
                 storeId: store.id
             }
             const result = await botController.saveConfiguration(botData)
+            const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
+            const webhookSubscriptionUrl = `https://${shop}/admin/api/2019-10/webhooks.json`
+            const createProductWebhook = {
+                'webhook': {
+                    'topic': 'products/create',
+                    'address': forwardingAddress + "/webhook/products/create",
+                    'format': 'json'
+                }
+            }
+
+            const updateProductWebhook = {
+                'webhook': {
+                    'topic': 'products/update',
+                    'address': forwardingAddress + "/webhook/products/update",
+                    'format': 'json'
+                }
+            }
+            const shopRequestHeaders = {
+                'X-Shopify-Access-Token': store.token,
+                'Content-Type': 'application/json'
+            };
+
+            axios.post(webhookSubscriptionUrl, updateProductWebhook, { headers: shopRequestHeaders })
+                .catch(function (error) {
+                    if (error.response.status === 422) {
+                        console.log("Code: " + error.response.status + " - webhook for this topic has been created")
+                    }
+                })
+
+            axios.post(webhookSubscriptionUrl, createProductWebhook, { headers: shopRequestHeaders })
+                .catch(function (error) {
+                    if (error.response.status === 422) {
+                        console.log("Code: " + error.response.status + " - webhook for this topic has been created")
+                    }
+                })
             const scriptTags = {
                 "script_tag": {
                     "event": "onload",
                     "src": `https://sales-bot-script.s3-ap-southeast-1.amazonaws.com/bundle.js?storeId=${result.botConfig.storeId}`
                 }
             }
-            const shopRequestHeaders = {
-                'X-Shopify-Access-Token': store.token,
-            };
-            const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
+
             await axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
             const token = await authController.generateToken(user)
             return res.send(responseStatus.Code200({ user, token }))

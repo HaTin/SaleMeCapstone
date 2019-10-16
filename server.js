@@ -13,6 +13,7 @@ const userRouter = require('./routes/user')
 const storeRouter = require('./routes/store')
 const shopifyRouter = require('./routes/shopify')
 const authRouter = require('./routes/auth')
+const webhookRouter = require('./routes/webhook')
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
     app.get('/', function (req, res) {
@@ -35,6 +36,7 @@ app.use('/api/stores', storeRouter);
 app.use('/api/users', userRouter);
 app.use('/api/bot-config', botRouter)
 app.use('/shopify', shopifyRouter)
+app.use('/webhook', webhookRouter)
 app.use('/api/conversation', conversationRouter)
 app.use('/api/auth', authRouter)
 app.listen(3001, () => {
