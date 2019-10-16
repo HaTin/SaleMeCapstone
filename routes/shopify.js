@@ -1,7 +1,6 @@
 require('dotenv').config()
 const express = require('express')
 const router = express.Router()
-const axios = require('axios');
 const request = require('request-promise');
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
@@ -13,7 +12,7 @@ const querystring = require('querystring');
 const storeController = require('../controllers/StoreController2')
 const authController = require('../controllers/AuthController')
 const botController = require('../controllers/BotConfigurationController')
-const forwardingAddress = 'https://1356929e.ngrok.io';
+const forwardingAddress = process.env.FORWARDING_ADDRESS
 router.get('/', async (req, res) => {
     const shop = req.query.shop;
     if (shop) {

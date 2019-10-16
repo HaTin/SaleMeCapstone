@@ -5,7 +5,7 @@ const storeController = require('../controllers/StoreController2')
 const botController = require('../controllers/BotConfigurationController')
 const responseStatus = require('../configs/responseStatus')
 const router = express.Router()
-const forwardingAddress = 'http://91f1cd54.ngrok.io';
+const forwardingAddress = process.env.FORWARDING_ADDRESS
 router.post('/signup', async (req, res) => {
     try {
         const { firstName, lastName, email, shop, password } = req.body
