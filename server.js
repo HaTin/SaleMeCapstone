@@ -37,7 +37,7 @@ app.use('/api/users', userRouter);
 app.use('/api/bot-config', botRouter)
 app.use('/shopify', shopifyRouter)
 app.use('/webhook', webhookRouter)
-app.use('/api/conversation', conversationRouter)
+app.use('/api/conversations', conversationRouter)
 app.use('/api/auth', authRouter)
 app.listen(3001, () => {
     console.log('App listening on port 3001!');

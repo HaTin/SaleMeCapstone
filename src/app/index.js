@@ -1,6 +1,6 @@
 import React from 'react';
-import {Route, Switch, withRouter} from 'react-router-dom';
-import {connect} from 'react-redux';
+import { Route, Switch, withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
 import Header from 'components/Header/index';
 import Sidebar from 'containers/SideNav/index';
 import Footer from 'components/Footer';
@@ -12,14 +12,14 @@ import {
   FIXED_DRAWER,
   HORIZONTAL_NAVIGATION,
 } from 'constants/ActionTypes';
-import {isIOS, isMobile} from 'react-device-detect';
+import { isIOS, isMobile } from 'react-device-detect';
 import asyncComponent from '../util/asyncComponent';
 import TopNav from 'components/TopNav';
 
 class App extends React.Component {
 
   render() {
-    const {match, drawerType, navigationStyle, horizontalNavPosition} = this.props;
+    const { match, drawerType, navigationStyle, horizontalNavPosition } = this.props;
     const drawerStyle = drawerType.includes(FIXED_DRAWER) ? 'fixed-drawer' : drawerType.includes(COLLAPSED_DRAWER) ? 'collapsible-drawer' : 'mini-drawer';
 
     //set default height and overflow for iOS mobile Safari 10+ support.
@@ -32,35 +32,36 @@ class App extends React.Component {
 
     return (
       <div className={`app-container ${drawerStyle}`}>
-        <Tour/>
+        <Tour />
 
-        <Sidebar/>
+        <Sidebar />
         <div className="app-main-container">
           <div
             className={`app-header ${navigationStyle === HORIZONTAL_NAVIGATION ? 'app-header-horizontal' : ''}`}>
             {(navigationStyle === HORIZONTAL_NAVIGATION && horizontalNavPosition === ABOVE_THE_HEADER) &&
-            <TopNav styleName="app-top-header"/>}
-            <Header/>
+              <TopNav styleName="app-top-header" />}
+            <Header />
             {(navigationStyle === HORIZONTAL_NAVIGATION && horizontalNavPosition === BELOW_THE_HEADER) &&
-            <TopNav/>}
+              <TopNav />}
           </div>
 
           <main className="app-main-content-wrapper">
             <div className="app-main-content">
               <Switch>
-                  <Route path={`${match.url}/sample-page`}
-                         component={asyncComponent(() => import('./routes/SamplePage'))}/>
-                  <Route path={`${match.url}/store-management`}
-                         component={asyncComponent(() => import('./routes/StoreManagement'))}/>
-                  <Route path={`${match.url}/dashboard`}
-                         component={asyncComponent(() => import('./routes/Dashboard'))}/>
-                  <Route path={`${match.url}/bot-config`}
-                         component={asyncComponent(() => import('./routes/BotConfiguration'))}/>
-                  
-                <Route component={asyncComponent(() => import('components/Error404'))}/>
+                <Route path={`${match.url}/sample-page`}
+                  component={asyncComponent(() => import('./routes/SamplePage'))} />
+                <Route path={`${match.url}/store-management`}
+                  component={asyncComponent(() => import('./routes/StoreManagement'))} />
+                <Route path={`${match.url}/dashboard`}
+                  component={asyncComponent(() => import('./routes/Dashboard'))} />
+                <Route path={`${match.url}/bot-config`}
+                  component={asyncComponent(() => import('./routes/BotConfiguration'))} />
+                <Route path={`${match.url}/conversation`}
+                  component={asyncComponent(() => import('./routes/Conversation'))} />
+                <Route component={asyncComponent(() => import('components/Error404'))} />
               </Switch>
             </div>
-            <Footer/>
+            <Footer />
           </main>
         </div>
       </div>
@@ -69,8 +70,8 @@ class App extends React.Component {
 }
 
 
-const mapStateToProps = ({settings}) => {
-  const {drawerType, navigationStyle, horizontalNavPosition} = settings;
-  return {drawerType, navigationStyle, horizontalNavPosition}
+const mapStateToProps = ({ settings }) => {
+  const { drawerType, navigationStyle, horizontalNavPosition } = settings;
+  return { drawerType, navigationStyle, horizontalNavPosition }
 };
 export default withRouter(connect(mapStateToProps)(App));

@@ -121,16 +121,22 @@ class SidenavContent extends Component {
               <span className="nav-text">Dashboard</span>
             </NavLink>
           </li>
-          <li className="menu no-arrow">
+          {/* <li className="menu no-arrow">
             <NavLink to="/app/store-management">
               <i className="zmdi zmdi-store zmdi-hc-fw" />
               <span className="nav-text">Store Management</span>
             </NavLink>
-          </li>
+          </li> */}
           <li className="menu no-arrow">
             <NavLink to="/app/bot-config">
               <i className="zmdi zmdi-android-alt zmdi-hc-fw" />
               <span className="nav-text">Bot Configuration</span>
+            </NavLink>
+          </li>
+          <li className="menu no-arrow">
+            <NavLink to="/app/conversation">
+              <i className="zmdi zmdi-comment zmdi-hc-fw" />
+              <span className="nav-text">Conversation</span>
             </NavLink>
           </li>
         </ul>
