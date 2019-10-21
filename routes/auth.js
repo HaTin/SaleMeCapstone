@@ -5,7 +5,9 @@ const storeController = require('../controllers/StoreController2')
 const botController = require('../controllers/BotConfigurationController')
 const responseStatus = require('../configs/responseStatus')
 const router = express.Router()
-const forwardingAddress = process.env.FORWARDING_ADDRESS
+const forwardingAddress = process.env.FORWARDING_ADDRESS;
+const redisClient = require('../configs/redis-config')
+
 router.post('/signup', async (req, res) => {
     try {
         const { firstName, lastName, email, shop, password } = req.body
@@ -20,6 +22,7 @@ router.post('/signup', async (req, res) => {
             const result = await botController.saveConfiguration(botData)
             const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
             const webhookSubscriptionUrl = `https://${shop}/admin/api/2019-10/webhooks.json`
+            const shopProductUrl = "https://"+shop+"/admin/api/2019-10/products.json"
             const createProductWebhook = {
                 'webhook': {
                     'topic': 'products/create',
@@ -35,6 +38,15 @@ router.post('/signup', async (req, res) => {
                     'format': 'json'
                 }
             }
+
+            const removeProductWebhook = {
+                'webhook': {
+                    'topic': 'products/delete',
+                    'address': forwardingAddress + "/webhook/products/delete",
+                    'format': 'json'
+                }
+            }
+
             const shopRequestHeaders = {
                 'X-Shopify-Access-Token': store.token,
                 'Content-Type': 'application/json'
@@ -53,6 +65,13 @@ router.post('/signup', async (req, res) => {
                         console.log("Code: " + error.response.status + " - webhook for this topic has been created")
                     }
                 })
+
+            axios.post(webhookSubscriptionUrl, removeProductWebhook, { headers: shopRequestHeaders })
+                .catch(function (error) {
+                    if (error.response.status === 422) {
+                        console.log("Code: " + error.response.status + " - webhook for this topic has been created")
+                    }
+                })
             const scriptTags = {
                 "script_tag": {
                     "event": "onload",
@@ -60,6 +79,24 @@ router.post('/signup', async (req, res) => {
                 }
             }
 
+            var productKey = shop+":"+store.token+":products"
+            
+            redisClient.get(productKey, (err, reply) => {
+                //if the data for this shop is saved
+                if(reply) {
+                    console.log("the data is saved in cache")
+                } else {//if not save, request to shopify to get data
+                    axios.get(shopProductUrl, {headers: shopRequestHeaders})
+                    .then(function(data) {
+                        console.log("save products to cache")
+                        var productList = JSON.stringify(data.data.products)
+                        redisClient.set(productKey, productList)
+                    })
+                    .catch(function(err) {
+                        console.log(err)
+                    })
+                }
+            })
             await axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
             const token = await authController.generateToken(user)
             return res.send(responseStatus.Code200({ user, token }))
