@@ -14,6 +14,7 @@ const storeRouter = require('./routes/store')
 const shopifyRouter = require('./routes/shopify')
 const authRouter = require('./routes/auth')
 const webhookRouter = require('./routes/webhook')
+const redisRouter = require('./routes/redis')
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
@@ -40,15 +41,9 @@ app.use('/shopify', shopifyRouter)
 app.use('/webhook', webhookRouter)
 app.use('/api/conversation', conversationRouter)
 app.use('/api/auth', authRouter)
+app.use('/api/redis',redisRouter)
 
-//for testing redis
-const redisClient = require('./configs/redis-config')
-let key = 'newstore18102019.myshopify.com:e0162dde806aa78dbd0ccedf46c4bfd7:products'
-app.get('/redis', function(req,res) {
-    redisClient.get(key, (err, data) => {
-        res.send(JSON.parse(data))
-    })
-})
+
 app.listen(3001, () => {
     console.log('App listening on port 3001!');
 });
