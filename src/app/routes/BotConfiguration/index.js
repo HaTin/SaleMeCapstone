@@ -14,7 +14,12 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions
+    DialogActions,
+    Switch,
+    FormControlLabel,
+    Checkbox,
+    FormGroup,
+    FormHelperText
 } from '@material-ui/core'
 import { purple } from '@material-ui/core/colors'
 import botPlaceHolder from '../../../assets/images/bot.png'
@@ -23,56 +28,90 @@ import ContainerHeader from 'components/ContainerHeader';
 import IntlMessages from 'util/IntlMessages';
 import { SketchPicker } from 'react-color'
 import axios from 'axios'
+import ChatBot from 'react-simple-chatbot';
+import EmailPhoneInput from './EmailPhoneInput'
+import defaultTheme from './botDefaultStyle'
+import gradients from './gradientList'
+import { ThemeProvider } from 'styled-components';
 
-const defaultBotConfig = {
-    name: '',
-    color: purple[400],
-    textColor: 'white',
-    image: botPlaceHolder,
+let defaultBotConfig = {
+    name: 'Bot',
+    theme: defaultTheme,
+    enableSurvey: false,
+    enableLiveChat: true,
+    surveyConfig: {
+        intro: 'Please introduce yourself',
+        requireEmail: true,
+        requirePhone: false,
+    },
 }
 
-const storeId = 17
+const styles = {
+    optionTitle: {
+        fontSize: '17px',
+    },
+    surveyContainer: {
+        marginTop: '10px',
+        width: '100%',
+    },
+}
+
 let _isMount = false;
+let storeId = 0
 class BotConfiguration extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            botConfig: Object.assign({}, defaultBotConfig),
-            openBackgroundColorPicker: false,
-            openTextColorPicker: false,
+            botName: Object.assign({}, defaultBotConfig).name,
+            openColorPicker: false,
+            theme: Object.assign({}, defaultBotConfig).theme,
+            enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
+            enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
+            showSurveyScreen: true,
+            surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig,
+            hasConfig: false,
         }
-        this.handleChangeName = this.handleChangeName.bind(this)
-        this.handleChangeBackground = this.handleChangeBackground.bind(this)
-        this.handleChangeText = this.handleChangeText.bind(this)
-        this.handleChangeImage = this.handleChangeImage.bind(this)
-        this.handleOpenBackgroundPicker = this.handleOpenBackgroundPicker.bind(this)
-        this.handleCloseBackgroundPicker = this.handleCloseBackgroundPicker.bind(this)
-        this.handleOpenTextPicker = this.handleOpenTextPicker.bind(this)
-        this.handleCloseTextPicker = this.handleCloseTextPicker.bind(this)
-        this.handleReset = this.handleReset.bind(this)
-        this.handleSave = this.handleSave.bind(this)
+        var user = JSON.parse(localStorage.getItem('user'))
+        if(user && user.storeId) {
+            storeId = user.storeId
+            console.log("storeId: "+storeId)
+        }
     }
 
     componentDidMount() {
         _isMount = true
-        axios.get('http://localhost:3001/api/bot-config/' + storeId).then(res => {
-            console.log(res)
-            var activeConfig = res.data.botConfig
-            var currentTheme = this.state.botConfig
-            if (activeConfig.backgroundColor) {
-                currentTheme.color = activeConfig.backgroundColor
-            }
-            if (activeConfig.textColor) {
-                currentTheme.textColor = activeConfig.textColor
-            }
-            if (activeConfig.botName) {
-                currentTheme.name = activeConfig.botName
-            }
-            if (activeConfig.avatar) {
-                currentTheme.image = activeConfig.avatar
-            }
-            if (_isMount) {
-                this.setState({ botConfig: currentTheme })
+        axios.get('http://localhost:3001/api/bot-config/'+storeId).then(res => {
+            var config = res.data.botConfig
+            if(config) {
+                var _enableSurvey = (config.requireEmail || config.requirePhone) ? true:false;
+                //setting default object to use when reset config
+                defaultBotConfig = {
+                    ...defaultBotConfig, 
+                    name: config.botName, 
+                    theme : {
+                        ...defaultBotConfig.theme,
+                        headerBgColor: config.backgroundColor,
+                        headerFontColor: config.textColor,
+                        userBubbleColor: config.backgroundColor,
+                        userFontColor: config.textColor
+                    },
+                    enableSurvey: _enableSurvey,
+                    enableLiveChat: config.liveChat,
+                    surveyConfig: {
+                        ...this.state.surveyConfig,
+                        intro: config.intro,
+                        requireEmail: (_enableSurvey && !config.requireEmail) ? false : true,
+                        requirePhone: (_enableSurvey && config.requirePhone) ? true : false,
+                    }
+                }
+                this.setState({
+                    hasConfig: true,
+                    botName: Object.assign({}, defaultBotConfig).name,
+                    theme: Object.assign({}, defaultBotConfig).theme,
+                    enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
+                    enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
+                    surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig
+                }) 
             }
         })
     }
@@ -81,295 +120,327 @@ class BotConfiguration extends React.Component {
         _isMount = false
     }
 
-    handleReset() {
+    handleReset = () => {
         this.setState({
-            botConfig: defaultBotConfig
+            botName: Object.assign({}, defaultBotConfig).name,
+            theme: Object.assign({}, defaultBotConfig).theme,
+            enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
+            enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
+            surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig,
         })
     }
 
-    handleSave() {
-        axios.post('http://localhost:3001/api/bot-config/' + storeId, {
-            botName: this.state.botConfig.name,
-            textColor: this.state.botConfig.textColor,
-            backgroundColor: this.state.botConfig.color,
-            font: '',
+    handleSave = () => {
+        var config = {
+            botName: this.state.botName,
+            storeId: storeId,
+            textColor: this.state.theme.userFontColor,
+            backgroundColor: this.state.theme.userBubbleColor,
             configDate: new Date(),
-            avatar: this.state.botConfig.image,
-        }).then(res => {
-            console.log("save config response")
-            console.log(res)
-        })
-    }
-    handleChangeName(event) {
-        let config = this.state.botConfig
-        config.name = event.target.value
-        this.setState({
-            botConfig: config
-        })
-    }
-
-    handleChangeBackground(color) {
-        let config = this.state.botConfig
-        config.color = color.hex
-        this.setState({
-            botConfig: config
-        })
-    }
-
-    handleChangeText(color) {
-        let config = this.state.botConfig
-        config.textColor = color.hex
-        this.setState({
-            botConfig: config
-        })
-    }
-
-    handleChangeImage(e) {
-        let reader = new FileReader()
-        let imgFile = e.target.files[0]
-        var test = this.state.botConfig
-        reader.onloadend = () => {
-            test.image = reader.result
-            this.setState({
-                botConfig: test
+            intro:this.state.surveyConfig.intro,
+            liveChat: this.state.enableLiveChat,
+            requireEmail: (this.state.enableSurvey && this.state.surveyConfig.requireEmail) ? true : false,
+            requirePhone: (this.state.enableSurvey && this.state.surveyConfig.requirePhone) ? true: false,
+        }
+        if(this.state.hasConfig) {
+            axios.put('http://localhost:3001/api/bot-config/'+storeId, config)
+            .then(res => {
+                console.log("update config response")
+                console.log(res.data)
+            })
+        } else {
+            axios.post('http://localhost:3001/api/bot-config', config)
+            .then(res => {
+                console.log("save config response")
+                console.log(res.data)
             })
         }
-        reader.readAsDataURL(imgFile)
-
+        
     }
-
-    handleOpenBackgroundPicker() {
+    handleChangeName = (event) => {
         this.setState({
-            openBackgroundColorPicker: true
+            botName: event.target.value
         })
     }
 
-    handleCloseBackgroundPicker() {
+    handleChangeBackground = (color) => {
         this.setState({
-            openBackgroundColorPicker: false
+            theme: {
+                ...this.state.theme,
+                headerBgColor: color.hex,
+                userBubbleColor: color.hex,
+            } 
         })
     }
 
-    handleOpenTextPicker() {
+    handleChangeTextColor = (color) => {
         this.setState({
-            openTextColorPicker: true
+            theme: {
+                ...this.state.theme,
+                headerFontColor: color.hex,
+                userFontColor: color.hex,
+            } 
         })
     }
 
-    handleCloseTextPicker() {
+    handleChangeTheme = (gradient) => {
         this.setState({
-            openTextColorPicker: false
+            theme: {
+                ...this.state.theme,
+                headerBgColor: gradient.background,
+                headerFontColor:gradient.color,
+                userBubbleColor:gradient.background,
+                userFontColor:gradient.color,
+            }
         })
     }
+    
+    handleOpenPicker = () => {
+        this.setState({
+            openColorPicker: true
+        })
+    }
+
+    handleClosePicker = () => {
+        this.setState({
+            openColorPicker: false
+        })
+    }
+
+    handleSurveyScreen = () => {
+        this.setState({
+            showSurveyScreen: !this.state.showSurveyScreen
+        })
+    }
+
+    handleEmailRequire = (event) => {
+        if(!event.target.checked && this.state.surveyConfig.requireEmail && !this.state.surveyConfig.requirePhone) {
+            return;
+        }
+        this.setState({surveyConfig: {...this.state.surveyConfig, requireEmail: event.target.checked}})
+    }
+
+    handlePhoneRequire = (event) => {
+        if(!event.target.checked && !this.state.surveyConfig.requireEmail && this.state.surveyConfig.requirePhone) {
+            return;
+        }
+        this.setState({surveyConfig: {...this.state.surveyConfig, requirePhone: event.target.checked}})
+    }
+
+    handleSurveyIntroChange = (event) => {
+        this.setState({surveyConfig: {...this.state.surveyConfig, intro: event.target.value}})
+    }
+
+    handleLiveChat = () => {
+        this.setState({enableLiveChat: !this.state.enableLiveChat})
+    }
+
+    handleSurvey = () => {
+        this.setState({enableSurvey: !this.state.enableSurvey})
+    }
+
     render() {
+        let emailAndPhoneInput = 
+        <EmailPhoneInput 
+            theme = {this.state.theme}
+            surveyConfig = {this.state.surveyConfig}
+            onSubmitInfo = {this.handleSurvey}
+        />;
+        let backgroundPicker = 
+        <div>
+            {gradients.map((gradient, i) => (
+                <div 
+                    key = {i}
+                    style = {{
+                        display: 'inline-block', 
+                        margin: '5px', 
+                        background: `${gradient.background}`,
+                        borderRadius:'50%',
+                        width: '50px',
+                        height: '50px',
+                        cursor:'pointer',
+                        boxShadow: this.state.theme.headerBgColor === gradient.background ? 
+                            'rgba(0, 77, 255, 0.5) 0 0 3px 3px' : ''
+                        }}
+                    onClick = {() => this.handleChangeTheme(gradient)}
+                >    
+                </div>
+            ))}
+        </div>
+
+        let survey = 
+        <div style = {styles.surveyContainer}>
+            <FormControl style = {{width: '100%'}}>
+                <InputLabel htmlFor="intro">Introduction line</InputLabel>
+                <Input id="intro"
+                    value={this.state.surveyConfig.intro}
+                    onChange={this.handleSurveyIntroChange} 
+                    fullWidth = {true}/>
+            </FormControl>
+            <FormControl style = {{width: '100%'}}>
+                <FormGroup>
+                    <Grid container spacing={1}>
+                        <Grid item xs={6}>
+                            <FormControlLabel
+                                control={
+                                <Checkbox
+                                    checked={this.state.surveyConfig.requireEmail}
+                                    onChange={this.handleEmailRequire}
+                                    value="emailRequire"
+                                    color="primary"
+                                />
+                                }
+                                label="Require email"
+                            />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <FormControlLabel
+                                control={
+                                <Checkbox
+                                    checked={this.state.surveyConfig.requirePhone}
+                                    onChange={this.handlePhoneRequire}
+                                    value="phoneRequire"
+                                    color="primary"
+                                />
+                                }
+                                label="Require phone"
+                            />
+                        </Grid>
+                    </Grid>
+                </FormGroup>
+                <FormHelperText>You have to choose at least 1 option</FormHelperText>
+            </FormControl>
+        </div>
+
+        let steps = [
+            {id: 'greeting', message: 'Xin chào tôi có thể giúp gì cho bạn', trigger: 'user'},
+            {id: 'user', user: true, end: true}
+        ]
         return (
             <div className="app-wrapper" >
                 <ContainerHeader match={this.props.match} title={<IntlMessages id="Store Management" />} />
                 <Grid container spacing={1}>
-                    <Grid item xs={6}>
-                        <Card style={{ height: '460px' }}>
+                    <Grid item xs={8}>
+                        <Card style={{ minHeight: '540px' }}>
                             <CardHeader title="Bot information" />
                             <CardContent>
-                                <Grid container spacing={3}>
+                                <FormControl>
+                                    <InputLabel htmlFor="bot-name">Name</InputLabel>
+                                    <Input id="bot-name"
+                                        value={this.state.botName}
+                                        onChange={this.handleChangeName} />
+                                </FormControl>
+                                <br/><br/>
+                                <span style = {styles.optionTitle}>Background color: </span>
+                                {backgroundPicker}
+                                <Button
+                                    variant = "contained"
+                                    color = "primary"
+                                    onClick={this.handleOpenPicker}
+                                >
+                                    Style your own color
+                                </Button>
+                                <br/><br/>
+                                <span style = {styles.optionTitle}>Enable live-chat: </span>
+                                <Switch
+                                    checked={this.state.enableLiveChat}
+                                    onChange={this.handleLiveChat}
+                                    value="livechat"
+                                    color="primary"
+                                    inputProps={{ 'aria-label': 'primary checkbox' }}
+                                />
+                                <br/><br/>
+                                <Grid container spacing={1}>
                                     <Grid item xs={6}>
-                                        <Avatar style={{ width: 100, height: 100, marginLeft: 20 }}
-                                            src={this.state.botConfig.image} />
-                                        <input
-                                            accept="image/*"
-                                            id="raised-button-file"
-                                            style={{ opacity: '0' }}
-                                            multiple
-                                            type="file"
-                                            onChange={(e) => this.handleChangeImage(e)}
+                                        <span style = {styles.optionTitle}>Pre-chat survey: </span>
+                                        <Switch
+                                            checked={this.state.enableSurvey}
+                                            onChange={this.handleSurvey}
+                                            value="survey"
+                                            color="primary"
+                                            inputProps={{ 'aria-label': 'primary checkbox' }}
                                         />
-                                        <label htmlFor="raised-button-file">
-                                            <Button
-                                                component="span"
-                                                variant="contained"
-                                                style={{
-                                                    backgroundColor: this.state.botConfig.color,
-                                                    color: this.state.botConfig.textColor
-                                                }}
-                                            >
-                                                Upload avatar
-                                        </Button>
-                                        </label>
-
                                     </Grid>
                                     <Grid item xs={6}>
-                                        <FormControl>
-                                            <InputLabel htmlFor="bot-name">Name</InputLabel>
-                                            <Input id="bot-name"
-                                                value={this.state.botConfig.name}
-                                                onChange={this.handleChangeName} />
-                                        </FormControl>
+                                        {
+                                            this.state.enableSurvey ? 
+                                            <FormControlLabel
+                                                control={
+                                                    <Checkbox
+                                                        checked={this.state.showSurveyScreen}
+                                                        onChange={this.handleSurveyScreen}
+                                                        value="showSurveyScreen"
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={this.state.showSurveyScreen ? 'Hide survey screen':'Open survey screen'}
+                                            />: ''
+                                        }
                                     </Grid>
-                                    <Grid item xs={6}>
-                                        <Paper style={{ padding: 25 }}>
-                                            <p>Background</p>
-                                            <Grid container alignItems="center">
-                                                <Grid item style={{ marginRight: 5 }}>
-                                                    <Paper style={{ background: this.state.botConfig.color, height: 40, width: 40, }}></Paper>
-                                                </Grid>
-                                                <Grid item>
-                                                    <Button
-                                                        style={{
-                                                            backgroundColor: this.state.botConfig.color,
-                                                            color: this.state.botConfig.textColor
-                                                        }}
-                                                        onClick={this.handleOpenBackgroundPicker}
-                                                    >
-                                                        Choose color
-                                                </Button>
-                                                </Grid>
-                                            </Grid>
-                                        </Paper>
-                                    </Grid>
-                                    <Grid item xs={6}>
-                                        <Paper style={{ padding: 25 }}>
-                                            <p>Text</p>
-                                            <Grid container alignItems="center">
-                                                <Grid item style={{ marginRight: 5 }}>
-                                                    <Paper style={{ background: this.state.botConfig.textColor, height: 40, width: 40, }}></Paper>
-                                                </Grid>
-                                                <Grid item>
-                                                    <Button
-                                                        style={{
-                                                            backgroundColor: this.state.botConfig.color,
-                                                            color: this.state.botConfig.textColor
-                                                        }}
-                                                        onClick={this.handleOpenTextPicker}
-                                                    >
-                                                        Choose color
-                                                </Button>
-                                                </Grid>
-                                            </Grid>
-                                        </Paper>
-                                    </Grid>
-                                </Grid>
+                                </Grid>                           
+                                { this.state.enableSurvey ? survey : ''}
                             </CardContent>
                         </Card>
                     </Grid>
-                    <Grid item xs={6}>
-                        <Card style={{ height: '460px' }}>
-                            <CardHeader title="Preview" />
-                            <CardContent>
-                                <Card style={{ height: '350px' }}>
-                                    <CardHeader
-                                        title={this.state.botConfig.name !== '' ? this.state.botConfig.name : 'Bot name'}
-                                        style={{ backgroundColor: this.state.botConfig.color, color: this.state.botConfig.textColor }}
-                                    />
-                                    <CardContent>
-                                        <div>
-                                            <Grid container
-                                                spacing={1}
-                                                wrap="nowrap"
-                                                alignItems="center">
-                                                <Grid item>
-                                                    <Avatar src={this.state.botConfig.image} />
-                                                </Grid>
-                                                <Grid item>
-
-                                                    <Paper
-                                                        style={{
-                                                            paddingLeft: '5px',
-                                                            paddingRight: '5px',
-                                                            backgroundColor: this.state.botConfig.color,
-                                                            color: this.state.botConfig.textColor
-                                                        }}>
-                                                        <Typography>
-                                                            Hello, can i help you?
-                                                        </Typography>
-                                                    </Paper>
-
-                                                </Grid>
-                                            </Grid>
-
-                                        </div>
-                                        <div>
-                                            <Grid container
-                                                spacing={1}
-                                                wrap="nowrap"
-                                                direction="row-reverse"
-                                                justify="flex-start"
-                                                alignItems="center">
-                                                <Grid item>
-                                                    <Avatar src={userPlaceHolder} />
-                                                </Grid>
-                                                <Grid item>
-                                                    <Paper style={{ paddingLeft: '5px', paddingRight: '5px' }}>
-                                                        <Typography>
-                                                            Im looking for a T-shirt
-                                                        </Typography>
-                                                    </Paper>
-                                                </Grid>
-                                            </Grid>
-
-                                        </div>
-                                        <div>
-
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </CardContent>
-                        </Card>
+                    <Grid item xs={4}>
+                        <ThemeProvider theme={this.state.theme}>
+                            <ChatBot
+                                headerTitle={this.state.botName}
+                                floating={true}
+                                hideBotAvatar = {true}
+                                hideUserAvatar = {true}
+                                bubbleStyle = {{borderRadius:'18px', margin: '2px 0px',}}
+                                steps = {steps}
+                                headerComponent = {
+                                    this.state.enableSurvey && this.state.showSurveyScreen ? emailAndPhoneInput : '' 
+                                }
+                                opened = {true}
+                            />
+                        </ThemeProvider>
+                        
                     </Grid>
                     <Grid item xs={12} style={{ textAlign: "right" }}>
                         <Button
                             variant="contained"
-                            style={{ marginRight: 10 }}
-                            onClick={this.handleReset}
-                        >
-                            Reset
-                        </Button>
-                        <Button
-                            style={{
-                                backgroundColor: this.state.botConfig.color,
-                                color: this.state.botConfig.textColor
-                            }}
+                            color="primary"
+                            style={{marginRight: '10px'}}
                             onClick={this.handleSave}
                         >
                             Save
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={this.handleReset}
+                        >
+                            Reset
                         </Button>
                     </Grid>
                 </Grid>
                 {/* open color picker for background */}
                 <Dialog
-                    open={this.state.openBackgroundColorPicker}
-                    onClose={this.handleCloseBackgroundPicker}
+                    open={this.state.openColorPicker}
+                    onClose={this.handleClosePicker}
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description">
-                    <DialogTitle id="alert-dialog-title">Pick your color</DialogTitle>
                     <DialogContent>
-                        <SketchPicker
-                            color={this.state.botConfig.color}
-                            onChangeComplete={this.handleChangeBackground}
-                        />
+                        <Grid container spacing = {1}>
+                            <Grid item xs = {6}>
+                                <span style = {styles.optionTitle}>Background</span>
+                                <SketchPicker
+                                    onChangeComplete={this.handleChangeBackground}
+                                />
+                            </Grid>
+                            <Grid item xs = {6}>
+                                <span style = {styles.optionTitle}>Text Color</span>
+                                <SketchPicker
+                                    onChangeComplete={this.handleChangeTextColor}
+                                />
+                            </Grid>
+                        </Grid>
                     </DialogContent>
                     <DialogActions>
 
-                        <Button onClick={this.handleCloseBackgroundPicker} autoFocus variant="contained">
-                            OK
-                    </Button>
-                    </DialogActions>
-                </Dialog >
-                {/* open color picker for text */}
-                < Dialog
-                    open={this.state.openTextColorPicker}
-                    onClose={this.handleCloseTextPicker}
-                    aria-labelledby="alert-dialog-title"
-                    aria-describedby="alert-dialog-description"
-                >
-                    <DialogTitle id="alert-dialog-title">Pick your color</DialogTitle>
-                    <DialogContent>
-                        <SketchPicker
-                            color={this.state.botConfig.textColor}
-                            onChangeComplete={this.handleChangeText}
-                        />
-                    </DialogContent>
-                    <DialogActions>
-
-                        <Button onClick={this.handleCloseTextPicker} autoFocus variant="contained">
+                        <Button onClick={this.handleClosePicker} autoFocus variant="contained">
                             OK
                     </Button>
                     </DialogActions>
