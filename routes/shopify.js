@@ -78,6 +78,7 @@ router.get('/callback', async (req, res) => {
             request.post(accessTokenRequestUrl, { json: accessTokenPayload })
                 .then(async (accessTokenResponse) => {
                     const accessToken = accessTokenResponse.access_token;
+                    console.log(accessToken)
                     const store = {
                         name: shop,
                         token: accessToken,
@@ -95,5 +96,6 @@ router.get('/callback', async (req, res) => {
         res.status(400).send('Required parameters missing');
     }
 });
+
 
 module.exports = router

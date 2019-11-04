@@ -1,5 +1,6 @@
 const knex = require('../configs/knex-config')
 const util = require('../utilities/util')
+const shopifyController = require('./ShopifyController')
 const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
     const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
@@ -19,9 +20,8 @@ const getMessages = async (conversationId) => {
 }
 
 const createConversation = async ({ message, storeId }) => {
-    const answer = generateAnswer(message);
+    const answer = await generateAnswer(message);
     const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    console.log(sessionId)
     const conversation = {
         sessionId,
         storeId,
@@ -38,7 +38,7 @@ const createConversation = async ({ message, storeId }) => {
         conversationId: conversationObj.conversation.id
     }
     const botMessage = {
-        msgContent: answer,
+        msgContent: answer.message,
         sender: 'bot',
         time: conversationObj.conversation.lastMessageTime,
         conversationId: conversationObj.conversation.id
@@ -49,7 +49,7 @@ const createConversation = async ({ message, storeId }) => {
 }
 
 const updateConversation = async ({ conversation, message }) => {
-    const answer = generateAnswer(message);
+    const answer = await generateAnswer(message);
     const userMessage = {
         msgContent: message,
         sender: 'user',
@@ -57,7 +57,7 @@ const updateConversation = async ({ conversation, message }) => {
         conversationId: conversation.id
     }
     const botMessage = {
-        msgContent: answer,
+        msgContent: answer.message,
         sender: 'bot',
         time: conversation.lastMessageTime,
         conversationId: conversation.id
@@ -66,9 +66,19 @@ const updateConversation = async ({ conversation, message }) => {
     await knex('Message').insert(botMessage)
     return { sessionId: conversation.sessionId, answer }
 }
-const generateAnswer = (message) => {
-    const ran = Math.floor(Math.random() * 3)
-    return answerArr[ran]
+const generateAnswer = async (message) => {
+    if (message.includes('tìm')) {
+        const productType = message.slice(message.indexOf("tìm") + 4)
+        const products = await shopifyController.getProductByTitle(productType)
+        return { message: `Đây là các sản phẩm thuộc loại ${productType}`, payload: products, type: 'find-product' }
+    } else if (message.includes('xem đơn hàng')) {
+        return { message: ``, type: 'view-order' }
+    } else if (message.includes('tình trạng đơn hàng')) {
+        return { messages: ``, type: 'track-order-status' }
+    }
+    else {
+        return { message: `Tôi không hiểu câu trả lời của bạn`, type: 'no-answer' }
+    }
 }
 
 module.exports = {

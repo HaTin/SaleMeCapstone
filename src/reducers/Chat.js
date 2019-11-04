@@ -24,8 +24,6 @@ const INIT_STATE = {
   selectedSectionId: '',
   userState: 1,
   searchChatUser: '',
-  // contactList: [], onlt for production
-  contactList: users.filter((user) => !user.recent),
   selectedUser: null,
   message: '',
   // chatUsers: [],
@@ -39,20 +37,6 @@ const INIT_STATE = {
 export default (state = INIT_STATE, action) => {
 
   switch (action.type) {
-    case FILTER_CONTACT: {
-      if (action.payload === '') {
-        return {
-          ...state, contactList: users.filter(user => !user.recent)
-        }
-      } else {
-        return {
-          ...state, contactList: users.filter((user) =>
-            !user.recent && user.name.toLowerCase().indexOf(action.payload.toLowerCase()) > -1
-          )
-        }
-      }
-    }
-
     case FILTER_USERS: {
       if (action.payload === '') {
         return {
