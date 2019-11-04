@@ -427,12 +427,14 @@ class BotConfiguration extends React.Component {
                             <Grid item xs = {6}>
                                 <span style = {styles.optionTitle}>Background</span>
                                 <SketchPicker
+                                    color = {this.state.theme.headerBgColor}
                                     onChangeComplete={this.handleChangeBackground}
                                 />
                             </Grid>
                             <Grid item xs = {6}>
                                 <span style = {styles.optionTitle}>Text Color</span>
                                 <SketchPicker
+                                    color = {this.state.theme.headerFontColor}
                                     onChangeComplete={this.handleChangeTextColor}
                                 />
                             </Grid>
