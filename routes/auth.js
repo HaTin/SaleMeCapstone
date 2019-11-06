@@ -16,8 +16,15 @@ router.post('/signup', async (req, res) => {
             const userResult = await authController.saveUser({ firstName, lastName, email, storeId: store.id, password, roleId: 1 })
             const user = userResult.user
             const botData = {
-                botName: 'SA Bot',
-                storeId: store.id
+                botName: 'Bot',
+                storeId: store.id,
+                textColor: 'rgb(255, 255, 255)',
+                backgroundColor: 'linear-gradient(135deg, rgb(19, 84, 122) 0%, rgb(128, 208, 199) 100%)',
+                configDate: new Date(),
+                intro:'',
+                liveChat: true,
+                requireEmail: false,
+                requirePhone: false
             }
             const result = await botController.saveConfiguration(botData)
             const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`

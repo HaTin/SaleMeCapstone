@@ -70,6 +70,7 @@ class BotConfiguration extends React.Component {
             showSurveyScreen: true,
             surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig,
             hasConfig: false,
+            saveStatus: false,
         }
         var user = JSON.parse(localStorage.getItem('user'))
         if(user && user.storeId) {
@@ -82,6 +83,7 @@ class BotConfiguration extends React.Component {
         _isMount = true
         axios.get('http://localhost:3001/api/bot-config/'+storeId).then(res => {
             var config = res.data.botConfig
+            console.log(config)
             if(config) {
                 var _enableSurvey = (config.requireEmail || config.requirePhone) ? true:false;
                 //setting default object to use when reset config
@@ -147,12 +149,14 @@ class BotConfiguration extends React.Component {
             .then(res => {
                 console.log("update config response")
                 console.log(res.data)
+                this.setState({saveStatus: true})
             })
         } else {
             axios.post('http://localhost:3001/api/bot-config', config)
             .then(res => {
                 console.log("save config response")
                 console.log(res.data)
+                this.setState({saveStatus: true})
             })
         }
         
@@ -204,6 +208,12 @@ class BotConfiguration extends React.Component {
     handleClosePicker = () => {
         this.setState({
             openColorPicker: false
+        })
+    }
+
+    handleCloseSave = () => {
+        this.setState({
+            saveStatus: false
         })
     }
 
@@ -446,6 +456,21 @@ class BotConfiguration extends React.Component {
                             OK
                     </Button>
                     </DialogActions>
+                </Dialog >
+                {/*saving status*/}
+                <Dialog
+                    open={this.state.saveStatus}
+                    onClose={this.handleCloseSave}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description">
+                    <DialogContent>
+                    <span style = {styles.optionTitle}>Save success</span>
+                    </DialogContent>   
+                    <DialogActions>
+                        <Button onClick={this.handleCloseSave} autoFocus variant="contained" color="primary">
+                            OK
+                    </Button>
+                    </DialogActions>    
                 </Dialog >
             </div >
         )

@@ -1,6 +1,9 @@
 const knex = require('../configs/knex-config')
 const util = require('../utilities/util')
 const shopifyController = require('./ShopifyController')
+const axios = require('axios')
+const botUrl = "http://bot.sales-bot.tech/api/answer/getAnswer?sentence="
+
 const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
     const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
@@ -67,6 +70,32 @@ const updateConversation = async ({ conversation, message }) => {
     return { sessionId: conversation.sessionId, answer }
 }
 const generateAnswer = async (message) => {
+    // let res = await axios.get(botUrl+encodeURIComponent(message))
+    // let botResponse = res.data
+    // if(botResponse.mean.length === 0) {
+    //     return { message: `Tôi không hiểu câu trả lời của bạn`, type: 'no-answer' }
+    // } else {
+    //     if(botResponse.action === 'find') {
+    //         if(botResponse.actionInfo.length == 0) {
+    //             return {message : botResponse.negative, type: "cannot-find"}
+    //         } else {
+    //             var options = botResponse.actionInfo.map((option) => option.name.toLowerCase())
+    //             var optionValues = botResponse.actionInfo.map((option) => option.value.toLowerCase())
+    //             let products = await shopifyController.getProductOption()
+    //             //filter out the products which has require option (eg: size, color)
+    //             products = products.filter(p => checkOption(p.options, options))
+    //             //filter out the product which has same option value (eg: l,xl, xanh, đỏ...)
+    //             return {message: botResponse.positive, payload: products, type: 'find'}
+    //         }            
+    //     }
+    //     if(botResponse.action === 'check') {
+    //         if(botResponse.actionInfo.length == 0) {
+    //             return {message : botResponse.negative, type: "cannot-find"}
+    //         } else {
+    //             return {message: botResponse.positive, type: 'find'}
+    //         }    
+    //     }
+    // }
     if (message.includes('tìm')) {
         const productType = message.slice(message.indexOf("tìm") + 4)
         const products = await shopifyController.getProductByTitle(productType)
@@ -81,10 +110,15 @@ const generateAnswer = async (message) => {
     }
 }
 
+const checkOption = (productOptions, botOptions) => {
+    var optionNames = productOptions.map(p => p.name.toLowerCase())
+    return optionNames.some(n => (botOptions.indexOf(n) >= 0))
+}
+
 module.exports = {
     findConversation,
     createConversation,
     updateConversation,
     getConversations,
-    getMessages
+    getMessages,
 }
