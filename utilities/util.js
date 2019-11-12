@@ -1,6 +1,9 @@
 const getCurrentDatetime = () => {
     return new Date().toISOString().slice(0, 19).replace('T', ' ');
 }
+const convertDatetime = (date) => {
+    return new Date(date).toISOString().slice(0, 19).replace('T', ' ');
+}
 const createObj = (obj, key) => {
     obj[key + ''] = obj['0']
     const newObj = {}
@@ -13,5 +16,6 @@ const createList = (obj, key) => {
 module.exports = {
     getCurrentDatetime,
     createObj,
-    createList
+    createList,
+    convertDatetime
 }
