@@ -41,7 +41,7 @@ class EmailPhoneInput extends React.Component {
         return (
             <div style={styles.container}>
                 <center style = {styles.centerDiv}>
-                    <Button style={styles.geeting}>{this.props.surveyConfig.intro}</Button>
+                    <p style={styles.geeting}>{this.props.surveyConfig.intro}</p>
                     {
                         this.props.surveyConfig.requireEmail ? 
                         <OutlinedInput
@@ -61,7 +61,7 @@ class EmailPhoneInput extends React.Component {
                     
                     <br/>
                     <StyledButton onClick = {this.props.onSubmitInfo}>
-                        SEND
+                        GỬI
                     </StyledButton>
                 </center>
             </div>

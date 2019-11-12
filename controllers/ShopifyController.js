@@ -6,11 +6,21 @@ const getProductByTitle = async (productType) => {
             'product_type': productType
         },
         headers: {
-            'X-Shopify-Access-Token': '8fc6396a5ed57d6df89d69dfd464bf68'
+            'X-Shopify-Access-Token': '0fba8fabbdac1bd95b52539092882dec'
+        }
+    })
+    return response.data.products
+}
+
+const getProductOption = async () => {
+    const response = await axios.get(`${productApi}?fields=options,title,id,handle,image,variants`, {
+        headers: {
+            'X-Shopify-Access-Token': '0fba8fabbdac1bd95b52539092882dec'
         }
     })
     return response.data.products
 }
 module.exports = {
-    getProductByTitle
+    getProductByTitle,
+    getProductOption
 }
