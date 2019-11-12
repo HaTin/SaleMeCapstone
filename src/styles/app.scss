@@ -99,3 +99,18 @@ Version        : 1.0
 @import "slider/slick-carousel";
 @import "module/_module-dir";
 @import "colorTheme/_color-theme-dir";
+.rsc-header {
+    padding: 15px !important;
+    height: 70px !important;
+}
+
+.rsc-container {
+    position: relative !important;
+    left: 0px !important;
+    top: 0px !important;
+    height: 540px !important;
+}
+
+h2 {
+    color:white;
+}

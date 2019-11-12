@@ -33,8 +33,9 @@
 
 .chat-sidenav-header {
   @include display-flex(flex, column, nowrap);
-  padding: 25px 20px 12px;
+  padding: 25px 20px 0px;
   background-color: lighten($gray-100, 0.5%);
+  border-bottom: 2px solid #3f51b5;
 }
 
 .chat-user-hd {
@@ -217,6 +218,7 @@
 }
 
 .chat-main {
+  height: inherit;
   @include display-flex(flex, column, nowrap);
 }
 

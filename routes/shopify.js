@@ -4,7 +4,7 @@ const router = express.Router()
 const request = require('request-promise');
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
-const scopes = 'read_products,write_script_tags';
+const scopes = 'read_products,write_script_tags,read_orders,read_customers';
 const crypto = require('crypto');
 const cookie = require('cookie');
 const nonce = require('nonce')();
@@ -78,6 +78,7 @@ router.get('/callback', async (req, res) => {
             request.post(accessTokenRequestUrl, { json: accessTokenPayload })
                 .then(async (accessTokenResponse) => {
                     const accessToken = accessTokenResponse.access_token;
+                    console.log(accessToken)
                     const store = {
                         name: shop,
                         token: accessToken,
@@ -95,5 +96,6 @@ router.get('/callback', async (req, res) => {
         res.status(400).send('Required parameters missing');
     }
 });
+
 
 module.exports = router

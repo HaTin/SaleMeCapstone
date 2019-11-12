@@ -13,7 +13,7 @@ router.get('/:storeId', async (req, res) => {
         res.status(error.status || 500).send(error)
     }
 })
-router.post('/:storeId', async (req, res) => {
+router.put('/:storeId', async (req, res) => {
     try {
         const response = await botController.updateConfiguration(req.params.storeId, req.body)
         return res.send(responseStatus.Code200(response))
@@ -22,4 +22,14 @@ router.post('/:storeId', async (req, res) => {
         res.status(error.status || 500).send(error)
     }
 })
+router.post('/', async (req, res) => {
+    try {
+        const response = await botController.saveConfiguration(req.body)
+        return res.send(responseStatus.Code200(response))
+    } catch (error) {
+        console.log(error)
+        res.status(error.status || 500).send(error)
+    }
+})
+
 module.exports = router

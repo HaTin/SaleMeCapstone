@@ -21,14 +21,15 @@ const isUserExisted = async (storeId) => {
 }
 
 const verifyUser = async ({ email, password }) => {
-    const user = await knex('User').where({ email }).first('firstName', 'lastName', 'email', 'password')
+    const user = await knex('User').where({ email }).first('firstName', 'lastName', 'email', 'password', 'storeId')
     if (user) {
         const match = await bcrypt.compare(password, user.password)
         if (match) {
             const newUser = {
                 email: user.email,
                 firstName: user.firstName,
-                lastName: user.lastName
+                lastName: user.lastName,
+                storeId: user.storeId
             }
             return newUser
         } else {

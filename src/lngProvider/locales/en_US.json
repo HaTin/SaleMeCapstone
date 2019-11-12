@@ -171,9 +171,9 @@
   "chart.radial": "Radial Graph",
   "chart.scatter": "Scatter Graph",
   "chart.tree": "Tree Graph",
-  "chat.selectUserChat": "Select User to start Chat",
+  "chat.selectUserChat": "Select User to see Messages",
   "chat.selectContactChat": "Select contact to start Chat",
-  "chat.chatUser": "Chats",
+  "chat.chatUser": "Conversations",
   "chat.contacts": "Contacts",
   "chat.searchStartNewChat": "Search or start new chat",
   "chat.typeMessage": "Type and hit enter to send message",
@@ -560,14 +560,12 @@
   "sidebar.classic": "Classic",
   "sidebar.modern": "Modern",
   "dashboard.viewAll": "View All",
-  "dashboard.onlineSignups":"Online Signups",
-  "dashboard.totalEmail":"Total Email Sent",
- "dashboard.yearlyProfit":"Yearly Profit",
-  "dashboard.cartItems":"Cart Items",
-  "dashboard.traffic":"Traffic",
-  "dashboard.browser":"Browser",
-  "dashboard.application":"Application",
-  "dashboard.weekly":"Weekly"
-
-
+  "dashboard.onlineSignups": "Online Signups",
+  "dashboard.totalEmail": "Total Email Sent",
+  "dashboard.yearlyProfit": "Yearly Profit",
+  "dashboard.cartItems": "Cart Items",
+  "dashboard.traffic": "Traffic",
+  "dashboard.browser": "Browser",
+  "dashboard.application": "Application",
+  "dashboard.weekly": "Weekly"
 }
