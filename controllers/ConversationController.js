@@ -1,6 +1,9 @@
 const knex = require('../configs/knex-config')
 const util = require('../utilities/util')
 const shopifyController = require('./ShopifyController')
+const axios = require('axios')
+const BOT_URL = 'http://bot.sales-bot.tech/api/answer/getAnswer'
+const SHOPIFY_ORDER_API = ''
 const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
     const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
@@ -20,7 +23,7 @@ const getMessages = async (conversationId) => {
 }
 
 const createConversation = async ({ message, storeId }) => {
-    const answer = await generateAnswer(message);
+    const answer = await generateAnswerV2(message, storeId);
     const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const conversation = {
         sessionId,
@@ -37,19 +40,22 @@ const createConversation = async ({ message, storeId }) => {
         time: conversationObj.conversation.lastMessageTime,
         conversationId: conversationObj.conversation.id
     }
-    const botMessage = {
-        msgContent: answer.message,
-        sender: 'bot',
-        time: conversationObj.conversation.lastMessageTime,
-        conversationId: conversationObj.conversation.id
-    }
+    answer.messages.map(async m => {
+        let botMessage = {
+            msgContent: m.message,
+            sender: 'bot',
+            time: conversationObj.conversation.lastMessageTime,
+            conversationId: conversationObj.conversation.id
+        }
+        await knex('Message').insert(botMessage)
+    })
     await knex('Message').insert(userMessage)
-    await knex('Message').insert(botMessage)
+
     return { sessionId, answer }
 }
 
 const updateConversation = async ({ conversation, message }) => {
-    const answer = await generateAnswer(message);
+    const answer = await generateAnswerV2(message, conversation.storeId);
     const userMessage = {
         msgContent: message,
         sender: 'user',
@@ -79,6 +85,46 @@ const generateAnswer = async (message) => {
     else {
         return { message: `Tôi không hiểu câu trả lời của bạn`, type: 'no-answer' }
     }
+}
+
+const generateAnswerV2 = async (message, storeId) => {
+    const response = await axios.get(BOT_URL, { params: { sentence: message } })
+    const { action, data, actionInfo, positive, negative } = response.data
+    const messages = []
+    switch (action) {
+        case 'ask_order':
+            if (actionInfo.length) {
+                messages.push({ message: negative, isDirect: true })
+            } else {
+            }
+            break
+        case 'check_order':
+            if (actionInfo.length) {
+                const info = actionInfo[0]
+                if (info.name = 'order_id') {
+                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json`, {
+                        params: {
+                            'name': info.value
+                        },
+                        headers: {
+                            'X-Shopify-Access-Token': store.token
+                        }
+                    })
+                    console.log(response)
+                    const orders = response.data.orders
+                    if (orders.length) {
+                        const order = orders[0]
+                        messages.push({ message: positive, isDirect: true, type: 'text' })
+                        messages.push({ message: order.order_status_url, isDirect: true, type: 'link' })
+                    }
+                } else messages.push({ message: negative, isDirect: true })
+            }
+            break
+        default:
+            messages.push({ message: 'Tôi không hiểu câu hỏi của bạn', isDirect: true })
+    }
+    return { action, messages }
 }
 
 module.exports = {
