@@ -135,13 +135,22 @@ const generateAnswerV2 = async (message, storeId) => {
                     });
                     if(products.length == 0) {
                         messages.push({message: negative, payload: products, type: 'find_product'})
+                    } else {
+                        products.forEach(product => {
+                            var variantStock = product.variants.map(v => ({title: v.title, inventory_quantity: v.inventory_quantity}))
+                            product.variantStock = variantStock
+                        })
+                        
+                        messages.push({message: positive, payload: products, type: 'find_product'})
                     }
-                    messages.push({message: positive, payload: products, type: 'find_product'})
+                    
                 }
+            } else {
+                messages.push({message: negative, payload: [], type: 'find_product'})
             }
             break
         default:
-            messages.push({ message: 'Tôi không hiểu câu hỏi của bạn', isDirect: true })
+            messages.push({ message: positive, isDirect: true , type: 'undefined'})
     }
     return { action, messages }
 }
