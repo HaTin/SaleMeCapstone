@@ -3,7 +3,6 @@ const util = require('../utilities/util')
 const shopifyController = require('./ShopifyController')
 const axios = require('axios')
 const BOT_URL = 'http://bot.sales-bot.tech/api/answer/getAnswer'
-const botUrl = "http://bot.sales-bot.tech/api/answer/getAnswer?sentence="
 
 const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
@@ -74,32 +73,6 @@ const updateConversation = async ({ conversation, message }) => {
     return { sessionId: conversation.sessionId, answer }
 }
 const generateAnswer = async (message) => {
-    // let res = await axios.get(botUrl+encodeURIComponent(message))
-    // let botResponse = res.data
-    // if(botResponse.mean.length === 0) {
-    //     return { message: `Tôi không hiểu câu trả lời của bạn`, type: 'no-answer' }
-    // } else {
-    //     if(botResponse.action === 'find') {
-    //         if(botResponse.actionInfo.length == 0) {
-    //             return {message : botResponse.negative, type: "cannot-find"}
-    //         } else {
-    //             var options = botResponse.actionInfo.map((option) => option.name.toLowerCase())
-    //             var optionValues = botResponse.actionInfo.map((option) => option.value.toLowerCase())
-    //             let products = await shopifyController.getProductOption()
-    //             //filter out the products which has require option (eg: size, color)
-    //             products = products.filter(p => checkOption(p.options, options))
-    //             //filter out the product which has same option value (eg: l,xl, xanh, đỏ...)
-    //             return {message: botResponse.positive, payload: products, type: 'find'}
-    //         }            
-    //     }
-    //     if(botResponse.action === 'check') {
-    //         if(botResponse.actionInfo.length == 0) {
-    //             return {message : botResponse.negative, type: "cannot-find"}
-    //         } else {
-    //             return {message: botResponse.positive, type: 'find'}
-    //         }    
-    //     }
-    // }
     if (message.includes('tìm')) {
         const productType = message.slice(message.indexOf("tìm") + 4)
         const products = await shopifyController.getProductByTitle(productType)
@@ -148,14 +121,43 @@ const generateAnswerV2 = async (message, storeId) => {
                 } else messages.push({ message: negative, isDirect: true })
             }
             break
+        case 'find':
+            if(actionInfo.length) {
+                var options = actionInfo.map((option) => option.name.toLowerCase())
+                var optionValues = actionInfo.map((option) => option.value.toLowerCase())
+                console.log(optionValues)
+                if(options.includes("product")) {
+                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    let products = await shopifyController.getProductOption(store)
+                    optionValues.forEach((option, index) => {
+                        console.log("loop action info value: "+option)
+                        products = products.filter(p => checkOptionValue(p,option))
+                    });
+                    if(products.length == 0) {
+                        messages.push({message: negative, payload: products, type: 'find_product'})
+                    }
+                    messages.push({message: positive, payload: products, type: 'find_product'})
+                }
+            }
+            break
         default:
             messages.push({ message: 'Tôi không hiểu câu hỏi của bạn', isDirect: true })
     }
     return { action, messages }
 }
-const checkOption = (productOptions, botOptions) => {
-    var optionNames = productOptions.map(p => p.name.toLowerCase())
-    return optionNames.some(n => (botOptions.indexOf(n) >= 0))
+
+const checkOptionValue = (product, value) => {
+    var optionValues = []
+    product.options.forEach(option => {
+        var v = option.values
+        v.forEach(val => optionValues.push(val.toLowerCase()))
+    })
+    if(product.title.toLowerCase().includes(value) 
+        || product.product_type.toLowerCase().includes(value) 
+        || optionValues.includes(value)) {
+            return true
+        }
+    return false
 }
 
 module.exports = {
