@@ -2,6 +2,7 @@ const knex = require('../configs/knex-config')
 const util = require('../utilities/util')
 const shopifyController = require('./ShopifyController')
 const axios = require('axios')
+const redisController = require('./RedisController')
 const BOT_URL = 'http://bot.sales-bot.tech/api/answer/getAnswer'
 const botUrl = "http://bot.sales-bot.tech/api/answer/getAnswer?sentence="
 
@@ -21,6 +22,10 @@ const getMessages = async (conversationId) => {
     const result = await knex('message').where({ conversationId }).select('msgContent', 'id', 'sender', 'time')
     const response = util.createList(result, 'messages')
     return response
+}
+
+const checkMessageAction = async (message) => {
+
 }
 
 const createConversation = async ({ message, storeId }) => {
@@ -114,16 +119,14 @@ const generateAnswer = async (message) => {
     }
 }
 
+
 const generateAnswerV2 = async (message, storeId) => {
     const response = await axios.get(BOT_URL, { params: { sentence: message } })
     const { action, data, actionInfo, positive, negative } = response.data
     const messages = []
     switch (action) {
         case 'ask_order':
-            if (actionInfo.length) {
-                messages.push({ message: negative, isDirect: true })
-            } else {
-            }
+            messages.push({ message: 'Vui lòng nhập mã đơn hàng', type: text })
             break
         case 'check_order':
             if (actionInfo.length) {
@@ -138,12 +141,11 @@ const generateAnswerV2 = async (message, storeId) => {
                             'X-Shopify-Access-Token': store.token
                         }
                     })
-                    console.log(response)
                     const orders = response.data.orders
                     if (orders.length) {
                         const order = orders[0]
                         messages.push({ message: positive, isDirect: true, type: 'text' })
-                        messages.push({ message: order.order_status_url, isDirect: true, type: 'link' })
+                        messages.push({ message: 'Nhấn vào để xem thông tin đơn hàng', link: order.order_status_url, isDirect: true, type: 'link' })
                     }
                 } else messages.push({ message: negative, isDirect: true })
             }

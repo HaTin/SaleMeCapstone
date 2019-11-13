@@ -33,6 +33,7 @@
     "draft-js": "^0.10.5",
     "draftjs-to-html": "^0.8.4",
     "express": "^4.17.1",
+    "express-session": "^1.17.0",
     "firebase": "^6.1.0",
     "history": "^4.9.0",
     "install": "^0.12.2",
