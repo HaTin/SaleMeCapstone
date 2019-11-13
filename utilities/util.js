@@ -13,9 +13,16 @@ const createObj = (obj, key) => {
 const createList = (obj, key) => {
     return { [key + '']: Object.values(obj) }
 }
+
+const validateEmail = (email) => {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+
 module.exports = {
     getCurrentDatetime,
     createObj,
     createList,
-    convertDatetime
+    convertDatetime,
+    validateEmail
 }

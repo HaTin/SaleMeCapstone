@@ -33,6 +33,7 @@
     "draft-js": "^0.10.5",
     "draftjs-to-html": "^0.8.4",
     "express": "^4.17.1",
+    "express-session": "^1.17.0",
     "firebase": "^6.1.0",
     "history": "^4.9.0",
     "install": "^0.12.2",
@@ -100,7 +101,8 @@
     "slick-carousel": "^1.8.1",
     "styled-components": "^4.4.1",
     "typeface-roboto": "^0.0.54",
-    "url-search-params": "^1.1.0"
+    "url-search-params": "^1.1.0",
+    "util": "^0.12.1"
   },
   "scripts": {
     "start": "react-scripts start",
