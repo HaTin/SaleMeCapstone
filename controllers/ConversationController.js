@@ -28,8 +28,8 @@ const checkMessageAction = async (message) => {
 }
 
 const createConversation = async ({ message, storeId }) => {
-    const answer = await generateAnswerV2(message, storeId);
     const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const answer = await generateAnswerV2(message, storeId, sessionId);
     const conversation = {
         sessionId,
         storeId,
@@ -60,7 +60,7 @@ const createConversation = async ({ message, storeId }) => {
 }
 
 const updateConversation = async ({ conversation, message }) => {
-    const answer = await generateAnswerV2(message, conversation.storeId);
+    const answer = await generateAnswerV2(message, conversation.storeId, conversation.sessionId);
     const userMessage = {
         msgContent: message,
         sender: 'user',
@@ -93,66 +93,105 @@ const generateAnswer = async (message) => {
 }
 
 
-const generateAnswerV2 = async (message, storeId) => {
+
+
+const generateAnswerV2 = async (message, storeId, sessionId) => {
+    const messages = []
+    const sessionState = JSON.parse(await redisController.getKeys(sessionId))
+    if (sessionState) {
+        const { state, data } = sessionState
+        if (state === 'input-order-id') {
+            sessionState.data.orderId = message
+            sessionState.state = 'input-order-email'
+            redisController.setItem(sessionId, sessionState)
+            messages.push({ message: 'Vui lòng nhập email', type: 'text' })
+            return { action: 'input-order-email', messages }
+        }
+        else if (state === 'input-order-email') {
+            const email = message
+            if (message.toUpperCase() === "hủy".toUpperCase()) {
+                messages.push({ message: `Hãy đặt câu hỏi một cách tự nhiên nhé`, isDirect: true, type: 'text' })
+                redisController.setItem(sessionId, null)
+                return { action: 'done', messages }
+            }
+            else if (!util.validateEmail(email)) {
+                messages.push({ message: `Vui lòng nhập đúng định dạng email hoặc Gõ "Hủy" để bỏ qua`, isDirect: true, type: 'text' })
+                return { action: 'done', messages }
+            }
+            const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+            const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json`, {
+                params: {
+                    'name': sessionState.data.orderId
+                },
+                headers: {
+                    'X-Shopify-Access-Token': store.token
+                }
+            })
+            const orders = response.data.orders
+            if (orders.length) {
+                const order = orders[0]
+                if (order.email === email) {
+                    messages.push({ message: `Thông tin của đơn hàng với mã ${order.order_number}`, isDirect: true, type: 'text' })
+                    messages.push({ message: 'Nhấn vào để xem thông tin đơn hàng', link: order.order_status_url, isDirect: true, type: 'link' })
+                    redisController.setItem(sessionId, null)
+                } else {
+                    messages.push({ message: `Không tìm thấy đơn hàng ${sessionState.data.orderId} với email ${email}. Xin hãy thử lại`, type: 'text' })
+                    redisController.setItem(sessionId, null)
+                    return { action: 'done', messages }
+                }
+            } else {
+                messages.push({ message: 'Không tìm thấy đơn hàng', type: 'text' })
+            }
+            return { action: 'check_order', messages }
+        }
+    }
     const response = await axios.get(BOT_URL, { params: { sentence: message } })
     const { action, data, actionInfo, positive, negative } = response.data
-    const messages = []
     switch (action) {
         case 'ask_order':
-            messages.push({ message: 'Vui lòng nhập mã đơn hàng', type: text })
+            redisController.setItem(sessionId, { state: 'input-order-id', data: { orderId: '', email: '' } })
+            messages.push({ message: 'Vui lòng nhập mã đơn hàng', type: 'text', isDirect: true })
             break
         case 'check_order':
             if (actionInfo.length) {
                 const info = actionInfo[0]
                 if (info.name = 'order_id') {
-                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
-                    const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json`, {
-                        params: {
-                            'name': info.value
-                        },
-                        headers: {
-                            'X-Shopify-Access-Token': store.token
-                        }
-                    })
-                    const orders = response.data.orders
-                    if (orders.length) {
-                        const order = orders[0]
-                        messages.push({ message: positive, isDirect: true, type: 'text' })
-                        messages.push({ message: 'Nhấn vào để xem thông tin đơn hàng', link: order.order_status_url, isDirect: true, type: 'link' })
-                    }
+                    redisController.setItem(sessionId, { state: 'input-order-email', data: { orderId: info.value, email: '' } })
+                    messages.push({ message: 'Vui lòng nhập email', type: 'text' })
+                    return { action: 'input-order-email', messages }
                 } else messages.push({ message: negative, isDirect: true })
             }
             break
         case 'find':
-            if(actionInfo.length) {
+            if (actionInfo.length) {
                 var options = actionInfo.map((option) => option.name.toLowerCase())
                 var optionValues = actionInfo.map((option) => option.value.toLowerCase())
                 console.log(optionValues)
-                if(options.includes("product")) {
+                if (options.includes("product")) {
                     const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                     let products = await shopifyController.getProductOption(store)
                     optionValues.forEach((option, index) => {
-                        console.log("loop action info value: "+option)
-                        products = products.filter(p => checkOptionValue(p,option))
+                        console.log("loop action info value: " + option)
+                        products = products.filter(p => checkOptionValue(p, option))
                     });
-                    if(products.length == 0) {
-                        messages.push({message: negative, payload: products, type: 'find_product'})
+                    if (products.length == 0) {
+                        messages.push({ message: negative, payload: products, type: 'find_product' })
                     } else {
                         products.forEach(product => {
-                            var variantStock = product.variants.map(v => ({title: v.title, inventory_quantity: v.inventory_quantity}))
+                            var variantStock = product.variants.map(v => ({ title: v.title, inventory_quantity: v.inventory_quantity }))
                             product.variantStock = variantStock
                         })
-                        
-                        messages.push({message: positive, payload: products, type: 'find_product'})
+
+                        messages.push({ message: positive, payload: products, type: 'find_product' })
                     }
-                    
+
                 }
             } else {
-                messages.push({message: negative, payload: [], type: 'find_product'})
+                messages.push({ message: negative, payload: [], type: 'find_product' })
             }
             break
         default:
-            messages.push({ message: positive, isDirect: true , type: 'undefined'})
+            messages.push({ message: positive, isDirect: true, type: 'undefined' })
     }
     return { action, messages }
 }
@@ -163,13 +202,15 @@ const checkOptionValue = (product, value) => {
         var v = option.values
         v.forEach(val => optionValues.push(val.toLowerCase()))
     })
-    if(product.title.toLowerCase().includes(value) 
-        || product.product_type.toLowerCase().includes(value) 
+    if (product.title.toLowerCase().includes(value)
+        || product.product_type.toLowerCase().includes(value)
         || optionValues.includes(value)) {
-            return true
-        }
+        return true
+    }
     return false
 }
+
+
 
 module.exports = {
     findConversation,

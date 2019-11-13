@@ -1,5 +1,6 @@
 const redisClient = require('../configs/redis-config')
-
+const { promisify } = require('util');
+const getAsync = promisify(redisClient.get).bind(redisClient);
 const saveItemToList = (key, item) => {
     redisClient.get(key, (err, reply) => {
         if (reply) {
@@ -10,12 +11,16 @@ const saveItemToList = (key, item) => {
     })
 }
 
-const setItem = (key, item, expire) => {
-    redisClient.set(key, JSON.stringify(item), null, 3600)
+const setItem = async (key, item, expire) => {
+     redisClient.set(key, JSON.stringify(item))
+    // redisClient.expire(key, expire || 3600)
 }
 
-const getItem = async (key) => {
-    const reply = await redisClient.get(key)
+const getItem = (key) => {
+    redisClient.get(key, function (err, reply) {
+        console.log(reply)
+        return reply
+    })
     return reply
 }
 
@@ -44,11 +49,7 @@ const removeItemInList = (key, id) => {
 }
 
 const getKeys = async (key) => {
-    const result = await redisClient.keys(key, (err, reply) => {
-        if (reply) {
-            return reply
-        }
-    })
+    const result = await getAsync(key)
     return result
 }
 module.exports = {
