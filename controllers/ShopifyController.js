@@ -21,7 +21,16 @@ const getProductOption = async (store) => {
     return response.data.products
 }
 
+const getProductInCollection = async (store, collectionId) => {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products.json?collection_id=${collectionId}&fields=options,title,id,product_type,handle,image,variants`, {
+        headers: {
+            'X-Shopify-Access-Token': store.token
+        }
+    })
+    return response.data.products
+}
 module.exports = {
     getProductByTitle,
-    getProductOption
+    getProductOption,
+    getProductInCollection
 }

@@ -117,6 +117,7 @@ router.post('/signin', async (req, res) => {
 const saveOrder = async (url, reqHeader, shopName) => {
     axios.get(url, {headers: reqHeader})
     .then(function(data) {
+        console.log("save order")
         orders = data.data.orders
         orders.forEach(order => {
             var productList = order.line_items.map(i => i.id)
@@ -139,6 +140,7 @@ const saveOrder = async (url, reqHeader, shopName) => {
 const saveProduct = async (url, reqHeader, shopName) => {
     axios.get(url, {headers: reqHeader})
     .then(function(data) {
+        console.log("save product")
         var products = data.data.products
         products.forEach(product => {
             var optionList = product.options.map(o => ({name: o.name, values: o.values}))
@@ -152,25 +154,31 @@ const saveProduct = async (url, reqHeader, shopName) => {
             }
             axios.post(BOT_URL+"addProduct", JSON.stringify(p))
         })
-        
     })
     .catch(function(err) {
         console.log(err)
-    })
+    })  
+    
 }
 
 const saveCollection = async (url, reqHeader, shopName) => {
     axios.get(url, {headers: reqHeader})
     .then(function(data) {
         var collections = data.data.custom_collections
-        collections.forEach(collection => {
+        console.log("save collection: "+collections.length)
+        collections.map(async (collection) => {
+            var url = `https://${shopName}/admin/api/2019-10/products.json?collection_id=${collection.id}`
+            let productInCollection = await axios.get(url,{headers: reqHeader})
+            let productIds = productInCollection.data.products.map(p => p.id)
             var c = {
                 shop: shopName,
                 id: collection.id,
                 title:collection.title,
+                products: productIds
             }
+            console.log(c)
+            axios.post(BOT_URL+"addCollection", JSON.stringify(c))
         })
-        
     })
     .catch(function(err) {
         console.log(err)

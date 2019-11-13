@@ -126,7 +126,7 @@ const generateAnswerV2 = async (message, storeId) => {
                 var options = actionInfo.map((option) => option.name.toLowerCase())
                 var optionValues = actionInfo.map((option) => option.value.toLowerCase())
                 console.log(optionValues)
-                if(options.includes("product")) {
+                //if(options.includes("product")) {
                     const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                     let products = await shopifyController.getProductOption(store)
                     optionValues.forEach((option, index) => {
@@ -144,9 +144,24 @@ const generateAnswerV2 = async (message, storeId) => {
                         messages.push({message: positive, payload: products, type: 'find_product'})
                     }
                     
-                }
+                //}
             } else {
                 messages.push({message: negative, payload: [], type: 'find_product'})
+            }
+            break
+        case 'show_collection':
+            if(actionInfo.length) {
+                var collectionId = actionInfo[0].value
+                const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                let products = await shopifyController.getProductInCollection(store, collectionId)
+                if(products.length == 0) {
+                    messages.push({message: negative, payload: [], type:"find_collection"})
+                }
+                else {
+                    messages.push({message: positive, payload: products, type:"find_collection"})
+                }
+            } else {
+                messages.push({message: negative, payload: [], type:"find_collection"})
             }
             break
         default:
