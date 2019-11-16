@@ -93,8 +93,6 @@ const generateAnswer = async (message) => {
 }
 
 
-
-
 const generateAnswerV2 = async (message, storeId, sessionId) => {
     const messages = []
     const sessionState = JSON.parse(await redisController.getKeys(sessionId))
@@ -177,11 +175,12 @@ const generateAnswerV2 = async (message, storeId, sessionId) => {
                     if (products.length == 0) {
                         messages.push({ message: negative, payload: products, type: 'find_product' })
                     } else {
-                        products.forEach(product => {
-                            var variantStock = product.variants.map(v => ({ title: v.title, inventory_quantity: v.inventory_quantity }))
-                            product.variantStock = variantStock
+                        //find best match variant for each product
+                        products.map(p => {
+                            let bestMatchVariant = findBestMatchVariant(p.variants, optionValues)
+                            p.bestMatchVariant = bestMatchVariant
                         })
-
+                    
                         messages.push({ message: positive, payload: products, type: 'find_product' })
                     }
                     
@@ -225,7 +224,40 @@ const checkOptionValue = (product, value) => {
     return false
 }
 
+const findBestMatchVariant = (variants, optionValue) => {
+    //add score to each variant
+    variants.map(v => {
+        var optionList = []
+        if(v.option1) optionList.push(v.option1.toLowerCase())
+        if(v.option2) optionList.push(v.option2.toLowerCase())
+        if(v.option3) optionList.push(v.option3.toLowerCase())
+        var score = 0
+        optionValue.forEach(o => {
+            if(optionList.indexOf(o) >= 0) {
+                score += 1
+            }
+        })
+        v.score = score
+    })
+    //find the variant with highest score
+    var bestMatchVariant = null
+    var baseScore = 0
+    variants.forEach(v => {
+        if(v.score > baseScore) {
+            baseScore = v.score
+            bestMatchVariant = v
+        }
+    })
+    return bestMatchVariant
+}
 
+const reportMessage = async (message, storeId) => {
+    const store = await knex('store').where({ id: storeId }).first('id', 'name')
+    const response = await axios.get(BOT_URL, { params: { sentence: message } })
+    return axios.post('http://bot.sales-bot.tech/api/report/reportMessage', 
+        JSON.stringify(response.data),
+        {params: {question: message, shop: store.name}})
+}
 
 module.exports = {
     findConversation,
@@ -233,4 +265,5 @@ module.exports = {
     updateConversation,
     getConversations,
     getMessages,
+    reportMessage,
 }
