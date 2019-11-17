@@ -15,7 +15,8 @@ const getProductByTitle = async (productType) => {
 const getProductOption = async (store) => {
     const response = await axios.get(`https://${store.name}/admin/api/2019-10/products.json?fields=options,title,id,product_type,handle,image,variants`, {
         headers: {
-            'X-Shopify-Access-Token': store.token
+            'X-Shopify-Access-Token': store.token,
+            'X-Shopify-Api-Features': 'include-presentment-prices'
         }
     })
     return response.data.products

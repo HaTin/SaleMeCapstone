@@ -50,10 +50,12 @@ let connections = []
 io.on("connection", (socket) => {
     connections[socket.id] = { state: '', data: {} }
     socket.on("message", async data => {
+        // show loading message
+        socket.emit('response', [{ text: '', typing: true, type: 'text' }])
         const client = connections[socket.id]
         console.log(data)
         client.state = data.type || client.state
-        const response = await chatController.generateBotAnswer({ ...data, sessionId: socket.id, client })
+        const response = await chatController.generateBotAnswer({ ...data, sessionId: socket.id, client }, socket)
         const newState = {
             state: response.state ? response.state : '',
             data: response.data ? response.data : {}

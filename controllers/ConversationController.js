@@ -38,7 +38,7 @@ const handleClientState = async (data) => {
 
 }
 
-const generateBotAnswer = async (botData) => {
+const generateBotAnswer = async (botData, socket) => {
     const messages = []
     const { sessionId, storeId, timestamp, text, client } = botData
     let { state, data } = client
@@ -143,6 +143,71 @@ const generateBotAnswer = async (botData) => {
                 } else messages.push({ text: negative, type: 'link' })
             }
             break
+        case 'find':
+            if (actionInfo.length) {
+                var options = actionInfo.map((option) => option.name.toLowerCase())
+                var optionValues = actionInfo.map((option) => option.value.toLowerCase())
+                console.log(optionValues)
+                //if(options.includes("product")) {
+                const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                let products = await shopifyController.getProductOption(store)
+                optionValues.forEach((option, index) => {
+                    console.log("loop action info value: " + option)
+                    products = products.filter(p => checkOptionValue(p, option))
+                });
+                if (products.length == 0) {
+                    messages.push({ text: negative, type: 'text' })
+                } else {
+                    const attachments = []
+                    products.forEach(product => {
+                        const attachment = { contentType: 'product', content: null }
+                        var variantStock = product.variants.map(v => ({ title: v.title, inventory_quantity: v.inventory_quantity }))
+                        attachment.title = product.title
+                        attachment.variantStock = variantStock
+                        attachment.image = product.image.src
+                        attachment.variants = product.variants
+                        attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
+                        const bestMatchVariant = findBestMatchVariant(product.variants, optionValues)
+                        const variantParams = bestMatchVariant ? `variant=${bestMatchVariant.id}` : ''
+                        attachment.buttons = [{ title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}${variantParams}` }]
+                        attachments.push(attachment)
+                    })
+                    messages.push({ text: positive, type: 'text' })
+                    messages.push({ text: '', attachments, type: 'text' })
+                }
+
+            } else {
+                messages.push({ text: negative, payload: [], type: 'find_product' })
+            }
+            break
+        case 'show_collection':
+            if (actionInfo.length) {
+                var collectionId = actionInfo[0].value
+                const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                let products = await shopifyController.getProductInCollection(store, collectionId)
+                if (products.length == 0) {
+                    messages.push({ text: negative, type: "text" })
+                }
+                else {
+                    const attachments = []
+                    products.forEach(product => {
+                        const attachment = { contentType: 'product', content: null }
+                        attachment.title = product.title
+                        attachment.image = product.image.src
+                        attachment.variants = product.variants
+                        attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
+                        attachment.buttons = [{ title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}` }]
+                        attachments.push(attachment)
+                    })
+                    messages.push({ text: positive, type: "text" })
+                    messages.push({ text: '', attachments, type: "text" })
+                }
+            } else {
+                messages.push({ text: negative, type: "text" })
+            }
+            break
+        default:
+            messages.push({ text: positive, type: 'text' })
     }
     const botMessage = await insertMessage({
         msgContent: 'test answer',
@@ -216,139 +281,8 @@ const updateConversation = async ({ conversation, message }) => {
     await knex('Message').insert(botMessage)
     return { sessionId: conversation.sessionId, answer }
 }
-const generateAnswer = async (message) => {
-    if (message.includes('tìm')) {
-        const productType = message.slice(message.indexOf("tìm") + 4)
-        const products = await shopifyController.getProductByTitle(productType)
-        return { message: `Đây là các sản phẩm thuộc loại ${productType}`, payload: products, type: 'find-product' }
-    } else if (message.includes('xem đơn hàng')) {
-        return { message: ``, type: 'view-order' }
-    } else if (message.includes('tình trạng đơn hàng')) {
-        return { messages: ``, type: 'track-order-status' }
-    }
-    else {
-        return { message: `Tôi không hiểu câu trả lời của bạn`, type: 'no-answer' }
-    }
-}
 
 
-
-
-const generateAnswerV2 = async (message, storeId, sessionId) => {
-    const messages = []
-    const sessionState = JSON.parse(await redisController.getKeys(sessionId))
-    if (sessionState) {
-        const { state, data } = sessionState
-        if (state === 'input-order-id') {
-            sessionState.data.orderId = message
-            sessionState.state = 'input-order-email'
-            redisController.setItem(sessionId, sessionState)
-            messages.push({ message: 'Vui lòng nhập email', type: 'text' })
-            return { action: 'input-order-email', messages }
-        }
-        else if (state === 'input-order-email') {
-            const email = message
-            if (message.toUpperCase() === "hủy".toUpperCase()) {
-                messages.push({ message: `Hãy đặt câu hỏi một cách tự nhiên nhé`, isDirect: true, type: 'text' })
-                redisController.setItem(sessionId, null)
-                return { action: 'done', messages }
-            }
-            else if (!util.validateEmail(email)) {
-                messages.push({ message: `Vui lòng nhập đúng định dạng email hoặc Gõ "Hủy" để bỏ qua`, isDirect: true, type: 'text' })
-                return { action: 'done', messages }
-            }
-            const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
-            const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json`, {
-                params: {
-                    'name': sessionState.data.orderId
-                },
-                headers: {
-                    'X-Shopify-Access-Token': store.token
-                }
-            })
-            const orders = response.data.orders
-            if (orders.length) {
-                const order = orders[0]
-                if (order.email === email) {
-                    messages.push({ message: `Thông tin của đơn hàng với mã ${order.order_number}`, isDirect: true, type: 'text' })
-                    messages.push({ message: 'Nhấn vào để xem thông tin đơn hàng', link: order.order_status_url, isDirect: true, type: 'link' })
-                    redisController.setItem(sessionId, null)
-                } else {
-                    messages.push({ message: `Không tìm thấy đơn hàng ${sessionState.data.orderId} với email ${email}. Xin hãy thử lại`, type: 'text' })
-                    redisController.setItem(sessionId, null)
-                    return { action: 'done', messages }
-                }
-            } else {
-                messages.push({ message: 'Không tìm thấy đơn hàng', type: 'text' })
-            }
-            return { action: 'check_order', messages }
-        }
-    }
-    const response = await axios.get(BOT_URL, { params: { sentence: message } })
-    const { action, data, actionInfo, positive, negative } = response.data
-    switch (action) {
-        case 'ask_order':
-            redisController.setItem(sessionId, { state: 'input-order-id', data: { orderId: '', email: '' } })
-            messages.push({ message: 'Vui lòng nhập mã đơn hàng', type: 'text', isDirect: true })
-            break
-        case 'check_order':
-            if (actionInfo.length) {
-                const info = actionInfo[0]
-                if (info.name = 'order_id') {
-                    redisController.setItem(sessionId, { state: 'input-order-email', data: { orderId: info.value, email: '' } })
-                    messages.push({ message: 'Vui lòng nhập email', type: 'text' })
-                    return { action: 'input-order-email', messages }
-                } else messages.push({ message: negative, isDirect: true })
-            }
-            break
-        case 'find':
-            if (actionInfo.length) {
-                var options = actionInfo.map((option) => option.name.toLowerCase())
-                var optionValues = actionInfo.map((option) => option.value.toLowerCase())
-                console.log(optionValues)
-                //if(options.includes("product")) {
-                const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
-                let products = await shopifyController.getProductOption(store)
-                optionValues.forEach((option, index) => {
-                    console.log("loop action info value: " + option)
-                    products = products.filter(p => checkOptionValue(p, option))
-                });
-                if (products.length == 0) {
-                    messages.push({ message: negative, payload: products, type: 'find_product' })
-                } else {
-                    products.forEach(product => {
-                        var variantStock = product.variants.map(v => ({ title: v.title, inventory_quantity: v.inventory_quantity }))
-                        product.variantStock = variantStock
-                    })
-
-                    messages.push({ message: positive, payload: products, type: 'find_product' })
-                }
-
-                //}
-            } else {
-                messages.push({ message: negative, payload: [], type: 'find_product' })
-            }
-            break
-        case 'show_collection':
-            if (actionInfo.length) {
-                var collectionId = actionInfo[0].value
-                const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
-                let products = await shopifyController.getProductInCollection(store, collectionId)
-                if (products.length == 0) {
-                    messages.push({ message: negative, payload: [], type: "find_collection" })
-                }
-                else {
-                    messages.push({ message: positive, payload: products, type: "find_collection" })
-                }
-            } else {
-                messages.push({ message: negative, payload: [], type: "find_collection" })
-            }
-            break
-        default:
-            messages.push({ message: positive, isDirect: true, type: 'undefined' })
-    }
-    return { action, messages }
-}
 
 const checkOptionValue = (product, value) => {
     var optionValues = []
@@ -365,6 +299,42 @@ const checkOptionValue = (product, value) => {
 }
 
 
+const findBestMatchVariant = (variants, optionValue) => {
+    //add score to each variant
+    variants.map(v => {
+        var optionList = []
+        if (v.option1) optionList.push(v.option1.toLowerCase())
+        if (v.option2) optionList.push(v.option2.toLowerCase())
+        if (v.option3) optionList.push(v.option3.toLowerCase())
+        var score = 0
+        optionValue.forEach(o => {
+            if (optionList.indexOf(o) >= 0) {
+                score += 1
+            }
+        })
+        v.score = score
+    })
+    //find the variant with highest score
+    var bestMatchVariant = null
+    var baseScore = 0
+    variants.forEach(v => {
+        if (v.score > baseScore) {
+            baseScore = v.score
+            bestMatchVariant = v
+        }
+    })
+    return bestMatchVariant
+}
+
+const reportMessage = async (message, storeId) => {
+    const store = await knex('store').where({ id: storeId }).first('id', 'name')
+    const response = await axios.get(BOT_URL, { params: { sentence: message } })
+    return axios.post('http://bot.sales-bot.tech/api/report/reportMessage',
+        JSON.stringify(response.data),
+        { params: { question: message, shop: store.name } })
+}
+
+
 
 module.exports = {
     findConversation,
@@ -372,5 +342,6 @@ module.exports = {
     updateConversation,
     getConversations,
     getMessages,
-    generateBotAnswer
+    generateBotAnswer,
+    reportMessage
 }
