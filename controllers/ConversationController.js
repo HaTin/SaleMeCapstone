@@ -283,7 +283,6 @@ const updateConversation = async ({ conversation, message }) => {
 }
 
 
-
 const checkOptionValue = (product, value) => {
     var optionValues = []
     product.options.forEach(option => {
@@ -298,6 +297,32 @@ const checkOptionValue = (product, value) => {
     return false
 }
 
+const findBestMatchVariant = (variants, optionValue) => {
+    //add score to each variant
+    variants.map(v => {
+        var optionList = []
+        if(v.option1) optionList.push(v.option1.toLowerCase())
+        if(v.option2) optionList.push(v.option2.toLowerCase())
+        if(v.option3) optionList.push(v.option3.toLowerCase())
+        var score = 0
+        optionValue.forEach(o => {
+            if(optionList.indexOf(o) >= 0) {
+                score += 1
+            }
+        })
+        v.score = score
+    })
+    //find the variant with highest score
+    var bestMatchVariant = null
+    var baseScore = 0
+    variants.forEach(v => {
+        if(v.score > baseScore) {
+            baseScore = v.score
+            bestMatchVariant = v
+        }
+    })
+    return bestMatchVariant
+}
 
 const findBestMatchVariant = (variants, optionValue) => {
     //add score to each variant
