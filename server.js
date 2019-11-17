@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
 const path = require('path');
 const bodyParser = require('body-parser');
 // var RoleController = require('./controllers/RoleController')();
@@ -15,7 +17,7 @@ const shopifyRouter = require('./routes/shopify')
 const authRouter = require('./routes/auth')
 const webhookRouter = require('./routes/webhook')
 const redisRouter = require('./routes/redis')
-
+const chatController = require('./controllers/ConversationController')
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
     app.get('/', function (req, res) {
@@ -41,9 +43,33 @@ app.use('/shopify', shopifyRouter)
 app.use('/webhook', webhookRouter)
 app.use('/api/conversations', conversationRouter)
 app.use('/api/auth', authRouter)
-app.use('/api/redis',redisRouter)
+app.use('/api/redis', redisRouter)
 
 
-app.listen(3001, () => {
+let connections = []
+io.on("connection", (socket) => {
+    connections[socket.id] = { state: '', data: {} }
+    socket.on("message", async data => {
+        // show loading message
+        socket.emit('response', [{ text: '', typing: true, type: 'text' }])
+        const client = connections[socket.id]
+        console.log(data)
+        client.state = data.type || client.state
+        const response = await chatController.generateBotAnswer({ ...data, sessionId: socket.id, client }, socket)
+        const newState = {
+            state: response.state ? response.state : '',
+            data: response.data ? response.data : {}
+        }
+        connections[socket.id] = newState
+        console.log(connections[socket.id])
+        socket.emit('response', response.messages)
+    });
+    socket.on('disconnect', () => {
+        delete connections[socket.id]
+    })
+});
+
+server.listen(3001, () => {
     console.log('App listening on port 3001!');
 });
+
