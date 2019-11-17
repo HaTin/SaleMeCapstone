@@ -3,6 +3,7 @@ const util = require('../utilities/util')
 const shopifyController = require('./ShopifyController')
 const axios = require('axios')
 const redisController = require('./RedisController')
+const mailService = require('../services/MailService')
 const BOT_URL = 'http://bot.sales-bot.tech/api/answer/getAnswer'
 
 const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
@@ -34,53 +35,37 @@ const insertMessage = async ({ sender, timestamp, conversationId, msgContent }) 
     return result[0]
 }
 
-const handleClientState = async (data) => {
-
-}
 
 const generateBotAnswer = async (botData, socket) => {
-    const messages = []
-    const { sessionId, storeId, timestamp, text, client } = botData
-    let { state, data } = client
-    let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
-    if (!conversation) {
-        conversation = await insertConversation({
-            sessionId,
-            storeId,
-            lastMessage: text,
-            userName: 'Anonymous User',
-            timestamp
+    try {
+        const messages = []
+        const { sessionId, storeId, timestamp, text, client } = botData
+        let { state, data } = client
+        let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
+        if (!conversation) {
+            conversation = await insertConversation({
+                sessionId,
+                storeId,
+                lastMessage: text,
+                userName: 'Anonymous User',
+                timestamp
+            })
+        }
+        await insertMessage({
+            msgContent: text,
+            sender: 'user',
+            timestamp,
+            conversationId: conversation.id
         })
-    }
-    await insertMessage({
-        msgContent: text,
-        sender: 'user',
-        timestamp,
-        conversationId: conversation.id
-    })
-    if (state) {
-        switch (state) {
-            case 'ask-order-id':
-                state = 'input-order-id'
-                messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
-                break;
-            case 'input-order-id':
-                data.orderId = text
-                state = 'input-order-email'
-                const suggestedActions = [
-                    {
-                        type: 'cancel',
-                        value: 'Hủy'
-                    }, {
-                        type: 'ask-order-id',
-                        value: 'Nhập lại mã đơn hàng'
-                    }
-                ]
-                messages.push({ text: 'Vui lòng nhập email', suggestedActions, type: 'text' })
-                break;
-            case 'input-order-email':
-                const email = text
-                if (!util.validateEmail(email)) {
+        if (state) {
+            switch (state) {
+                case 'ask-order-id':
+                    state = 'input-order-id'
+                    messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
+                    break;
+                case 'input-order-id':
+                    data.orderId = text
+                    state = 'input-order-email'
                     const suggestedActions = [
                         {
                             type: 'cancel',
@@ -90,131 +75,179 @@ const generateBotAnswer = async (botData, socket) => {
                             value: 'Nhập lại mã đơn hàng'
                         }
                     ]
-                    messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
-                }
-                else {
-                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
-                    const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json`, {
-                        params: {
-                            'name': data.orderId
-                        },
-                        headers: {
-                            'X-Shopify-Access-Token': store.token
-                        }
-                    })
-                    const orders = response.data.orders
-                    if (orders.length) {
-                        const order = orders[0]
-                        if (order.email === email) {
-                            messages.push({ text: `Thông tin của đơn hàng với mã ${order.order_number}`, type: 'text' })
-                            messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
-                            state = null
-                        } else {
-                            messages.push({ text: `Không tìm thấy đơn hàng ${data.orderId} với email ${email}. Xin hãy thử lại`, type: 'text' })
-                            state = null
-                        }
-                    } else {
-                        messages.push({ text: 'Không tìm thấy đơn hàng', type: 'text' })
-                        state = null
+                    messages.push({ text: 'Vui lòng nhập email', suggestedActions, type: 'text' })
+                    break;
+                case 'input-order-email':
+                    const email = text
+                    if (!util.validateEmail(email)) {
+                        const suggestedActions = [
+                            {
+                                type: 'cancel',
+                                value: 'Hủy'
+                            }, {
+                                type: 'ask-order-id',
+                                value: 'Nhập lại mã đơn hàng'
+                            }
+                        ]
+                        messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     }
-                }
-                break;
-            case 'cancel':
-                messages.push({ text: 'Nếu bạn có bất kỳ câu hỏi nào, hãy hỏi tôi nhé!', type: 'text' })
-                state = null
-                break;
+                    else {
+                        const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                        const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json`, {
+                            params: {
+                                'name': data.orderId
+                            },
+                            headers: {
+                                'X-Shopify-Access-Token': store.token
+                            }
+                        })
+                        const orders = response.data.orders
+                        if (orders.length) {
+                            const order = orders[0]
+                            if (order.email === email) {
+                                messages.push({ text: `Thông tin của đơn hàng với mã ${order.order_number}`, type: 'text' })
+                                messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
+                                state = null
+                            } else {
+                                messages.push({ text: `Không tìm thấy đơn hàng ${data.orderId} với email ${email}. Xin hãy thử lại`, type: 'text' })
+                                state = null
+                            }
+                        } else {
+                            messages.push({ text: 'Không tìm thấy đơn hàng', type: 'text' })
+                            state = null
+                        }
+                    }
+                    break;
+                case 'send-email':
+                    messages.push({ text: 'Vui lòng nhập email của bạn', type: 'text' })
+                    state = 'input-email'
+                    break;
+                case 'input-email':
+                    const customerEmail = text
+                    if (!util.validateEmail(customerEmail)) {
+                        const suggestedActions = [
+                            {
+                                type: 'cancel',
+                                value: 'Hủy'
+                            }
+                        ]
+                        messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
+                    } else {
+                        const user = await knex('User').where({ storeId }).first('email')
+                        if (user) {
+                            mailService.sendMail({ receiver: user.email, customerEmail })
+                            messages.push({ text: 'Xin cảm ơn, chúng tôi sẽ gửi câu trả cho bạn thông qua email sớm nhất có thể', type: 'text' })
+                            state = null;
+                        }
+                    }
+                    break;
+                case 'cancel':
+                    messages.push({ text: 'Nếu bạn có bất kỳ câu hỏi nào, hãy hỏi tôi nhé!', type: 'text' })
+                    state = null
+                    break;
+            }
+            return { state, messages, data }
         }
-        return { state, messages, data }
-    }
-    const response = await axios.get(BOT_URL, { params: { sentence: text } })
-    const { action, actionInfo, positive, negative } = response.data
-    switch (action) {
-        case 'ask_order':
-            state = 'input-order-id'
-            messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
-            break
-        case 'check_order':
-            if (actionInfo.length) {
-                const info = actionInfo[0]
-                if (info.name = 'order_id') {
-                    state = 'input-order-email'
-                    data.orderId = info.value
-                    messages.push({ text: 'Vui lòng nhập email', type: 'text' })
-                } else messages.push({ text: negative, type: 'link' })
-            }
-            break
-        case 'find':
-            if (actionInfo.length) {
-                var options = actionInfo.map((option) => option.name.toLowerCase())
-                var optionValues = actionInfo.map((option) => option.value.toLowerCase())
-                console.log(optionValues)
-                //if(options.includes("product")) {
-                const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
-                let products = await shopifyController.getProductOption(store)
-                optionValues.forEach((option, index) => {
-                    console.log("loop action info value: " + option)
-                    products = products.filter(p => checkOptionValue(p, option))
-                });
-                if (products.length == 0) {
-                    messages.push({ text: negative, type: 'text' })
-                } else {
-                    const attachments = []
-                    products.forEach(product => {
-                        const attachment = { contentType: 'product', content: null }
-                        var variantStock = product.variants.map(v => ({ title: v.title, inventory_quantity: v.inventory_quantity }))
-                        attachment.title = product.title
-                        attachment.variantStock = variantStock
-                        attachment.image = product.image.src
-                        attachment.variants = product.variants
-                        attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
-                        const bestMatchVariant = findBestMatchVariant(product.variants, optionValues)
-                        const variantParams = bestMatchVariant ? `?variant=${bestMatchVariant.id}` : ''
-                        attachment.buttons = [{ title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}${variantParams}` }]
-                        attachments.push(attachment)
-                    })
-                    messages.push({ text: positive, type: 'text' })
-                    messages.push({ text: '', attachments, type: 'text' })
+        const response = await axios.get(BOT_URL, { params: { sentence: text } })
+        const { action, actionInfo, positive, negative } = response.data
+        switch (action) {
+            case 'ask_order':
+                state = 'input-order-id'
+                messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
+                break
+            case 'check_order':
+                if (actionInfo.length) {
+                    const info = actionInfo[0]
+                    if (info.name = 'order_id') {
+                        state = 'input-order-email'
+                        data.orderId = info.value
+                        messages.push({ text: 'Vui lòng nhập email', type: 'text' })
+                    } else messages.push({ text: negative, type: 'link' })
                 }
+                break
+            case 'find':
+                if (actionInfo.length) {
+                    var options = actionInfo.map((option) => option.name.toLowerCase())
+                    var optionValues = actionInfo.map((option) => option.value.toLowerCase())
+                    console.log(optionValues)
+                    //if(options.includes("product")) {
+                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    let products = await shopifyController.getProductOption(store)
+                    optionValues.forEach((option, index) => {
+                        console.log("loop action info value: " + option)
+                        products = products.filter(p => checkOptionValue(p, option))
+                    });
+                    if (products.length == 0) {
+                        messages.push({ text: negative, type: 'text' })
+                    } else {
+                        const attachments = []
+                        products.forEach(product => {
+                            const attachment = { contentType: 'product', content: null }
+                            var variantStock = product.variants.map(v => ({ title: v.title, inventory_quantity: v.inventory_quantity }))
+                            attachment.title = product.title
+                            attachment.variantStock = variantStock
+                            attachment.image = product.image.src
+                            attachment.variants = product.variants
+                            attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
+                            const bestMatchVariant = findBestMatchVariant(product.variants, optionValues)
+                            const variantParams = bestMatchVariant ? `?variant=${bestMatchVariant.id}` : ''
+                            attachment.buttons = [{ title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}${variantParams}` }]
+                            attachments.push(attachment)
+                        })
+                        messages.push({ text: positive, type: 'text' })
+                        messages.push({ text: '', attachments, type: 'text' })
+                    }
 
-            } else {
-                messages.push({ text: negative, payload: [], type: 'find_product' })
-            }
-            break
-        case 'show_collection':
-            if (actionInfo.length) {
-                var collectionId = actionInfo[0].value
-                const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
-                let products = await shopifyController.getProductInCollection(store, collectionId)
-                if (products.length == 0) {
+                } else {
+                    messages.push({ text: negative, payload: [], type: 'find_product' })
+                }
+                break
+            case 'show_collection':
+                if (actionInfo.length) {
+                    var collectionId = actionInfo[0].value
+                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    let products = await shopifyController.getProductInCollection(store, collectionId)
+                    if (products.length == 0) {
+                        messages.push({ text: negative, type: "text" })
+                    }
+                    else {
+                        const attachments = []
+                        products.forEach(product => {
+                            const attachment = { contentType: 'product', content: null }
+                            attachment.title = product.title
+                            attachment.image = product.image.src
+                            attachment.variants = product.variants
+                            attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
+                            attachment.buttons = [{ title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}` }]
+                            attachments.push(attachment)
+                        })
+                        messages.push({ text: positive, type: "text" })
+                        messages.push({ text: '', attachments, type: "text" })
+                    }
+                } else {
                     messages.push({ text: negative, type: "text" })
                 }
-                else {
-                    const attachments = []
-                    products.forEach(product => {
-                        const attachment = { contentType: 'product', content: null }
-                        attachment.title = product.title
-                        attachment.image = product.image.src
-                        attachment.variants = product.variants
-                        attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
-                        attachment.buttons = [{ title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}` }]
-                        attachments.push(attachment)
-                    })
-                    messages.push({ text: positive, type: "text" })
-                    messages.push({ text: '', attachments, type: "text" })
-                }
-            } else {
-                messages.push({ text: negative, type: "text" })
+                break
+            default:
+                messages.push({ text: positive, type: 'text' })
+        }
+        const botMessage = await insertMessage({
+            msgContent: 'test answer',
+            sender: 'bot',
+            conversationId: conversation.id
+        })
+        return { messages, state, data }
+    } catch (error) {
+        console.log(error)
+        // socket.emit('response', [{ text: 'Đã xảy ra lỗi, vui lòng thử lại', type: 'text' }])
+        const suggestedActions = [
+            {
+                type: 'send-email',
+                value: 'Nhận câu trả lời qua email'
             }
-            break
-        default:
-            messages.push({ text: positive, type: 'text' })
+        ]
+        socket.emit('response', [{ text: 'Hệ thống không hiểu câu hỏi của bạn', suggestedActions, type: 'text' }])
     }
-    const botMessage = await insertMessage({
-        msgContent: 'test answer',
-        sender: 'bot',
-        conversationId: conversation.id
-    })
-    return { messages, state, data }
 }
 
 const getConversations = async (storeId) => {
