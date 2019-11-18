@@ -36,10 +36,9 @@ router.get('/messages/:conversationId', async (req, res) => {
         res.status(error.status || 500).send(error)
     }
 })
-
 router.post('/report', async (req, res) => {
     try {
-        const {message, storeId} = req.body
+        const { message, storeId } = req.body
         const response = await conversationController.reportMessage(message, storeId)
         res.send(responseStatus.Code200(response))
     } catch (err) {
