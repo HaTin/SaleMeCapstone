@@ -7,7 +7,7 @@ const responseStatus = require('../configs/responseStatus')
 const router = express.Router()
 const redisClient = require('../configs/redis-config')
 const webhooks = require('../utilities/webhookData')
-const BOT_URL = 'http://bot.sales-bot.tech/api/import/'
+const shopDataController = require('../controllers/shopDataController')
 
 router.post('/signup', async (req, res) => {
     try {
@@ -31,11 +31,12 @@ router.post('/signup', async (req, res) => {
             const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
             const webhookSubscriptionUrl = `https://${shop}/admin/api/2019-10/webhooks.json`
             
-            const productUrl = "https://"+shop+"/admin/api/2019-10/products.json?fields=id,title,product_type,vendor,options"
            // const customerUrl = "https://"+shop+"/admin/api/2019-10/customers.json"
-            const orderUrl = "https://"+shop+"/admin/api/2019-10/orders.json?fields=id,name,line_items,customer"
-            const customCollectionUrl = "https://"+shop+"/admin/api/2019-10/custom_collections.json?fields=id,title"
-
+           const productUrl = "https://"+shop+"/admin/api/2019-10/products.json?fields=id,title,product_type,vendor,options,tags,variants"
+           const orderUrl = "https://"+shop+"/admin/api/2019-10/orders.json?fields=id,name,line_items,customer&fulfillment_status=any&status=any"
+           const customCollectionUrl = "https://"+shop+"/admin/api/2019-10/custom_collections.json?fields=id,title"
+           const smartCollectionUrl = "https://"+shop+"/admin/api/2019-10/smart_collections.json?fields=id,title"
+           
             const shopRequestHeaders = {
                 'X-Shopify-Access-Token': store.token,
                 'Content-Type': 'application/json'
@@ -64,9 +65,9 @@ router.post('/signup', async (req, res) => {
             // checkAndSaveToCache(orderUrl, shopRequestHeaders, shop, store.token)
             // checkAndSaveToCache(customCollectionUrl, shopRequestHeaders, shop, store.token)
 
-            saveOrder(orderUrl, shopRequestHeaders, shop)
-            saveProduct(productUrl, shopRequestHeaders, shop)
-            saveCollection(customCollectionUrl, shopRequestHeaders, shop)
+            shopDataController.saveProducts(productUrl, shopRequestHeaders, shop)
+            shopDataController.saveOrders(orderUrl, shopRequestHeaders, shop)
+            shopDataController.saveCollections(customCollectionUrl,smartCollectionUrl, shopRequestHeaders, shop)
 
             await axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
             const token = await authController.generateToken(user)
@@ -113,77 +114,6 @@ router.post('/signin', async (req, res) => {
 //         }
 //     })
 // }
-
-const saveOrder = async (url, reqHeader, shopName) => {
-    axios.get(url, {headers: reqHeader})
-    .then(function(data) {
-        console.log("save order")
-        orders = data.data.orders
-        orders.forEach(order => {
-            var productList = order.line_items.map(i => i.id)
-            var o = {
-                shop: shopName,
-                customerId: order.customer !== undefined ? order.customer.id: null,
-                orderId: order.name.substring(1, order.name.length),
-                products: productList,
-            }
-            //console.log(o)
-            axios.post(BOT_URL+"addOrder", JSON.stringify(o))
-        }) 
-        
-    })
-    .catch(function(err) {
-        console.log(err)
-    })
-}
-
-const saveProduct = async (url, reqHeader, shopName) => {
-    axios.get(url, {headers: reqHeader})
-    .then(function(data) {
-        console.log("save product")
-        var products = data.data.products
-        products.forEach(product => {
-            var optionList = product.options.map(o => ({name: o.name, values: o.values}))
-            var p = {
-                shop: shopName,
-                id: product.id,
-                title: product.title,
-                product_type:product.product_type,
-                vendor: product.vendor,
-                options: optionList
-            }
-            axios.post(BOT_URL+"addProduct", JSON.stringify(p))
-        })
-    })
-    .catch(function(err) {
-        console.log(err)
-    })  
-    
-}
-
-const saveCollection = async (url, reqHeader, shopName) => {
-    axios.get(url, {headers: reqHeader})
-    .then(function(data) {
-        var collections = data.data.custom_collections
-        console.log("save collection: "+collections.length)
-        collections.map(async (collection) => {
-            var url = `https://${shopName}/admin/api/2019-10/products.json?collection_id=${collection.id}`
-            let productInCollection = await axios.get(url,{headers: reqHeader})
-            let productIds = productInCollection.data.products.map(p => p.id)
-            var c = {
-                shop: shopName,
-                id: collection.id,
-                title:collection.title,
-                products: productIds
-            }
-            console.log(c)
-            axios.post(BOT_URL+"addCollection", JSON.stringify(c))
-        })
-    })
-    .catch(function(err) {
-        console.log(err)
-    })
-}
 
 const webhookSubscription = async (subscriptionUrl, webhookObj, reqHeader) => {
     axios.post(subscriptionUrl, webhookObj, { headers: reqHeader })
