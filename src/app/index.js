@@ -56,7 +56,9 @@ class App extends React.Component {
                   component={asyncComponent(() => import('./routes/Dashboard'))} />
                 <Route path={`${match.url}/bot-config`}
                   component={asyncComponent(() => import('./routes/BotConfiguration'))} />
-                <Route path={`${match.url}/conversation`}
+                <Route path={`${match.url}/conversation/:id`}
+                  component={asyncComponent(() => import('./routes/Conversation'))} />
+                <Route path={`${match.url}/conversation/`}
                   component={asyncComponent(() => import('./routes/Conversation'))} />
                 <Route component={asyncComponent(() => import('components/Error404'))} />
               </Switch>

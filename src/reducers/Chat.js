@@ -26,10 +26,10 @@ const INIT_STATE = {
   searchChatUser: '',
   selectedUser: null,
   message: '',
-  // chatUsers: [],
-  // conversationList: [], //ony for prod
-  chatUsers: users.filter((user) => user.recent),
-  conversationList: conversationList,
+  chatUsers: [],
+  conversationList: [], //ony for prod
+  // chatUsers: users.filter((user) => user.recent),
+  // conversationList: conversationList,
   conversation: null
 };
 
@@ -108,15 +108,14 @@ export default (state = INIT_STATE, action) => {
         ...state,
         chatUsers: action.payload,
         loader: false,
+        drawerState: true,
       }
     }
     case FETCH_ALL_CHAT_USER_CONVERSATION_SUCCESS: {
-      console.log(action.payload)
       return {
         ...state,
         conversation: action.payload,
         loader: false,
-        drawerState: true,
       }
     }
     case SHOW_MESSAGE: {

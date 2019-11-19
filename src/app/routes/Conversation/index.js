@@ -57,9 +57,7 @@ class ChatPanelWithRedux extends Component {
   };
 
   Communication = () => {
-    console.log(this.props)
     const { message, selectedUser, conversation } = this.props;
-    console.log(conversation)
     // const { conversationData } = conversation;
 
     return <div className="chat-main">
@@ -183,12 +181,11 @@ class ChatPanelWithRedux extends Component {
     }
   }
 
-  componentWillMount() {
-    const { authUser } = this.props
+  componentDidMount() {
+    const { authUser, chatUsers } = this.props
     const { storeId } = authUser
-    console.log(storeId)
     this.props.fetchChatUser({ storeId });
-    this.props.fetchChatUserConversation()
+    // this.props.fetchChatUserConversation()
   }
 
   updateSearchChatUser(evt) {
@@ -201,7 +198,14 @@ class ChatPanelWithRedux extends Component {
   }
 
   render() {
-    const { loader, userState, drawerState } = this.props;
+    const { loader, userState, drawerState, match, chatUsers } = this.props;
+    const conversationId = match.params ? match.params.id : null
+    if (drawerState) {
+      const user = chatUsers.find(user => user.id == conversationId)
+      if (user) {
+        this.onSelectUser(user)
+      }
+    }
     return (
       <div className="app-wrapper app-wrapper-module">
         <div className="app-module chat-module animated slideInUpTiny animation-duration-3">
@@ -229,7 +233,6 @@ class ChatPanelWithRedux extends Component {
 }
 
 const mapStateToProps = ({ chatData, settings, auth }) => {
-  console.log(chatData)
   const { authUser } = auth
   const { width } = settings;
   const {

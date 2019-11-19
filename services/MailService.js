@@ -1,7 +1,11 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
+const path = require('path')
+const fs = require('fs')
+
 // const util = require('util');
 const smtpTransport = require('nodemailer-smtp-transport');
-const sendMail = ({ receiver, customerEmail }) => {
+const sendMail = ({ receiver, customerEmail, redirectURL, question }) => {
     const transporter = nodemailer.createTransport(smtpTransport({
         service: 'Gmail',
         auth: {
@@ -10,20 +14,28 @@ const sendMail = ({ receiver, customerEmail }) => {
         },
         tls: { rejectUnauthorized: false }
     }));
-    var mainOptions = {
-        from: 'Buyer Assistant',
-        to: receiver,
-        subject: 'Customer Question',
-        text: 'You recieved message from Buyer Assistant ',
-        html: `<p> Question from ${customerEmail}</p>`
-    }
-    // const sendMailObj = util.promisify(transporter.sendMail)
-    // const sendMailObj(mainOptions)
+    const filePath = path.join(__dirname, '../template/email.html')
     return new Promise((resolve, reject) => {
-        transporter.sendMail(mainOptions, function (err, info) {
+        fs.readFile(filePath, { encoding: 'utf-8' }, (err, data) => {
             if (err) reject(err)
-            resolve(info)
-            transporter.close()
+            const content = `<br><center><h2>Bạn nhận được câu hỏi của khách hàng ${customerEmail} từ hệ thống Buyer Assistant</h2>            
+            <div><span style="font-weight: bold">Câu hỏi của khách hàng:</span><span> ${question}</span></div>
+            <div><a class="button-mobile" href="${redirectURL}">Nhấn vào đây để xem chi tiết cuộc trò chuyện</a></div>
+            <div>Hệ thống hiện tại không thể trả lời câu hỏi này </div>
+            <br><br><br><br>`
+            data = data.replace(/CONTENT_HTML/g, content)
+            var mainOptions = {
+                from: 'Buyer Assistant',
+                to: receiver,
+                subject: 'Câu hỏi của khách hàng',
+                text: '',
+                html: data
+            }
+            transporter.sendMail(mainOptions, function (err, info) {
+                if (err) reject(err)
+                resolve(info)
+                transporter.close()
+            })
         })
     })
 }

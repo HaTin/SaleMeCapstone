@@ -2,11 +2,11 @@ const knex = require('../configs/knex-config')
 const util = require('../utilities/util')
 const shopifyController = require('./ShopifyController')
 const axios = require('axios')
-const redisController = require('./RedisController')
+// const redisController = require('./RedisController')
 const mailService = require('../services/MailService')
 const BOT_URL = 'http://bot.sales-bot.tech/api/answer/getAnswer'
 
-const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
+// const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
     const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
     return conversation
@@ -24,10 +24,12 @@ const insertConversation = async ({ sessionId, storeId, lastMessage, userName, t
     return result[0]
 }
 
-const insertMessage = async ({ sender, timestamp, conversationId, msgContent }) => {
+const insertMessage = async ({ sender, timestamp, conversationId, msgContent, type, attachment }) => {
     const message = {
         msgContent,
         sender,
+        type,
+        attachment,
         time: util.convertDatetime(timestamp),
         conversationId
     }
@@ -53,6 +55,7 @@ const generateBotAnswer = async (botData, socket) => {
         }
         await insertMessage({
             msgContent: text,
+            type: 'text',
             sender: 'user',
             timestamp,
             conversationId: conversation.id
@@ -135,7 +138,10 @@ const generateBotAnswer = async (botData, socket) => {
                     } else {
                         const user = await knex('User').where({ storeId }).first('email')
                         if (user) {
-                            mailService.sendMail({ receiver: user.email, customerEmail })
+                            await knex('Conversation').where({ id: conversation.id }).update({ userName: customerEmail })
+                            const question = data.question || ''
+                            const redirectURL = process.env.NODE_ENV === 'development' ? `http://localhost:3000/app/conversation/${conversation.id}` : `${socket.request.headers.host}/conversation/${conversation.id}`
+                            mailService.sendMail({ receiver: user.email, customerEmail, redirectURL, question })
                             messages.push({ text: 'Xin cảm ơn, chúng tôi sẽ gửi câu trả cho bạn thông qua email sớm nhất có thể', type: 'text' })
                             state = null;
                         }
@@ -144,11 +150,26 @@ const generateBotAnswer = async (botData, socket) => {
                 case 'cancel':
                     messages.push({ text: 'Nếu bạn có bất kỳ câu hỏi nào, hãy hỏi tôi nhé!', type: 'text' })
                     state = null
+                    data = null
                     break;
             }
+            messages.map(async messsage => {
+                await insertMessage({
+                    msgContent: messsage.text,
+                    sender: 'bot',
+                    conversationId: conversation.id,
+                    type: messsage.type,
+                    attachment: messsage.attachments || ''
+                })
+            })
             return { state, messages, data }
         }
-        const response = await axios.get(BOT_URL, { params: { sentence: text } })
+        // const response = await axios.get(BOT_URL, { params: { sentence: text } })
+        const response = {
+            data: {
+                action: 'no-answer',
+            }
+        }
         const { action, actionInfo, positive, negative } = response.data
         switch (action) {
             case 'ask_order':
@@ -228,25 +249,32 @@ const generateBotAnswer = async (botData, socket) => {
                     messages.push({ text: negative, type: "text" })
                 }
                 break
+            case 'no-answer':
+                data.question = text
+                const suggestedActions = [
+                    {
+                        type: 'send-email',
+                        value: 'Nhận câu trả lời qua email'
+                    }
+                ]
+                messages.push({ text: 'Hệ thống không hiểu câu hỏi của bạn', suggestedActions, type: 'text' })
+                break;
             default:
                 messages.push({ text: positive, type: 'text' })
         }
-        const botMessage = await insertMessage({
-            msgContent: 'test answer',
-            sender: 'bot',
-            conversationId: conversation.id
+        messages.map(async messsage => {
+            await insertMessage({
+                msgContent: messsage.text,
+                sender: 'bot',
+                conversationId: conversation.id,
+                type: messsage.type,
+                attachment: messsage.attachments || ''
+            })
         })
         return { messages, state, data }
     } catch (error) {
         console.log(error)
-        // socket.emit('response', [{ text: 'Đã xảy ra lỗi, vui lòng thử lại', type: 'text' }])
-        const suggestedActions = [
-            {
-                type: 'send-email',
-                value: 'Nhận câu trả lời qua email'
-            }
-        ]
-        socket.emit('response', [{ text: 'Hệ thống không hiểu câu hỏi của bạn', suggestedActions, type: 'text' }])
+        socket.emit('response', [{ text: 'Đã xảy ra lỗi, vui lòng thử lại', type: 'text' }])
     }
 }
 
