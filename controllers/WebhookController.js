@@ -1,5 +1,6 @@
 const storeController = require('../controllers/StoreController2')
 const redisController = require('../controllers/RedisController')
+const shopDataController = require('../controllers/shopDataController')
 
 const getRedisKey = async(shopName, topic) => {
     const store = await storeController.isStoreExisted(shopName)
@@ -7,53 +8,47 @@ const getRedisKey = async(shopName, topic) => {
 }
 
 const updateProduct = async (updateProduct, shopName) => {
-    var key = await getRedisKey(shopName,'products')
-    await redisController.updateItemInList(key, updateProduct)
+    await shopDataController.saveProduct(updateProduct, shopName)
 }
 
 const removeProduct = async (id, shopName) => {
-    var key = await getRedisKey(shopName,'products')
-    await redisController.removeItemInList(key, id)
+    // var key = await getRedisKey(shopName,'products')
+    // await redisController.removeItemInList(key, id)
 }
 
 const saveNewProduct = async (newProduct, shopName) => {
-    var key = await getRedisKey(shopName,'products')
-    await redisController.saveItemToList(key, newProduct)
+    await shopDataController.saveProduct(newProduct, shopName)
 }
 
 const updateCollection = async (updateCollection, shopName) => {
-    var key = await getRedisKey(shopName,'custom_collections')
-    await redisController.updateItemInList(key, updateCollection)
+    await shopDataController.saveCollection(updateCollection, shopName)
 }
 
 const removeCollection = async (id, shopName) => {
-    var key = await getRedisKey(shopName,'custom_collections')
-    await redisController.removeItemInList(key, id)
+    // var key = await getRedisKey(shopName,'custom_collections')
+    // await redisController.removeItemInList(key, id)
 }
 
 const saveNewCollection = async (newCollection, shopName) => {
-    var key = await getRedisKey(shopName,'custom_collections')
-    await redisController.saveItemToList(key, newCollection)
+    await shopDataController.saveCollection(newCollection, shopName)
 }
 
 const saveNewCustomer = async (newCustomer, shopName) => {
-    var key = await getRedisKey(shopName,'customers')
-    await redisController.saveItemToList(key, newCustomer)
+    // var key = await getRedisKey(shopName,'customers')
+    // await redisController.saveItemToList(key, newCustomer)
 }
 
 const updateCustomer = async (updateCustomer, shopName) => {
-    var key = await getRedisKey(shopName,'customers')
-    await redisController.updateItemInList(key, updateCustomer)
+    // var key = await getRedisKey(shopName,'customers')
+    // await redisController.updateItemInList(key, updateCustomer)
 }
 
 const saveNewOrder = async (newOrder, shopName) => {
-    var key = await getRedisKey(shopName,'orders')
-    await redisController.saveItemToList(key, newOrder)
+    await shopDataController.saveOrder(newOrder, shopName)
 }
 
 const updateOrder = async (updateOrder, shopName) => {
-    var key = await getRedisKey(shopName,'orders')
-    await redisController.updateItemInList(key, updateOrder)
+    await shopDataController.saveOrder(updateOrder, shopName)
 }
 
 

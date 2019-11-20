@@ -17,7 +17,9 @@ const shopifyRouter = require('./routes/shopify')
 const authRouter = require('./routes/auth')
 const webhookRouter = require('./routes/webhook')
 const redisRouter = require('./routes/redis')
+const shopDataRouter = require('./routes/shopData')
 const chatController = require('./controllers/ConversationController')
+
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
     app.get('/', function (req, res) {
@@ -44,7 +46,7 @@ app.use('/webhook', webhookRouter)
 app.use('/api/conversations', conversationRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/redis', redisRouter)
-
+app.use('/api/shop-data', shopDataRouter)
 
 let connections = []
 io.on("connection", (socket) => {
