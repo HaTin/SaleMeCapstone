@@ -30,8 +30,52 @@ const getProductInCollection = async (store, collectionId) => {
     })
     return response.data.products
 }
+
+const getProductById = async (store, productId) => {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products/${productId}.json?fields=id,options,title,product_type,handle,image,variants`, {
+        headers: {
+            'X-Shopify-Access-Token': store.token,
+            'X-Shopify-Api-Features': 'include-presentment-prices'
+        }
+    })
+    return response.data.product
+}
+const getProductsById = async (store, productIds) => {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products.json?fields=id,options,title,product_type,handle,image,variants&ids=${productIds}`, {
+        headers: {
+            'X-Shopify-Access-Token': store.token,
+            'X-Shopify-Api-Features': 'include-presentment-prices'
+        }
+    })
+    return response.data.products
+}
+
+const getCustomCollectionInfoByIds = async (store, ids) => {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/custom_collections.json?fields=id,title,handle&ids=${ids}`, {
+        headers: {
+            'X-Shopify-Access-Token': store.token,
+            'X-Shopify-Api-Features': 'include-presentment-prices'
+        }
+    })
+    return response.data.custom_collections
+}
+
+const getSmartCollectionInfoByIds = async (store, ids) => {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/smart_collections.json?fields=id,title,handle&ids=${ids}`, {
+        headers: {
+            'X-Shopify-Access-Token': store.token,
+            'X-Shopify-Api-Features': 'include-presentment-prices'
+        }
+    })
+    return response.data.smart_collections
+}
+
 module.exports = {
     getProductByTitle,
     getProductOption,
-    getProductInCollection
+    getProductInCollection,
+    getProductById,
+    getProductsById,
+    getCustomCollectionInfoByIds,
+    getSmartCollectionInfoByIds,
 }
