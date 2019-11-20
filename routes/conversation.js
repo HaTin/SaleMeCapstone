@@ -20,7 +20,8 @@ router.post('/', async (req, res) => {
 })
 router.get('/:storeId', async (req, res) => {
     try {
-        const response = await conversationController.getConversations(req.params.storeId)
+        const { pageNumber, rowPage } = req.query
+        const response = await conversationController.getConversations(req.params.storeId, parseInt(pageNumber), parseInt(rowPage))
         return res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)

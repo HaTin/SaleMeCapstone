@@ -17,7 +17,7 @@ const insertConversation = async ({ sessionId, storeId, lastMessage, userName, t
         sessionId,
         storeId,
         lastMessage,
-        userName,
+        userName: userName ? userName : `#${util.makeId(5)}`,
         lastMessageTime: util.convertDatetime(timestamp)
     }
     const result = await knex('conversation').returning(['sessionId', 'storeId', 'id', 'lastMessageTime']).insert(conversation)
@@ -44,12 +44,12 @@ const generateBotAnswer = async (botData, socket) => {
         const { sessionId, storeId, timestamp, text, client } = botData
         let { state, data } = client
         let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
+
         if (!conversation) {
             conversation = await insertConversation({
                 sessionId,
                 storeId,
                 lastMessage: text,
-                userName: 'Anonymous User',
                 timestamp
             })
         }
@@ -278,8 +278,10 @@ const generateBotAnswer = async (botData, socket) => {
     }
 }
 
-const getConversations = async (storeId) => {
-    const result = await knex('conversation').where({ storeId }).orderBy('lastMessageTime', 'desc').select('id', 'userName', 'lastMessageTime')
+const getConversations = async (storeId, pageNumber, rowPage) => {
+    const offset = (pageNumber - 1) * rowPage
+    const limit = rowPage
+    const result = await knex('conversation').where({ storeId }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime')
     const response = util.createList(result, 'conversations')
     return response
 }
