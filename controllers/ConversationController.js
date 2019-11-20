@@ -173,7 +173,7 @@ const generateBotAnswer = async (botData, socket) => {
                         if (user) {
                             await knex('Conversation').where({ id: conversation.id }).update({ userName: customerEmail })
                             const question = data.question || ''
-                            const redirectURL = process.env.NODE_ENV === 'development' ? `http://localhost:3000/app/conversation/${conversation.id}` : `https://${socket.request.headers.host}/app/conversation/${conversation.id}`
+                            const redirectURL = `${process.env.DOMAIN}/app/conversation/${conversation.id}`
                             mailService.sendMail({ receiver: user.email, customerEmail, redirectURL, question })
                             messages.push({ text: 'Cảm ơn bạn, chúng tôi sẽ gửi câu trả lời cho bạn thông qua email sớm nhất có thể', type: 'text' })
                             state = null;
