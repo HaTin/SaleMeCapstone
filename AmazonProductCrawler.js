@@ -1,18 +1,32 @@
 const puppeteer = require('puppeteer');
 const domain = "https://www.amazon.com";
+const randomUseragent = require('random-useragent');
 const crawlData = async (keyword) => {
+
     // wrapper to catch errors
     try {
+        const chromeOptions = {
+            headless: false,
+            defaultViewport: null,
+            slowMo: 10,
+            devtools: true
+        };
         // create a new browser instance
         const browser = await puppeteer.launch();
         // create a page inside the browser;
         const page = await browser.newPage();
+        await page.setUserAgent(randomUseragent.getRandom())
         // navigate to a website and set the viewport
-        await page.setViewport({ width: 1280, height: 800 });
+        // await page.setViewport({ width: 1280, height: 800 });
         await page.goto(domain, {
             timeout: 3000000
         });
         // search and wait the product list
+
+        if (await page.$('.a-container ') !== null) {
+            await page.click('a[onclick="window.location.reload()"]')
+        }
+        await page.waitForSelector('#twotabsearchtextbox')
         await page.type('#twotabsearchtextbox', keyword);
         await page.click('input.nav-input');
         await page.waitForSelector('.s-image');
@@ -33,6 +47,7 @@ const crawlData = async (keyword) => {
         });
         console.log(products)
         await browser.close();
+        return products
     } catch (error) {
         // display errors
         console.log(error)
