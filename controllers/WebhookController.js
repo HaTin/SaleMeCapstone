@@ -1,19 +1,13 @@
 const storeController = require('../controllers/StoreController2')
-const redisController = require('../controllers/RedisController')
 const shopDataController = require('../controllers/shopDataController')
 
-const getRedisKey = async(shopName, topic) => {
-    const store = await storeController.isStoreExisted(shopName)
-    return shopName+":"+store.token+":"+topic
-}
 
 const updateProduct = async (updateProduct, shopName) => {
     await shopDataController.saveProduct(updateProduct, shopName)
 }
 
 const removeProduct = async (id, shopName) => {
-    // var key = await getRedisKey(shopName,'products')
-    // await redisController.removeItemInList(key, id)
+    
 }
 
 const saveNewProduct = async (newProduct, shopName) => {
@@ -25,8 +19,7 @@ const updateCollection = async (updateCollection, shopName) => {
 }
 
 const removeCollection = async (id, shopName) => {
-    // var key = await getRedisKey(shopName,'custom_collections')
-    // await redisController.removeItemInList(key, id)
+    
 }
 
 const saveNewCollection = async (newCollection, shopName) => {
@@ -34,13 +27,11 @@ const saveNewCollection = async (newCollection, shopName) => {
 }
 
 const saveNewCustomer = async (newCustomer, shopName) => {
-    // var key = await getRedisKey(shopName,'customers')
-    // await redisController.saveItemToList(key, newCustomer)
+    
 }
 
 const updateCustomer = async (updateCustomer, shopName) => {
-    // var key = await getRedisKey(shopName,'customers')
-    // await redisController.updateItemInList(key, updateCustomer)
+   
 }
 
 const saveNewOrder = async (newOrder, shopName) => {

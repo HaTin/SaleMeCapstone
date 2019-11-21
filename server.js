@@ -16,7 +16,6 @@ const storeRouter = require('./routes/store')
 const shopifyRouter = require('./routes/shopify')
 const authRouter = require('./routes/auth')
 const webhookRouter = require('./routes/webhook')
-const redisRouter = require('./routes/redis')
 const shopDataRouter = require('./routes/shopData')
 const chatController = require('./controllers/ConversationController')
 
@@ -45,7 +44,6 @@ app.use('/shopify', shopifyRouter)
 app.use('/webhook', webhookRouter)
 app.use('/api/conversations', conversationRouter)
 app.use('/api/auth', authRouter)
-app.use('/api/redis', redisRouter)
 app.use('/api/shop-data', shopDataRouter)
 
 let connections = []

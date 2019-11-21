@@ -5,7 +5,6 @@ const storeController = require('../controllers/StoreController2')
 const botController = require('../controllers/BotConfigurationController')
 const responseStatus = require('../configs/responseStatus')
 const router = express.Router()
-const redisClient = require('../configs/redis-config')
 const webhooks = require('../utilities/webhookData')
 const shopDataController = require('../controllers/shopDataController')
 
