@@ -19,17 +19,7 @@ const webhookRouter = require('./routes/webhook')
 const shopDataRouter = require('./routes/shopData')
 const chatController = require('./controllers/ConversationController')
 
-if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, 'build')));
-    app.get('/', function (req, res) {
-        res.sendFile(path.join(__dirname, 'build', 'index.html'));
-    });
-} else {
-    app.get('/', function (req, res) {
-        const token = req.query.token
-        return res.redirect(`http://localhost:3000/?token=${token}`)
-    });
-}
+
 // app.use(logger('common'))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -45,7 +35,17 @@ app.use('/webhook', webhookRouter)
 app.use('/api/conversations', conversationRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/shop-data', shopDataRouter)
-
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'build')));
+    app.get('/*', function (req, res) {
+        res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    });
+} else {
+    app.get('/', function (req, res) {
+        const token = req.query.token
+        return res.redirect(`http://localhost:3000/?token=${token}`)
+    });
+}
 let connections = []
 io.on("connection", (socket) => {
     connections[socket.id] = { state: '', data: {} }

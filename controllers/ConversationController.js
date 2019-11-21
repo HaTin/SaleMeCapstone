@@ -497,7 +497,13 @@ calculateTotalStock = (variants) => {
 const reportMessage = async (choice, botResponse) => {
     // const store = await knex('store').where({ id: storeId }).first('id', 'name')
     // const response = await axios.get(BOT_URL, { params: { sentence: message } })
-    return await axios.post(`http://bot.sales-bot.tech/api/Message/Report?choice=${choice}`, botResponse)
+    
+     const response = await axios.post(`http://bot.sales-bot.tech/api/Message/Report`, JSON.stringify(botResponse),{
+         params:{
+             choice:choice
+         }
+     })
+     return response
 }
 
 
