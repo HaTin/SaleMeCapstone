@@ -29,6 +29,8 @@ const saveOrder = async (order, shopName) => {
             option1: title[0] ? title[0].trim(): null,
             option2: title[1] ? title[1].trim(): null,
             option3: title[2] ? title[2].trim(): null,
+            vendor: i.vendor,
+            title: i.title,
         })
     })
     var o = {
@@ -99,6 +101,8 @@ const saveOrders = async (url, reqHeader, shopName) => {
                 option1: title[0] ? title[0].trim(): null,
                 option2: title[1] ? title[1].trim(): null,
                 option3: title[2] ? title[2].trim(): null,
+                vendor: i.vendor,
+                title: i.title,
             })
         })
         var o = {
