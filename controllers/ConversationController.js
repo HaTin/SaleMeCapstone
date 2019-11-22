@@ -5,6 +5,9 @@ const axios = require('axios')
 // const redisController = require('./RedisController')
 const mailService = require('../services/MailService')
 const BOT_URL = 'http://bot.sales-bot.tech/api/Message/GetAnswer'
+const amazonCrawler = require('../AmazonProductCrawler')
+const translate = require('@vitalets/google-translate-api');
+
 
 // const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
@@ -202,7 +205,32 @@ const generateBotAnswer = async (botData, socket) => {
                     state = null
                     break;
                 case 'check-Amazon':
-                    messages.push({ text: 'link amazon', type: 'text' })
+                    const products = data.products
+                    let translatedTitle = await translate(products[0].title, {from:'vi', to: 'en'})
+                    console.log("search in amazon: "+translatedTitle.text)
+                    var link = `https://amazon.com/s?k=${translatedTitle.text.replace(' ','+')}`
+                    try {
+                        let amazonProducts = await amazonCrawler.crawlData(translatedTitle.text)
+                        if(amazonProducts.length == 0) {
+                            messages.push({text:'Không tìm thấy sản phẩm tương tự bên Amazon',type:'text'})
+                        } else {
+                            let attachments = []
+                            for(var i = 0; i< amazonProducts.length; i++) {
+                                const p = amazonProducts[i]
+                                const attachment = { contentType: 'amazon-product', content: null }
+                                attachment.title = p.name
+                                attachment.image = p.image
+                                attachment.buttons = [
+                                    {title:'Xem', type:'open-url', value: p.link}
+                                ]
+                                attachments.push(attachment)
+                            }
+                            messages.push({text: '', attachments, type:'text'})
+                        }
+                    } catch(err) {
+                        messages.push({ text: 'Đi đền trang', link: link, type: 'link' })
+                        console.log(err)
+                    }
                     state = null
                     data = null
                     break;

@@ -18,9 +18,7 @@ const crawlData = async (keyword) => {
         await page.setUserAgent(randomUseragent.getRandom())
         // navigate to a website and set the viewport
         // await page.setViewport({ width: 1280, height: 800 });
-        await page.goto(domain, {
-            timeout: 3000000
-        });
+        await page.goto(domain);
         // search and wait the product list
 
         if (await page.$('.a-container ') !== null) {
@@ -34,7 +32,6 @@ const crawlData = async (keyword) => {
         const products = await page.evaluate(() => {
             const productList = Array.from(document.querySelectorAll('.s-search-results > div.s-result-item')).slice(0, 3);
             return productList.map(product => {
-                console.log(product)
                 const p = {
                     name: product.querySelector(".a-text-normal") ? product.querySelector(".a-text-normal").innerText : null,
                     link: product.querySelector('.a-link-normal') ? product.querySelector('.a-link-normal').href : null,
