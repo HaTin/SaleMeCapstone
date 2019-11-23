@@ -22,6 +22,30 @@ const getProductOption = async (store) => {
     return response.data.products
 }
 
+
+const getOrderById = async (store, orderId) => {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders/${orderId}.json`, {
+        headers: {
+            'X-Shopify-Access-Token': store.token,
+        }
+    })
+    return response.data.order
+}
+
+const getOrderByName = async (store, orderName) => {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json`, {
+        params: {
+            'name': orderName
+        },
+        headers: {
+            'X-Shopify-Access-Token': store.token,
+        }
+    })
+    const orders = response.data.orders
+    const order = orders.length ? orders[0] : null
+    return order
+}
+
 const getProductInCollection = async (store, collectionId) => {
     const response = await axios.get(`https://${store.name}/admin/api/2019-10/products.json?collection_id=${collectionId}&fields=options,title,id,product_type,handle,image,variants`, {
         headers: {
@@ -78,4 +102,6 @@ module.exports = {
     getProductsById,
     getCustomCollectionInfoByIds,
     getSmartCollectionInfoByIds,
+    getOrderById,
+    getOrderByName
 }
