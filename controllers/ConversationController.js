@@ -45,6 +45,7 @@ const generateBotAnswer = async (botData, socket) => {
     try {
         const messages = []
         let response = null
+        let store = null
         const { sessionId, storeId, timestamp, text, client } = botData
         let { state, data } = client
         let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
@@ -73,7 +74,7 @@ const generateBotAnswer = async (botData, socket) => {
                     break;
                 case 'input-order-number':
                     data.orderName = text
-                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                     const order = await shopifyController.getOrderByName(store, data.orderName)
                     if (order && order.email === data.email) {
                         messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
@@ -109,7 +110,7 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     }
                     else {
-                        const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                        store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                         const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
                             params: {
                                 email: email,
@@ -254,7 +255,7 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     }
                     else {
-                        const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                        store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                         const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
                             params: {
                                 email: userEmail,
@@ -287,7 +288,7 @@ const generateBotAnswer = async (botData, socket) => {
                     messages.push({text:'vui lòng nhập email', type:'text'})
                     break
                 case 'show-product':
-                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')    
+                    store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')    
                     await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
                     state = null
                     data = null
@@ -304,7 +305,7 @@ const generateBotAnswer = async (botData, socket) => {
             })
             return { state, messages, data }
         }
-        const store = await knex('store').where({ id: storeId }).first('name', 'token')
+        store = await knex('store').where({ id: storeId }).first('name', 'token')
         const requestData = {
             "shop": store.name,
             "sentence": text,
