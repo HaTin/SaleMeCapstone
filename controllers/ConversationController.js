@@ -215,29 +215,29 @@ const generateBotAnswer = async (botData, socket) => {
                     break;
                 case 'check-Amazon':
                     const products = data.products
-                    let translatedTitle = await translate(products[0].title, {from:'vi', to: 'en'})
-                    console.log("search in amazon: "+translatedTitle.text)
-                    var link = `https://amazon.com/s?k=${translatedTitle.text.replace(' ','+')}`
+                    let translatedTitle = await translate(products[0].title, { from: 'vi', to: 'en' })
+                    console.log("search in amazon: " + translatedTitle.text)
+                    var link = `https://amazon.com/s?k=${translatedTitle.text.replace(' ', '+')}`
                     try {
                         let amazonProducts = await amazonCrawler.crawlData(translatedTitle.text)
-                        if(amazonProducts.length == 0) {
-                            messages.push({text:'Không tìm thấy sản phẩm tương tự bên Amazon',type:'text'})
+                        if (amazonProducts.length == 0) {
+                            messages.push({ text: 'Không tìm thấy sản phẩm tương tự bên Amazon', type: 'text' })
                         } else {
                             let attachments = []
-                            for(var i = 0; i< amazonProducts.length; i++) {
+                            for (var i = 0; i < amazonProducts.length; i++) {
                                 const p = amazonProducts[i]
                                 const attachment = { contentType: 'amazon-product', content: null }
                                 attachment.title = p.name
                                 attachment.image = p.image
                                 attachment.buttons = [
-                                    {title:'Xem', type:'open-url', value: p.link}
+                                    { title: 'Xem', type: 'open-url', value: p.link.replace(/(^\w+:|^)\/\//, '') }
                                 ]
                                 attachments.push(attachment)
                             }
-                            messages.push({text: '', attachments, type:'text'})
+                            messages.push({ text: '', attachments, type: 'text' })
                         }
-                    } catch(err) {
-                        messages.push({ text: 'Đi đền trang', link: link, type: 'link' })
+                    } catch (err) {
+                        messages.push({ text: 'Đi đến trang', link: link, type: 'link' })
                         console.log(err)
                     }
                     state = null
@@ -275,23 +275,21 @@ const generateBotAnswer = async (botData, socket) => {
                             }
                             const response = await axios.post(BOT_URL, requestData)
                             const { question, type, products, orders, collections, message, report } = response.data
-                            if(type === "product") {
+                            if (type === "product") {
                                 await showProducts(messages, products, store, report, data)
                                 state = null
-                                data = null
                             }
                         }
                     }
                     break;
                 case 'input-email-for-product-suggestion':
                     state = 'get-email-for-product-suggestion'
-                    messages.push({text:'vui lòng nhập email', type:'text'})
+                    messages.push({ text: 'Vui lòng nhập email', type: 'text' })
                     break
                 case 'show-product':
-                    store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')    
+                    store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                     await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
                     state = null
-                    data = null
                     break;
             }
             messages.map(async messsage => {
@@ -314,7 +312,7 @@ const generateBotAnswer = async (botData, socket) => {
         response = await axios.post(BOT_URL, requestData)
         const { question, type, products, orders, collections, message, report } = response.data
         data.botResponse = response.data
-        
+
         switch (type) {
             case 'order':
                 if (message === 'nullCustomer') {
@@ -333,7 +331,7 @@ const generateBotAnswer = async (botData, socket) => {
                 }
                 break
             case 'product':
-                if(products.length > 0) {
+                if (products.length > 0) {
                     let suggestedActions = [
                         {
                             type: 'input-email-for-product-suggestion',
@@ -344,11 +342,10 @@ const generateBotAnswer = async (botData, socket) => {
                             value: 'Tôi không muốn'
                         }
                     ]
-                    messages.push({text:'Hãy nhập email để bot có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type:'text'})
+                    messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
                 } else {
-                    messages.push({text: 'Không tìm thấy sản phẩm nào', type:'text'})
+                    messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text' })
                 }
-                
                 break
             case 'collection':
                 if (collections.length > 0) {
@@ -470,7 +467,7 @@ const updateConversation = async ({ conversation, message }) => {
 }
 
 
-const showProducts = async (messages,products,store, report, data) => {
+const showProducts = async (messages, products, store, report, data) => {
     if (products.length > 0) {
         let attachments = []
         let ids = ''
@@ -541,7 +538,7 @@ const showProducts = async (messages,products,store, report, data) => {
             })
             messages.push({ text: '', attachments, type: 'text' })
         }
-    } 
+    }
 }
 
 const checkOptionValue = (product, value) => {
