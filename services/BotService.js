@@ -7,7 +7,7 @@ const getUsuallyBuyWithProducts = async ({ productId }) => {
             product: productId
         }
     })
-    const productIds = response.data
+    const productIds = response.data ? response.data : []
     console.log(productIds)
     return productIds.map(id => {
         return { id }

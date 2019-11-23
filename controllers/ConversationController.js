@@ -6,6 +6,7 @@ const axios = require('axios')
 const botService = require('../services/BotService')
 const mailService = require('../services/MailService')
 const BOT_URL = 'http://bot.sales-bot.tech/api/Message/GetAnswer'
+const BOT_URL_SIMILAR = 'http://bot.sales-bot.tech/api/Find/SimilarProduct'
 const amazonCrawler = require('../AmazonProductCrawler')
 const translate = require('@vitalets/google-translate-api');
 
@@ -50,7 +51,7 @@ const generateBotAnswer = async (botData, socket) => {
         const { sessionId, storeId, timestamp, text, client, value } = botData
         let { state, data } = client
         let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
-
+        store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
         if (!conversation) {
             conversation = await insertConversation({
                 sessionId,
@@ -75,7 +76,6 @@ const generateBotAnswer = async (botData, socket) => {
                     break;
                 case 'input-order-number':
                     data.orderName = text
-                    store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                     const order = await shopifyController.getOrderByName(store, data.orderName)
                     if (order && order.email === data.email) {
                         messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
@@ -111,7 +111,6 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     }
                     else {
-                        store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                         const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
                             params: {
                                 email: email,
@@ -209,8 +208,19 @@ const generateBotAnswer = async (botData, socket) => {
                             value: "Có"
                         }
                     ]
-                    messages.push({ text: 'Shop hiện tại không có những sản phẩm tương tự', type: 'text' })
-                    messages.push({ text: 'Bạn có muốn tìm sản phẩm tương tự bên amazon không', suggestedActions, type: 'text' })
+                    console.log(">>>>>>>>> test id: "+data.botResponse.products[0].id)
+                    const response = await axios.get(BOT_URL_SIMILAR, {params: {product: data.botResponse.products[0].id}})
+                    console.log(response.data)
+                    const ids = response.data
+                    if(ids.length === 0 ){
+                        messages.push({ text: 'Shop hiện tại không có những sản phẩm tương tự', type: 'text' })
+                        messages.push({ text: 'Bạn có muốn tìm sản phẩm tương tự bên amazon không', suggestedActions, type: 'text' })
+                    } else {
+                        let p = ids.map(i => ({id: i}))
+                        await showProducts(messages,p,store,data.botResponse.report, data)
+                    }
+                    
+
                     state = null
                     break;
                 case 'find-buy-with-products':
@@ -260,7 +270,6 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     }
                     else {
-                        store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                         const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
                             params: {
                                 email: userEmail,
@@ -273,6 +282,7 @@ const generateBotAnswer = async (botData, socket) => {
                         const customers = response.data.customers
                         if (customers.length) {
                             const customer = customers[0]
+                            data.userId = customer.id
                             const requestData = {
                                 sentence: data.botResponse.question,
                                 customer: customer.id + '',
@@ -292,7 +302,6 @@ const generateBotAnswer = async (botData, socket) => {
                     messages.push({ text: 'Vui lòng nhập email', type: 'text' })
                     break
                 case 'show-product':
-                    store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                     await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
                     state = null
                     break;
@@ -308,7 +317,6 @@ const generateBotAnswer = async (botData, socket) => {
             })
             return { state, messages, data }
         }
-        store = await knex('store').where({ id: storeId }).first('name', 'token')
         const requestData = {
             "shop": store.name,
             "sentence": text,
@@ -336,17 +344,29 @@ const generateBotAnswer = async (botData, socket) => {
                 break
             case 'product':
                 if (products.length > 0) {
-                    let suggestedActions = [
-                        {
-                            type: 'input-email-for-product-suggestion',
-                            value: 'Nhập email'
-                        },
-                        {
-                            type: 'show-product',
-                            value: 'Tôi không muốn'
+                    if(data.userId) {
+                        const requestData = {
+                            sentence: data.botResponse.question,
+                            customer: data.userId,
+                            shop: store.name
                         }
-                    ]
-                    messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
+                        const response = await axios.post(BOT_URL, requestData)
+                        data.botResponse = response.data
+                        const {products, report} = response.data
+                        await showProducts(messages,products,store,report,data)
+                    } else {
+                        let suggestedActions = [
+                            {
+                                type: 'input-email-for-product-suggestion',
+                                value: 'Nhập email'
+                            },
+                            {
+                                type: 'show-product',
+                                value: 'Tôi không muốn'
+                            }
+                        ]
+                        messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
+                    }                   
                 } else {
                     messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text' })
                 }
