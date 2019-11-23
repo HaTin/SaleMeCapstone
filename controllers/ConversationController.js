@@ -227,11 +227,13 @@ const generateBotAnswer = async (botData, socket) => {
                     const productIds = await botService.getUsuallyBuyWithProducts({ productId: value })
                     store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
                     await showProducts(messages, productIds, store)
+                    state = null
+                    data = null
                     break
                 case 'check-Amazon':
                     const products = data.products
                     let translatedTitle = await translate(products[0].title, { from: 'vi', to: 'en' })
-                    console.log("search in amazon: " + translatedTitle.text)
+                    // console.log("search in amazon: " + translatedTitle.text)
                     var link = `https://amazon.com/s?k=${translatedTitle.text.replace(' ', '+')}`
                     try {
                         let amazonProducts = await amazonCrawler.crawlData(translatedTitle.text)
