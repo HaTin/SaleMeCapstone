@@ -10,7 +10,7 @@ client.on('connect', function () {
 })
 // echo redis errors to the console
 client.on('error', (err) => {
-    console.log("Error " + err)
+    // console.log("Error " + err)
 });
 
 module.exports = client;

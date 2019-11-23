@@ -41,6 +41,7 @@ const insertMessage = async ({ sender, timestamp, conversationId, msgContent, ty
 const generateBotAnswer = async (botData, socket) => {
     try {
         const messages = []
+        let response = null
         const { sessionId, storeId, timestamp, text, client } = botData
         let { state, data } = client
         let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
@@ -63,23 +64,24 @@ const generateBotAnswer = async (botData, socket) => {
         let suggestedActions = []
         if (state) {
             switch (state) {
-                case 'ask-order-id':
-                    state = 'input-order-id'
+                case 'ask-order-number':
+                    state = 'input-order-number'
                     messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
                     break;
-                case 'input-order-id':
-                    data.orderId = text
-                    state = 'input-order-email'
-                    suggestedActions = [
-                        {
-                            type: 'cancel',
-                            value: 'Hủy'
-                        }, {
-                            type: 'ask-order-id',
-                            value: 'Nhập lại mã đơn hàng'
-                        }
-                    ]
-                    messages.push({ text: 'Vui lòng nhập email', suggestedActions, type: 'text' })
+                case 'input-order-number':
+                    data.orderName = text
+                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    const order = await shopifyController.getOrderByName(store, data.orderName)
+                    if (order && order.email === data.email) {
+                        messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
+                        messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
+                        state = null
+                        data = null
+                    } else {
+                        messages.push({ text: `Không tìm thấy đơn hàng ${data.orderName} với email ${data.email}. Xin hãy thử lại`, type: 'text' })
+                        data = null
+                        state = null
+                    }
                     break;
                 case 'wrong-answer':
                     messages.push({ text: 'Chúng tôi rất tiếc vì không trả lời câu hỏi của bạn, hãy cho chúng tôi biết mong muốn của bạn', suggestedActions, type: 'text' })
@@ -118,16 +120,22 @@ const generateBotAnswer = async (botData, socket) => {
                         if (customers.length) {
                             const customer = customers[0]
                             const requestData = {
-                                sentence: data.question,
+                                sentence: data.botResponse.question,
                                 customer: customer.id + '',
                                 shop: store.name
                             }
                             const response = await axios.post(BOT_URL, requestData)
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (message === 'nullCustomer') {
-                                messages.push({ text: `Không tìm thấy đơn hàng với email ${email}. Xin hãy thử lại`, type: 'text' })
+                                messages.push({ text: `Không tìm thấy đơn hàng nào với email ${email}. Xin hãy thử lại`, type: 'text' })
                                 data = null
                                 state = null
+                            }
+                            else if (!message && !orders.length) {
+                                state = 'input-order-number'
+                                data.customerId = customer.id
+                                data.email = email
+                                messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
                             }
                             else if (type === 'order' && orders && orders.length > 0) {
                                 const orderId = orders[0]
@@ -224,7 +232,7 @@ const generateBotAnswer = async (botData, socket) => {
             "sentence": text,
             "customer": ''
         }
-        const response = await axios.post(BOT_URL, requestData)
+        response = await axios.post(BOT_URL, requestData)
         const { question, type, products, orders, collections, message, report } = response.data
         console.log(response.data)
         data.botResponse = response.data
@@ -497,13 +505,13 @@ calculateTotalStock = (variants) => {
 const reportMessage = async (choice, botResponse) => {
     // const store = await knex('store').where({ id: storeId }).first('id', 'name')
     // const response = await axios.get(BOT_URL, { params: { sentence: message } })
-    
-     const response = await axios.post(`http://bot.sales-bot.tech/api/Message/Report`, JSON.stringify(botResponse),{
-         params:{
-             choice:choice
-         }
-     })
-     return response
+
+    const response = await axios.post(`http://bot.sales-bot.tech/api/Message/Report`, JSON.stringify(botResponse), {
+        params: {
+            choice: choice
+        }
+    })
+    return response
 }
 
 
