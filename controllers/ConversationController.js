@@ -3,6 +3,7 @@ const util = require('../utilities/util')
 const shopifyController = require('./ShopifyController')
 const axios = require('axios')
 // const redisController = require('./RedisController')
+const botService = require('../services/BotService')
 const mailService = require('../services/MailService')
 const BOT_URL = 'http://bot.sales-bot.tech/api/Message/GetAnswer'
 const amazonCrawler = require('../AmazonProductCrawler')
@@ -46,7 +47,7 @@ const generateBotAnswer = async (botData, socket) => {
         const messages = []
         let response = null
         let store = null
-        const { sessionId, storeId, timestamp, text, client } = botData
+        const { sessionId, storeId, timestamp, text, client, value } = botData
         let { state, data } = client
         let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
 
@@ -210,9 +211,13 @@ const generateBotAnswer = async (botData, socket) => {
                     ]
                     messages.push({ text: 'Shop hiện tại không có những sản phẩm tương tự', type: 'text' })
                     messages.push({ text: 'Bạn có muốn tìm sản phẩm tương tự bên amazon không', suggestedActions, type: 'text' })
-
                     state = null
                     break;
+                case 'find-buy-with-products':
+                    const productIds = await botService.getUsuallyBuyWithProducts({ productId: value })
+                    store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    await showProducts(messages, productIds, store)
+                    break
                 case 'check-Amazon':
                     const products = data.products
                     let translatedTitle = await translate(products[0].title, { from: 'vi', to: 'en' })
@@ -326,7 +331,6 @@ const generateBotAnswer = async (botData, socket) => {
                     if (info.name = 'order_id') {
                         state = 'input-order-email'
                         data.orderId = info.value
-
                     } else messages.push({ text: negative, type: 'link' })
                 }
                 break
@@ -474,7 +478,10 @@ const showProducts = async (messages, products, store, report, data) => {
         products.map(p => { ids += p.id + "," })
         ids = ids.substring(0, ids.length - 1)
         //get all product with return ids
-        let _products = await shopifyController.getProductsById(store, ids)
+        let [usuallyWithProductIds, _products] = await Promise.all([
+            botService.checkUsuallyBuyWithProducts(products),
+            shopifyController.getProductsById(store, ids)
+        ])
         _products.forEach((product, index) => {
             const attachment = { contentType: 'product', content: null }
             //find index and product from bot response
@@ -499,13 +506,17 @@ const showProducts = async (messages, products, store, report, data) => {
             } else {
                 totalStock = calculateTotalStock(product.variants)
             }
-
             if (totalStock === 0) {
                 attachment.buttons = [{ title: 'Hết hàng' }]
             } else {
                 attachment.buttons = [
-                    { title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}${variantParams}` },
+                    { title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}${variantParams}` }
                 ]
+                if (usuallyWithProductIds && usuallyWithProductIds.length) {
+                    if (usuallyWithProductIds.some(id => id == product.id)) {
+                        attachment.buttons.push({ title: 'Xem thêm sản phẩm được mua cùng', type: 'find-buy-with-products', value: product.id, productTitle: product.title })
+                    }
+                }
             }
             attachments.push(attachment)
         })
