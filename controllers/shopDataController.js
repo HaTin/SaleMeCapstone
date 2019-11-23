@@ -22,7 +22,17 @@ const saveProduct = async (product, shopName) => {
 }
 
 const saveOrder = async (order, shopName) => {
-    var productList = order.line_items.map(i => i.product_id)
+    var productList = order.line_items.map(i => {
+        var title = i.variant_title.split('/')
+        return ({
+            id: i.product_id,
+            option1: title[0] ? title[0].trim(): null,
+            option2: title[1] ? title[1].trim(): null,
+            option3: title[2] ? title[2].trim(): null,
+            vendor: i.vendor,
+            title: i.title,
+        })
+    })
     var o = {
         shop: shopName,
         customerId: order.customer !== undefined ? order.customer.id: null,
@@ -84,7 +94,17 @@ const saveOrders = async (url, reqHeader, shopName) => {
     let oList = []
     let response = await axios.get(url, {headers: reqHeader})
     response.data.orders.forEach(order => {
-        var productList = order.line_items.map(i => i.product_id)
+        var productList = order.line_items.map(i => {
+            var title = i.variant_title.split('/')
+            return ({
+                id: i.product_id,
+                option1: title[0] ? title[0].trim(): null,
+                option2: title[1] ? title[1].trim(): null,
+                option3: title[2] ? title[2].trim(): null,
+                vendor: i.vendor,
+                title: i.title,
+            })
+        })
         var o = {
             shop: shopName,
             customerId: order.customer !== undefined ? order.customer.id: null,

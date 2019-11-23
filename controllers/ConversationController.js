@@ -5,6 +5,9 @@ const axios = require('axios')
 // const redisController = require('./RedisController')
 const mailService = require('../services/MailService')
 const BOT_URL = 'http://bot.sales-bot.tech/api/Message/GetAnswer'
+const amazonCrawler = require('../AmazonProductCrawler')
+const translate = require('@vitalets/google-translate-api');
+
 
 // const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
@@ -210,7 +213,82 @@ const generateBotAnswer = async (botData, socket) => {
                     state = null
                     break;
                 case 'check-Amazon':
-                    messages.push({ text: 'link amazon', type: 'text' })
+                    const products = data.products
+                    let translatedTitle = await translate(products[0].title, {from:'vi', to: 'en'})
+                    console.log("search in amazon: "+translatedTitle.text)
+                    var link = `https://amazon.com/s?k=${translatedTitle.text.replace(' ','+')}`
+                    try {
+                        let amazonProducts = await amazonCrawler.crawlData(translatedTitle.text)
+                        if(amazonProducts.length == 0) {
+                            messages.push({text:'Không tìm thấy sản phẩm tương tự bên Amazon',type:'text'})
+                        } else {
+                            let attachments = []
+                            for(var i = 0; i< amazonProducts.length; i++) {
+                                const p = amazonProducts[i]
+                                const attachment = { contentType: 'amazon-product', content: null }
+                                attachment.title = p.name
+                                attachment.image = p.image
+                                attachment.buttons = [
+                                    {title:'Xem', type:'open-url', value: p.link}
+                                ]
+                                attachments.push(attachment)
+                            }
+                            messages.push({text: '', attachments, type:'text'})
+                        }
+                    } catch(err) {
+                        messages.push({ text: 'Đi đền trang', link: link, type: 'link' })
+                        console.log(err)
+                    }
+                    state = null
+                    data = null
+                    break;
+                case 'get-email-for-product-suggestion':
+                    let userEmail = text
+                    if (!util.validateEmail(userEmail)) {
+                        suggestedActions = [
+                            {
+                                type: 'show-product',
+                                value: 'Hủy'
+                            }
+                        ]
+                        messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
+                    }
+                    else {
+                        const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                        const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
+                            params: {
+                                email: userEmail,
+                                fields: 'id'
+                            },
+                            headers: {
+                                'X-Shopify-Access-Token': store.token
+                            }
+                        })
+                        const customers = response.data.customers
+                        if (customers.length) {
+                            const customer = customers[0]
+                            const requestData = {
+                                sentence: data.botResponse.question,
+                                customer: customer.id + '',
+                                shop: store.name
+                            }
+                            const response = await axios.post(BOT_URL, requestData)
+                            const { question, type, products, orders, collections, message, report } = response.data
+                            if(type === "product") {
+                                await showProducts(messages, products, store, report, data)
+                                state = null
+                                data = null
+                            }
+                        }
+                    }
+                    break;
+                case 'input-email-for-product-suggestion':
+                    state = 'get-email-for-product-suggestion'
+                    messages.push({text:'vui lòng nhập email', type:'text'})
+                    break
+                case 'show-product':
+                    const store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')    
+                    await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
                     state = null
                     data = null
                     break;
@@ -234,8 +312,8 @@ const generateBotAnswer = async (botData, socket) => {
         }
         response = await axios.post(BOT_URL, requestData)
         const { question, type, products, orders, collections, message, report } = response.data
-        console.log(response.data)
         data.botResponse = response.data
+        
         switch (type) {
             case 'order':
                 if (message === 'nullCustomer') {
@@ -254,80 +332,22 @@ const generateBotAnswer = async (botData, socket) => {
                 }
                 break
             case 'product':
-                const shopifyUrl = ``
-                if (products.length > 0) {
-                    let attachments = []
-                    let ids = ''
-                    products.map(p => { ids += p.id + "," })
-                    ids = ids.substring(0, ids.length - 1)
-                    //get all product with return ids
-                    let _products = await shopifyController.getProductsById(store, ids)
-                    _products.forEach((product, index) => {
-                        const attachment = { contentType: 'product', content: null }
-                        //find index and product from bot response
-                        let _product = null
-                        products.forEach((p, index) => {
-                            if (p.id == product.id) {
-                                attachment.order = index
-                                _product = p
-                            }
-                        })
-                        attachment.title = product.title
-                        attachment.image = product.image.src
-                        attachment.variants = product.variants
-                        attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
-                        console.log('checking ' + product.title)
-                        const bestMatchVariant = findBestMatchVariant(product.variants, _product)
-                        const variantParams = bestMatchVariant ? `?variant=${bestMatchVariant.id}` : ''
-                        //checking stock
-                        var totalStock = 0
-                        if (bestMatchVariant) {
-                            totalStock = bestMatchVariant.inventory_quantity
-                        } else {
-                            totalStock = calculateTotalStock(product.variants)
+                if(products.length > 0) {
+                    let suggestedActions = [
+                        {
+                            type: 'input-email-for-product-suggestion',
+                            value: 'Nhập email'
+                        },
+                        {
+                            type: 'show-product',
+                            value: 'Tôi không muốn'
                         }
-
-                        if (totalStock === 0) {
-                            attachment.buttons = [{ title: 'Hết hàng' }]
-                        } else {
-                            attachment.buttons = [
-                                { title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}${variantParams}` },
-                            ]
-                        }
-                        attachments.push(attachment)
-                    })
-                    //sorting product by the order from bot response
-                    attachments = attachments.sort((a, b) => a.order - b.order)
-                    messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
-                    //remove out of stock products and prepare for suggesting similar product
-                    var outOfStockCounter = 0
-                    attachments.map(attachment => {
-                        attachment.buttons.map(b => b.title).includes("Hết hàng") ? outOfStockCounter += 1 : ''
-                    })
-                    console.log('out of stock products: ' + outOfStockCounter + "/" + attachments.length)
-                    if (outOfStockCounter === attachments.length) {
-                        data.products = attachments
-                        messages.push({ text: '', attachments, type: 'text', report })
-                        const suggestedActions = [
-                            {
-                                type: 'cancel',
-                                value: 'Hủy'
-                            },
-                            {
-                                type: 'product-out-of-stock',
-                                value: "Có"
-                            }
-                        ]
-                        messages.push({ text: "Bạn có muốn xem những sản phẩm tương tự không", suggestedActions, type: 'text' })
-                    } else {
-                        attachments = attachments.filter(attachment => {
-                            return !attachment.buttons.map(b => b.title).includes("Hết hàng")
-                        })
-                        messages.push({ text: '', attachments, type: 'text' })
-                    }
+                    ]
+                    messages.push({text:'Hãy nhập email để bot có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type:'text'})
                 } else {
-                    messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text', report })
+                    messages.push({text: 'Không tìm thấy sản phẩm nào', type:'text'})
                 }
+                
                 break
             case 'collection':
                 if (collections.length > 0) {
@@ -448,6 +468,80 @@ const updateConversation = async ({ conversation, message }) => {
     return { sessionId: conversation.sessionId, answer }
 }
 
+
+const showProducts = async (messages,products,store, report, data) => {
+    if (products.length > 0) {
+        let attachments = []
+        let ids = ''
+        products.map(p => { ids += p.id + "," })
+        ids = ids.substring(0, ids.length - 1)
+        //get all product with return ids
+        let _products = await shopifyController.getProductsById(store, ids)
+        _products.forEach((product, index) => {
+            const attachment = { contentType: 'product', content: null }
+            //find index and product from bot response
+            let _product = null
+            products.forEach((p, index) => {
+                if (p.id == product.id) {
+                    attachment.order = index
+                    _product = p
+                }
+            })
+            attachment.title = product.title
+            attachment.image = product.image.src
+            attachment.variants = product.variants
+            attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
+            console.log('checking ' + product.title)
+            const bestMatchVariant = findBestMatchVariant(product.variants, _product)
+            const variantParams = bestMatchVariant ? `?variant=${bestMatchVariant.id}` : ''
+            //checking stock
+            var totalStock = 0
+            if (bestMatchVariant) {
+                totalStock = bestMatchVariant.inventory_quantity
+            } else {
+                totalStock = calculateTotalStock(product.variants)
+            }
+
+            if (totalStock === 0) {
+                attachment.buttons = [{ title: 'Hết hàng' }]
+            } else {
+                attachment.buttons = [
+                    { title: 'Mua ngay', type: 'open-url', value: `${store.name}/products/${product.handle}${variantParams}` },
+                ]
+            }
+            attachments.push(attachment)
+        })
+        //sorting product by the order from bot response
+        attachments = attachments.sort((a, b) => a.order - b.order)
+        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
+        //remove out of stock products and prepare for suggesting similar product
+        var outOfStockCounter = 0
+        attachments.map(attachment => {
+            attachment.buttons.map(b => b.title).includes("Hết hàng") ? outOfStockCounter += 1 : ''
+        })
+        console.log('out of stock products: ' + outOfStockCounter + "/" + attachments.length)
+        if (outOfStockCounter === attachments.length) {
+            data.products = attachments
+            messages.push({ text: '', attachments, type: 'text', report })
+            const suggestedActions = [
+                {
+                    type: 'cancel',
+                    value: 'Hủy'
+                },
+                {
+                    type: 'product-out-of-stock',
+                    value: "Có"
+                }
+            ]
+            messages.push({ text: "Bạn có muốn xem những sản phẩm tương tự không", suggestedActions, type: 'text' })
+        } else {
+            attachments = attachments.filter(attachment => {
+                return !attachment.buttons.map(b => b.title).includes("Hết hàng")
+            })
+            messages.push({ text: '', attachments, type: 'text' })
+        }
+    } 
+}
 
 const checkOptionValue = (product, value) => {
     var optionValues = []
