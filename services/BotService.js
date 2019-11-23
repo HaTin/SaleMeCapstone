@@ -12,6 +12,17 @@ const getUsuallyBuyWithProducts = async ({ productId }) => {
     })
 }
 
+const reportMessage = async (choice, botResponse) => {
+    const response = await axios.post(`${BOT_URL}/Message/Report`, botResponse, {
+        params: {
+            choice: choice
+        }
+    })
+    return response
+}
+
+
+
 const checkUsuallyBuyWithProducts = async (products) => {
     const productIds = []
     products.map(product => productIds.push(product.id))
@@ -20,5 +31,6 @@ const checkUsuallyBuyWithProducts = async (products) => {
 }
 module.exports = {
     getUsuallyBuyWithProducts,
-    checkUsuallyBuyWithProducts
+    checkUsuallyBuyWithProducts,
+    reportMessage
 }

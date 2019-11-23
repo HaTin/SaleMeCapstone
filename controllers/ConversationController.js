@@ -48,6 +48,7 @@ const generateBotAnswer = async (botData, socket) => {
         const messages = []
         let response = null
         let store = null
+        console.log(botData)
         const { sessionId, storeId, timestamp, text, client, value } = botData
         let { state, data } = client
         let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
@@ -68,6 +69,7 @@ const generateBotAnswer = async (botData, socket) => {
             conversationId: conversation.id
         })
         let suggestedActions = []
+        console.log(state)
         if (state) {
             switch (state) {
                 case 'ask-order-number':
@@ -95,7 +97,7 @@ const generateBotAnswer = async (botData, socket) => {
                     state = null
                     break;
                 case 'report':
-                    reportMessage(text, data.botResponse)
+                    botService.reportMessage(text, data.botResponse)
                     messages.push({ text: 'Cảm ơn bạn đã đóng góp để cải thiện hệ thống của chúng tôi', type: 'text' })
                     state = null
                     break;
@@ -208,24 +210,26 @@ const generateBotAnswer = async (botData, socket) => {
                             value: "Có"
                         }
                     ]
-                    console.log(">>>>>>>>> test id: "+data.botResponse.products[0].id)
-                    const response = await axios.get(BOT_URL_SIMILAR, {params: {product: data.botResponse.products[0].id}})
-                    console.log(response.data)
+                    // console.log(">>>>>>>>> test id: "+data.botResponse.products[0].id)
+                    const response = await axios.get(BOT_URL_SIMILAR, { params: { product: data.botResponse.products[0].id } })
+                    // console.log(response.data)
                     const ids = response.data
-                    if(ids.length === 0 ){
+                    if (ids.length === 0) {
                         messages.push({ text: 'Shop hiện tại không có những sản phẩm tương tự', type: 'text' })
                         messages.push({ text: 'Bạn có muốn tìm sản phẩm tương tự bên amazon không', suggestedActions, type: 'text' })
                     } else {
-                        let p = ids.map(i => ({id: i}))
-                        await showProducts(messages,p,store,data.botResponse.report, data)
+                        let p = ids.map(i => ({ id: i }))
+                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
+                        await showProducts(messages, p, store, data)
                     }
-                    
+
 
                     state = null
                     break;
                 case 'find-buy-with-products':
                     const productIds = await botService.getUsuallyBuyWithProducts({ productId: value })
                     store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text' })
                     await showProducts(messages, productIds, store)
                     state = null
                     data = null
@@ -293,7 +297,8 @@ const generateBotAnswer = async (botData, socket) => {
                             const response = await axios.post(BOT_URL, requestData)
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (type === "product") {
-                                await showProducts(messages, products, store, report, data)
+                                messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
+                                await showProducts(messages, products, store, data)
                                 state = null
                             }
                         }
@@ -304,6 +309,7 @@ const generateBotAnswer = async (botData, socket) => {
                     messages.push({ text: 'Vui lòng nhập email', type: 'text' })
                     break
                 case 'show-product':
+                    messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
                     await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
                     state = null
                     break;
@@ -346,7 +352,7 @@ const generateBotAnswer = async (botData, socket) => {
                 break
             case 'product':
                 if (products.length > 0) {
-                    if(data.userId) {
+                    if (data.userId) {
                         const requestData = {
                             sentence: data.botResponse.question,
                             customer: data.userId,
@@ -354,8 +360,9 @@ const generateBotAnswer = async (botData, socket) => {
                         }
                         const response = await axios.post(BOT_URL, requestData)
                         data.botResponse = response.data
-                        const {products, report} = response.data
-                        await showProducts(messages,products,store,report,data)
+                        const { products, report } = response.data
+                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
+                        await showProducts(messages, products, store, data)
                     } else {
                         let suggestedActions = [
                             {
@@ -368,7 +375,7 @@ const generateBotAnswer = async (botData, socket) => {
                             }
                         ]
                         messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
-                    }                   
+                    }
                 } else {
                     messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text' })
                 }
@@ -398,6 +405,10 @@ const generateBotAnswer = async (botData, socket) => {
                 } else {
                     messages.push({ text: 'Không tìm thấy bộ sưu tập nào', type: "text" })
                 }
+                break
+            case 'other':
+                messages.push({ text: message, type: "text", report })
+                await showProducts(messages, products, store)
                 break
             default:
                 data.question = text
@@ -493,7 +504,7 @@ const updateConversation = async ({ conversation, message }) => {
 }
 
 
-const showProducts = async (messages, products, store, report, data) => {
+const showProducts = async (messages, products, store, data) => {
     if (products.length > 0) {
         let attachments = []
         let ids = ''
@@ -518,7 +529,6 @@ const showProducts = async (messages, products, store, report, data) => {
             attachment.image = product.image.src
             attachment.variants = product.variants
             attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
-            console.log('checking ' + product.title)
             const bestMatchVariant = findBestMatchVariant(product.variants, _product)
             const variantParams = bestMatchVariant ? `?variant=${bestMatchVariant.id}` : ''
             //checking stock
@@ -544,16 +554,16 @@ const showProducts = async (messages, products, store, report, data) => {
         })
         //sorting product by the order from bot response
         attachments = attachments.sort((a, b) => a.order - b.order)
-        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
+
         //remove out of stock products and prepare for suggesting similar product
         var outOfStockCounter = 0
         attachments.map(attachment => {
             attachment.buttons.map(b => b.title).includes("Hết hàng") ? outOfStockCounter += 1 : ''
         })
-        console.log('out of stock products: ' + outOfStockCounter + "/" + attachments.length)
+        // console.log('out of stock products: ' + outOfStockCounter + "/" + attachments.length)
         if (outOfStockCounter === attachments.length) {
             data.products = attachments
-            messages.push({ text: '', attachments, type: 'text', report })
+            messages.push({ text: '', attachments, type: 'text' })
             const suggestedActions = [
                 {
                     type: 'cancel',
@@ -618,7 +628,7 @@ const findBestMatchVariant = (variants, productFromBot) => {
     return baseVariant
 }
 
-calculateTotalStock = (variants) => {
+const calculateTotalStock = (variants) => {
     let stock = 0
     variants.forEach(v => {
         stock += v.inventory_quantity
