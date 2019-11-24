@@ -308,7 +308,7 @@ const generateBotAnswer = async (botData, socket) => {
                     break
                 case 'show-product':
                     messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
-                    await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
+                    await showProducts(messages, data.botResponse.products, store, data)
                     state = null
                     break;
             }
