@@ -29,11 +29,49 @@ const makeId = (length) => {
     return result;
 }
 
+const getVariantsFromMessage = (message) => {
+    const variantName = message.replace(/ .*/, '')
+    const variantStr = message.split(': ')[1];
+    const variants = variantStr.split(/[\s,]+/)
+    return { variantName, variants }
+}
+
+const calculateTotalStock = (variants) => {
+    let stock = 0
+    variants.forEach(v => {
+        stock += v.inventory_quantity
+    })
+    return stock
+}
+const getAvailableVariants = (product, variantName) => {
+    const { options, variants } = product
+    const optionIndex = options.findIndex(opt => opt.name.toLowerCase() === variantName.toLowerCase())
+    const optionValues = options[optionIndex].values
+    const stringIndex = optionIndex + 1 + ''
+    const filterdVariants = optionValues.map(value => {
+        const combinedVariants = variants.filter(variant => variant[`option${stringIndex}`] === value)
+        console.log(combinedVariants)
+        // 
+        const inventoryQuantity = combinedVariants.reduce((acc, v) => acc + v.inventory_quantity, 0)
+        if (inventoryQuantity > 0) return { id: combinedVariants[0].id, name: value }
+    }).filter(Boolean)
+    console.log(filterdVariants)
+    return filterdVariants
+}
+
+const capitalize = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 module.exports = {
     getCurrentDatetime,
     createObj,
     createList,
     convertDatetime,
     validateEmail,
-    makeId
+    makeId,
+    getVariantsFromMessage,
+    calculateTotalStock,
+    getAvailableVariants,
+    capitalize
 }
