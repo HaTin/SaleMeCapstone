@@ -377,7 +377,7 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
                     }
                 } else {
-                    messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text' })
+                    messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text', report })
                 }
                 break
             case 'collection':
