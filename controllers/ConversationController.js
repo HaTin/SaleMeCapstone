@@ -222,8 +222,6 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
                         await showProducts(messages, p, store, data)
                     }
-
-
                     state = null
                     break;
                 case 'find-buy-with-products':
@@ -314,13 +312,13 @@ const generateBotAnswer = async (botData, socket) => {
                     state = null
                     break;
             }
-            messages.map(async messsage => {
+            messages.map(async message => {
                 await insertMessage({
-                    msgContent: messsage.text,
+                    msgContent: message.text,
                     sender: 'bot',
                     conversationId: conversation.id,
-                    type: messsage.type,
-                    attachment: messsage.attachments || ''
+                    type: message.type,
+                    attachment: message.attachments || ''
                 })
             })
             return { state, messages, data }
@@ -408,7 +406,23 @@ const generateBotAnswer = async (botData, socket) => {
                 break
             case 'other':
                 messages.push({ text: message, type: "text", report })
-                await showProducts(messages, products, store)
+                const { isOutOfStock, _products } = await showProducts(messages, products, store)
+                if (!isOutOfStock && _products.length === 1) {
+                    const product = _products[0]
+                    const { variantName, variants } = util.getVariantsFromMessage(message)
+                    // get available variants
+                    const availableVariants = util.getAvailableVariants(product, variantName)
+                    const checkStockMessage = `Hiện tai, các ${variantName} còn hàng là ${availableVariants.map(v => v.name).join(', ')}. Nhấn vào các lựa chọn để tới trang mua hàng`
+                    const suggestedActions = availableVariants.map(variant => {
+                        const action = {
+                            type: 'openUrl',
+                            title: util.capitalize(variantName) + ' ' + variant.name,
+                            value: `https://${store.name}/products/${product.handle}?variant=${variant.id}`
+                        }
+                        return action
+                    })
+                    messages.push({ text: checkStockMessage, type: "text", suggestedActions })
+                }
                 break
             default:
                 data.question = text
@@ -420,13 +434,13 @@ const generateBotAnswer = async (botData, socket) => {
                 ]
                 messages.push({ text: 'Hệ thống không hiểu câu hỏi của bạn', suggestedActions, type: 'text' })
         }
-        messages.map(async messsage => {
+        messages.map(async message => {
             await insertMessage({
-                msgContent: messsage.text,
+                msgContent: message.text,
                 sender: 'bot',
                 conversationId: conversation.id,
-                type: messsage.type,
-                attachment: messsage.attachments || ''
+                type: message.type,
+                attachment: message.attachments || ''
             })
         })
         return { messages, state, data }
@@ -504,8 +518,11 @@ const updateConversation = async ({ conversation, message }) => {
 }
 
 
+
+
 const showProducts = async (messages, products, store, data) => {
     if (products.length > 0) {
+        let isOutOfStock = false
         let attachments = []
         let ids = ''
         products.map(p => { ids += p.id + "," })
@@ -536,7 +553,7 @@ const showProducts = async (messages, products, store, data) => {
             if (bestMatchVariant) {
                 totalStock = bestMatchVariant.inventory_quantity
             } else {
-                totalStock = calculateTotalStock(product.variants)
+                totalStock = util.calculateTotalStock(product.variants)
             }
             if (totalStock === 0) {
                 attachment.buttons = [{ title: 'Hết hàng' }]
@@ -562,6 +579,7 @@ const showProducts = async (messages, products, store, data) => {
         })
         // console.log('out of stock products: ' + outOfStockCounter + "/" + attachments.length)
         if (outOfStockCounter === attachments.length) {
+            isOutOfStock = true
             data.products = attachments
             messages.push({ text: '', attachments, type: 'text' })
             const suggestedActions = [
@@ -581,7 +599,9 @@ const showProducts = async (messages, products, store, data) => {
             })
             messages.push({ text: '', attachments, type: 'text' })
         }
+        return { isOutOfStock, _products }
     }
+
 }
 
 const checkOptionValue = (product, value) => {
@@ -628,13 +648,7 @@ const findBestMatchVariant = (variants, productFromBot) => {
     return baseVariant
 }
 
-const calculateTotalStock = (variants) => {
-    let stock = 0
-    variants.forEach(v => {
-        stock += v.inventory_quantity
-    })
-    return stock
-}
+
 
 
 const reportMessage = async (choice, botResponse) => {
