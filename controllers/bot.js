@@ -1,12 +1,12 @@
 
 const express = require('express')
-const botController = require('../controllers/BotConfigurationController')
+const botService = require('../services/BotConfigurationService')
 const responseStatus = require('../configs/responseStatus')
 const router = express.Router()
 
 router.get('/:storeId', async (req, res) => {
     try {
-        const response = await botController.getConfiguration(req.params.storeId)
+        const response = await botService.getConfiguration(req.params.storeId)
         return res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)
@@ -15,7 +15,7 @@ router.get('/:storeId', async (req, res) => {
 })
 router.put('/:storeId', async (req, res) => {
     try {
-        const response = await botController.updateConfiguration(req.params.storeId, req.body)
+        const response = await botService.updateConfiguration(req.params.storeId, req.body)
         return res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)
@@ -24,7 +24,7 @@ router.put('/:storeId', async (req, res) => {
 })
 router.post('/', async (req, res) => {
     try {
-        const response = await botController.saveConfiguration(req.body)
+        const response = await botService.saveConfiguration(req.body)
         return res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)

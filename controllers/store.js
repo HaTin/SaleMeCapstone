@@ -1,10 +1,10 @@
 const express = require('express')
 const router = express.Router()
-const storeController = require('../controllers/StoreController2')
+const storeService = require('../services/StoreService')
 const responseStatus = require('../configs/responseStatus')
 router.get('/', async (req, res) => {
     try {
-        const response = await storeController.getStores()
+        const response = await storeService.getStores()
         res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)
@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 })
 router.post('/', async (req, res) => {
     try {
-        const response = await storeController.saveStore(req.body)
+        const response = await storeService.saveStore(req.body)
         res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)

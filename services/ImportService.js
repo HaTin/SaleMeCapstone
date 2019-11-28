@@ -1,6 +1,6 @@
 const axios = require('axios')
 const BOT_URL = 'http://bot.sales-bot.tech/api/Import/'
-const storeController = require('./StoreController2')
+const storeService = require('./StoreService')
 
 const saveProduct = async (product, shopName) => {
     var optionList = product.options.map(o => ({name: o.name, values: o.values}))
@@ -59,7 +59,7 @@ const saveCollection = async (collection, shopName) => {
 }
 
 const getProductInCollection = async (collectionId, shopName) => {
-    const store = await storeController.isStoreExisted(shopName)
+    const store = await storeService.isStoreExisted(shopName)
     var reqHeader = {'X-Shopify-Access-Token': store.token}
     var url = `https://${shopName}/admin/api/2019-10/products.json?collection_id=${collectionId}&fields=id,title`
     return axios.get(url,{headers: reqHeader})

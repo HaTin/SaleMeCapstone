@@ -1,19 +1,19 @@
 const express = require('express')
 const axios = require('axios')
-const authController = require('../controllers/AuthController')
-const storeController = require('../controllers/StoreController2')
-const botController = require('../controllers/BotConfigurationController')
+const authService = require('../services/AuthService')
+const storeService = require('../services/StoreService')
+const botService = require('../services/BotConfigurationService')
 const responseStatus = require('../configs/responseStatus')
 const router = express.Router()
 const webhooks = require('../utilities/webhookData')
-const shopDataController = require('../controllers/shopDataController')
+const importService = require('../services/ImportService')
 
 router.post('/signup', async (req, res) => {
     try {
         const { firstName, lastName, email, shop, password } = req.body
-        const store = await storeController.isStoreExisted(shop)
+        const store = await storeService.isStoreExisted(shop)
         if (store) {
-            const userResult = await authController.saveUser({ firstName, lastName, email, storeId: store.id, password, roleId: 1 })
+            const userResult = await authService.saveUser({ firstName, lastName, email, storeId: store.id, password, roleId: 1 })
             const user = userResult.user
             const botData = {
                 botName: 'Bot',
@@ -26,7 +26,7 @@ router.post('/signup', async (req, res) => {
                 requireEmail: false,
                 requirePhone: false
             }
-            const result = await botController.saveConfiguration(botData)
+            const result = await botService.saveConfiguration(botData)
             const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
             const webhookSubscriptionUrl = `https://${shop}/admin/api/2019-10/webhooks.json`
             
@@ -64,12 +64,12 @@ router.post('/signup', async (req, res) => {
             // checkAndSaveToCache(orderUrl, shopRequestHeaders, shop, store.token)
             // checkAndSaveToCache(customCollectionUrl, shopRequestHeaders, shop, store.token)
 
-            shopDataController.saveProducts(productUrl, shopRequestHeaders, shop)
-            shopDataController.saveOrders(orderUrl, shopRequestHeaders, shop)
-            shopDataController.saveCollections(customCollectionUrl,smartCollectionUrl, shopRequestHeaders, shop)
+            importService.saveProducts(productUrl, shopRequestHeaders, shop)
+            importService.saveOrders(orderUrl, shopRequestHeaders, shop)
+            importService.saveCollections(customCollectionUrl,smartCollectionUrl, shopRequestHeaders, shop)
 
             await axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
-            const token = await authController.generateToken(user)
+            const token = await authService.generateToken(user)
             return res.send(responseStatus.Code200({ user, token }))
         }
         return res.status(400).send(responseStatus.Code400())
@@ -83,8 +83,8 @@ router.post('/signup', async (req, res) => {
 router.post('/signin', async (req, res) => {
     try {
         const { email, password } = req.body
-        const user = await authController.verifyUser({ email, password })
-        const token = await authController.generateToken(user)
+        const user = await authService.verifyUser({ email, password })
+        const token = await authService.generateToken(user)
         return res.send(responseStatus.Code200({ user, token }))
     } catch (error) {
         console.log(error)
