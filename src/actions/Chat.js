@@ -15,10 +15,10 @@ import {
   USER_INFO_STATE
 } from 'constants/ActionTypes';
 
-export const fetchChatUser = (storeId) => {
+export const fetchChatUser = (shopId) => {
   return {
     type: FETCH_ALL_CHAT_USER,
-    payload: storeId
+    payload: shopId
   };
 };
 export const fetchChatUserConversation = (conversationId) => {

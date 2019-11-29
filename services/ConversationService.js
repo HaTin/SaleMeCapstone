@@ -13,19 +13,19 @@ const translate = require('@vitalets/google-translate-api');
 
 // const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
-    const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
+    const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'shopId', 'id')
     return conversation
 }
 
-const insertConversation = async ({ sessionId, storeId, lastMessage, userName, timestamp }) => {
+const insertConversation = async ({ sessionId, shopId, lastMessage, userName, timestamp }) => {
     const conversation = {
         sessionId,
-        storeId,
+        shopId,
         lastMessage,
         userName: userName ? userName : `#${util.makeId(5)}`,
         lastMessageTime: util.convertDatetime(timestamp)
     }
-    const result = await knex('conversation').returning(['sessionId', 'storeId', 'id', 'lastMessageTime']).insert(conversation)
+    const result = await knex('conversation').returning(['sessionId', 'shopId', 'id', 'lastMessageTime']).insert(conversation)
     return result[0]
 }
 
@@ -49,14 +49,14 @@ const generateBotAnswer = async (botData, socket) => {
         let response = null
         let store = null
         console.log(botData)
-        const { sessionId, storeId, timestamp, text, client, value } = botData
+        const { sessionId, shopId, timestamp, text, client, value } = botData
         let { state, data } = client
-        let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
-        store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+        let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'shopId', 'id')
+        store = await knex('shop').where({ id: shopId }).first('id', 'name', 'token')
         if (!conversation) {
             conversation = await insertConversation({
                 sessionId,
-                storeId,
+                shopId,
                 lastMessage: text,
                 timestamp
             })
@@ -178,7 +178,7 @@ const generateBotAnswer = async (botData, socket) => {
                         ]
                         messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     } else {
-                        const user = await knex('User').where({ storeId }).first('email')
+                        const user = await knex('User').where({ shopId }).first('email')
                         if (user) {
                             await knex('Conversation').where({ id: conversation.id }).update({ userName: customerEmail })
                             const question = data.question || ''
@@ -220,7 +220,7 @@ const generateBotAnswer = async (botData, socket) => {
                     break;
                 case 'find-buy-with-products':
                     const productIds = await botService.getUsuallyBuyWithProducts({ productId: value })
-                    store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    store = await knex('shop').where({ id: shopId }).first('id', 'name', 'token')
                     messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text' })
                     state = null
                     await showProducts(messages, productIds, store)
@@ -458,10 +458,10 @@ const generateBotAnswer = async (botData, socket) => {
     }
 }
 
-const getConversations = async (storeId, pageNumber, rowPage) => {
+const getConversations = async (shopId, pageNumber, rowPage) => {
     const offset = (pageNumber - 1) * rowPage
     const limit = rowPage
-    const result = await knex('conversation').where({ storeId }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime')
+    const result = await knex('conversation').where({ shopId }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime')
     const response = util.createList(result, 'conversations')
     return response
 }
@@ -474,17 +474,17 @@ const getMessages = async (conversationId) => {
 
 
 
-const createConversation = async ({ message, storeId }) => {
+const createConversation = async ({ message, shopId }) => {
     const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const answer = await generateAnswerV2(message, storeId, sessionId);
+    const answer = await generateAnswerV2(message, shopId, sessionId);
     const conversation = {
         sessionId,
-        storeId,
+        shopId,
         // lastMessage: answer,
         userName: 'Anonymous User',
         lastMessageTime: util.getCurrentDatetime()
     }
-    const result = await knex('conversation').returning(['sessionId', 'storeId', 'id', 'lastMessageTime']).insert(conversation)
+    const result = await knex('conversation').returning(['sessionId', 'shopId', 'id', 'lastMessageTime']).insert(conversation)
     const conversationObj = util.createObj(result, 'conversation')
     const userMessage = {
         msgContent: message,
@@ -507,7 +507,7 @@ const createConversation = async ({ message, storeId }) => {
 }
 
 const updateConversation = async ({ conversation, message }) => {
-    const answer = await generateAnswerV2(message, conversation.storeId, conversation.sessionId);
+    const answer = await generateAnswerV2(message, conversation.shopId, conversation.sessionId);
     const userMessage = {
         msgContent: message,
         sender: 'user',
@@ -660,7 +660,7 @@ const findBestMatchVariant = (variants, productFromBot) => {
 
 
 const reportMessage = async (choice, botResponse) => {
-    // const store = await knex('store').where({ id: storeId }).first('id', 'name')
+    // const store = await knex('shop').where({ id: shopId }).first('id', 'name')
     // const response = await axios.get(BOT_URL, { params: { sentence: message } })
 
     const response = await axios.post(`http://bot.sales-bot.tech/api/Message/Report`, JSON.stringify(botResponse), {

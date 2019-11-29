@@ -1,10 +1,10 @@
 const express = require('express')
 const router = express.Router()
-const shop='nhatlmstore.myshopify.com'
-const productUrl = "https://"+shop+"/admin/api/2019-10/products.json?fields=id,title,product_type,vendor,options,tags,variants"
-const orderUrl = "https://"+shop+"/admin/api/2019-10/orders.json?fields=id,name,line_items,customer&fulfillment_status=any&status=any"
-const customCollectionUrl = "https://"+shop+"/admin/api/2019-10/custom_collections.json?fields=id,title"
-const smartCollectionUrl = "https://"+shop+"/admin/api/2019-10/smart_collections.json?fields=id,title"
+const shop = 'nhatlmstore.myshopify.com'
+const productUrl = "https://" + shop + "/admin/api/2019-10/products.json?fields=id,title,product_type,vendor,options,tags,variants"
+const orderUrl = "https://" + shop + "/admin/api/2019-10/orders.json?fields=id,name,line_items,customer&fulfillment_status=any&status=any"
+const customCollectionUrl = "https://" + shop + "/admin/api/2019-10/custom_collections.json?fields=id,title"
+const smartCollectionUrl = "https://" + shop + "/admin/api/2019-10/smart_collections.json?fields=id,title"
 const axios = require('axios')
 const knex = require('../configs/knex-config')
 const responseStatus = require('../configs/responseStatus')
@@ -12,11 +12,11 @@ const importService = require('../services/ImportService')
 
 router.get('/save-products', async (req, res) => {
     try {
-        const store = await knex('store').where({ name: shop }).first('id', 'name', 'token')
+        const store = await knex('shop').where({ name: shop }).first('id', 'name', 'token')
         const reqHeader = {
             'X-Shopify-Access-Token': store.token
         }
-        const response = await importService.saveProducts(productUrl,reqHeader,shop)
+        const response = await importService.saveProducts(productUrl, reqHeader, shop)
         res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)
@@ -24,11 +24,11 @@ router.get('/save-products', async (req, res) => {
     }
 })
 
-router.get('/save-orders', async (req,res) => {
+router.get('/save-orders', async (req, res) => {
     try {
-        const store = await knex('store').where({ name: shop }).first('id', 'name', 'token')
-        const reqHeader = {'X-Shopify-Access-Token': store.token}
-        const response = await importService.saveOrders(orderUrl,reqHeader,shop)
+        const store = await knex('shop').where({ name: shop }).first('id', 'name', 'token')
+        const reqHeader = { 'X-Shopify-Access-Token': store.token }
+        const response = await importService.saveOrders(orderUrl, reqHeader, shop)
         res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)
@@ -38,9 +38,9 @@ router.get('/save-orders', async (req,res) => {
 
 router.get('/save-collections', async (req, res) => {
     try {
-        const store = await knex('store').where({ name: shop }).first('id', 'name', 'token')
-        var reqHeader = {'X-Shopify-Access-Token': store.token}
-        const response = await importService.saveCollections(customCollectionUrl, smartCollectionUrl, reqHeader, shop)    
+        const store = await knex('shop').where({ name: shop }).first('id', 'name', 'token')
+        var reqHeader = { 'X-Shopify-Access-Token': store.token }
+        const response = await importService.saveCollections(customCollectionUrl, smartCollectionUrl, reqHeader, shop)
         res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)

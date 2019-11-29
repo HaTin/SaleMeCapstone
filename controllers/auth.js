@@ -13,29 +13,29 @@ router.post('/signup', async (req, res) => {
         const { firstName, lastName, email, shop, password } = req.body
         const store = await storeService.isStoreExisted(shop)
         if (store) {
-            const userResult = await authService.saveUser({ firstName, lastName, email, storeId: store.id, password, roleId: 1 })
+            const userResult = await authService.saveUser({ firstName, lastName, email, shopId: store.id, password, roleId: 1 })
             const user = userResult.user
             const botData = {
                 botName: 'Bot',
-                storeId: store.id,
+                shopId: store.id,
                 textColor: 'rgb(255, 255, 255)',
                 backgroundColor: 'linear-gradient(135deg, rgb(19, 84, 122) 0%, rgb(128, 208, 199) 100%)',
                 configDate: new Date(),
-                intro:'',
-                liveChat: true,
-                requireEmail: false,
-                requirePhone: false
+                // intro: '',
+                // liveChat: true,
+                // requireEmail: false,
+                // requirePhone: false
             }
             const result = await botService.saveConfiguration(botData)
             const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
             const webhookSubscriptionUrl = `https://${shop}/admin/api/2019-10/webhooks.json`
-            
-           // const customerUrl = "https://"+shop+"/admin/api/2019-10/customers.json"
-           const productUrl = "https://"+shop+"/admin/api/2019-10/products.json?fields=id,title,product_type,vendor,options,tags,variants"
-           const orderUrl = "https://"+shop+"/admin/api/2019-10/orders.json?fields=id,name,line_items,customer&fulfillment_status=any&status=any"
-           const customCollectionUrl = "https://"+shop+"/admin/api/2019-10/custom_collections.json?fields=id,title"
-           const smartCollectionUrl = "https://"+shop+"/admin/api/2019-10/smart_collections.json?fields=id,title"
-           
+
+            // const customerUrl = "https://"+shop+"/admin/api/2019-10/customers.json"
+            const productUrl = "https://" + shop + "/admin/api/2019-10/products.json?fields=id,title,product_type,vendor,options,tags,variants"
+            const orderUrl = "https://" + shop + "/admin/api/2019-10/orders.json?fields=id,name,line_items,customer&fulfillment_status=any&status=any"
+            const customCollectionUrl = "https://" + shop + "/admin/api/2019-10/custom_collections.json?fields=id,title"
+            const smartCollectionUrl = "https://" + shop + "/admin/api/2019-10/smart_collections.json?fields=id,title"
+
             const shopRequestHeaders = {
                 'X-Shopify-Access-Token': store.token,
                 'Content-Type': 'application/json'
@@ -55,7 +55,7 @@ router.post('/signup', async (req, res) => {
             const scriptTags = {
                 "script_tag": {
                     "event": "onload",
-                    "src": `https://sales-bot-script.s3-ap-southeast-1.amazonaws.com/bundle.js?storeId=${result.botConfig.storeId}`
+                    "src": `https://sales-bot-script.s3-ap-southeast-1.amazonaws.com/bundle.js?shopId=${result.botConfig.shopId}`
                 }
             }
 
@@ -64,9 +64,9 @@ router.post('/signup', async (req, res) => {
             // checkAndSaveToCache(orderUrl, shopRequestHeaders, shop, store.token)
             // checkAndSaveToCache(customCollectionUrl, shopRequestHeaders, shop, store.token)
 
-            importService.saveProducts(productUrl, shopRequestHeaders, shop)
+            await importService.saveProducts(productUrl, shopRequestHeaders, shop)
             importService.saveOrders(orderUrl, shopRequestHeaders, shop)
-            importService.saveCollections(customCollectionUrl,smartCollectionUrl, shopRequestHeaders, shop)
+            importService.saveCollections(customCollectionUrl, smartCollectionUrl, shopRequestHeaders, shop)
 
             await axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
             const token = await authService.generateToken(user)
@@ -116,11 +116,11 @@ router.post('/signin', async (req, res) => {
 
 const webhookSubscription = async (subscriptionUrl, webhookObj, reqHeader) => {
     axios.post(subscriptionUrl, webhookObj, { headers: reqHeader })
-    .catch(function (error) {
-        if (error.response.status === 422) {
-            console.log("Code: " + error.response.status + " - webhook for the topic has been created")
-        }
-    })
+        .catch(function (error) {
+            if (error.response.status === 422) {
+                console.log("Code: " + error.response.status + " - webhook for the topic has been created")
+            }
+        })
 }
 
 module.exports = router
