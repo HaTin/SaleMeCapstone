@@ -68,7 +68,7 @@ const getProductInCollection = async (collectionId, shopName) => {
 const saveProducts = async (url, reqHeader, shopName) => {
     var pList = []
     let response = await axios.get(url, { headers: reqHeader })
-    response.data.products.forEach(product => {
+    response.data.products.forEach(async product => {
         var optionList = product.options.map(o => ({ name: o.name, values: o.values }))
         var priceList = product.variants.map(v =>
             ({ option1: v.option1, option2: v.option2, option3: v.option3, price: v.price }))
@@ -84,7 +84,7 @@ const saveProducts = async (url, reqHeader, shopName) => {
             prices: priceList
         }
         pList.push(p)
-        axios.post(BOT_URL + "AddProduct", JSON.stringify(p))
+        await axios.post(BOT_URL + "AddProduct", JSON.stringify(p))
     })
 
     return { msg: "OK", products: pList }
