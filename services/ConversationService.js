@@ -306,7 +306,7 @@ const generateBotAnswer = async (botData, socket) => {
                     break;
                 case 'show-product':
                     messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
-                    await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
+                    await showProducts(messages, data.botResponse.products, store, data)
                     state = null
                     break;
             }
@@ -383,7 +383,7 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
                     }
                 } else {
-                    messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text' })
+                    messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text', report })
                 }
                 break
             case 'collection':
