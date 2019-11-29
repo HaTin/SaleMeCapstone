@@ -22,7 +22,8 @@ router.get('/', async (req, res) => {
         console.log(`redirectURI: ${redirectUri}`)
         const installUrl = 'https://' + shop + '/admin/oauth/authorize?client_id=' + apiKey + '&scope=' + scopes + '&state=' + state + '&redirect_uri=' + redirectUri;
         res.cookie('state', state);
-        res.status(301).redirect(installUrl);
+        // res.location(installUrl)
+        res.redirect(installUrl);
         console.log(`installUrl: ${installUrl}`)
     } else {
         return res.status(400).send('Missing shop parameter. Please add ?shop=your-development-shop.myshopify.com to your request');
