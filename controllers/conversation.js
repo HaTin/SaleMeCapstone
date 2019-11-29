@@ -1,16 +1,16 @@
 const express = require('express')
 const router = express.Router()
-const conversationController = require('../controllers/ConversationController')
+const conversationService = require('../services/ConversationService')
 const responseStatus = require('../configs/responseStatus')
 router.post('/', async (req, res) => {
     try {
-        const { sessionId, message, storeId } = req.body
-        const conversation = await conversationController.findConversation(sessionId)
+        const { sessionId, message, shopId } = req.body
+        const conversation = await conversationService.findConversation(sessionId)
         if (!conversation) {
-            const response = await conversationController.createConversation({ message, storeId })
+            const response = await conversationService.createConversation({ message, shopId })
             return res.send(responseStatus.Code200(response))
         } else {
-            const response = await conversationController.updateConversation({ conversation, message })
+            const response = await conversationService.updateConversation({ conversation, message })
             return res.send(responseStatus.Code200(response))
         }
     } catch (error) {
@@ -18,10 +18,10 @@ router.post('/', async (req, res) => {
         res.status(error.status || 500).send(error)
     }
 })
-router.get('/:storeId', async (req, res) => {
+router.get('/:shopId', async (req, res) => {
     try {
         const { pageNumber, rowPage } = req.query
-        const response = await conversationController.getConversations(req.params.storeId, parseInt(pageNumber), parseInt(rowPage))
+        const response = await conversationService.getConversations(req.params.shopId, parseInt(pageNumber), parseInt(rowPage))
         return res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)
@@ -30,7 +30,7 @@ router.get('/:storeId', async (req, res) => {
 })
 router.get('/messages/:conversationId', async (req, res) => {
     try {
-        const response = await conversationController.getMessages(req.params.conversationId)
+        const response = await conversationService.getMessages(req.params.conversationId)
         return res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)
@@ -39,8 +39,8 @@ router.get('/messages/:conversationId', async (req, res) => {
 })
 router.post('/report', async (req, res) => {
     try {
-        const { message, storeId } = req.body
-        const response = await conversationController.reportMessage(message, storeId)
+        const { message, shopId } = req.body
+        const response = await conversationService.reportMessage(message, shopId)
         res.send(responseStatus.Code200(response))
     } catch (err) {
         console.log(err)

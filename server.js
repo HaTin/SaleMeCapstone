@@ -8,16 +8,16 @@ const path = require('path');
 const bodyParser = require('body-parser');
 // var RoleController = require('./controllers/RoleController')();
 
-const conversationRouter = require('./routes/conversation')
+const conversationController = require('./controllers/conversation')
 
-const botRouter = require('./routes/bot')
-const userRouter = require('./routes/user')
-const storeRouter = require('./routes/store')
-const shopifyRouter = require('./routes/shopify')
-const authRouter = require('./routes/auth')
-const webhookRouter = require('./routes/webhook')
-const shopDataRouter = require('./routes/shopData')
-const chatController = require('./controllers/ConversationController')
+const botController = require('./controllers/bot')
+const userController = require('./controllers/user')
+const storeController = require('./controllers/store')
+const shopifyController = require('./controllers/shopify')
+const authController = require('./controllers/auth')
+const webhookController = require('./controllers/webhook')
+const importController = require('./controllers/import')
+const chatService = require('./services/ConversationService')
 
 
 // app.use(logger('common'))
@@ -27,14 +27,14 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cors())
 app.options('*', cors())
 // app.use('/api/roles', RoleController);
-app.use('/api/stores', storeRouter);
-app.use('/api/users', userRouter);
-app.use('/api/bot-config', botRouter)
-app.use('/shopify', shopifyRouter)
-app.use('/webhook', webhookRouter)
-app.use('/api/conversations', conversationRouter)
-app.use('/api/auth', authRouter)
-app.use('/api/shop-data', shopDataRouter)
+app.use('/api/stores', storeController);
+app.use('/api/users', userController);
+app.use('/api/bot-config', botController)
+app.use('/shopify', shopifyController)
+app.use('/webhook', webhookController)
+app.use('/api/conversations', conversationController)
+app.use('/api/auth', authController)
+app.use('/api/shop-data', importController)
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
     app.get('/*', function (req, res) {
@@ -55,7 +55,7 @@ io.on("connection", (socket) => {
         const client = connections[socket.id]
         console.log(data)
         client.state = data.type || client.state
-        const response = await chatController.generateBotAnswer({ ...data, sessionId: socket.id, client }, socket)
+        const response = await chatService.generateBotAnswer({ ...data, sessionId: socket.id, client }, socket)
         const newState = {
             state: response.state ? response.state : '',
             data: response.data ? response.data : {}

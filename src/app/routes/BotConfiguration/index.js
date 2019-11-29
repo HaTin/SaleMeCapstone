@@ -57,7 +57,7 @@ const styles = {
 }
 
 let _isMount = false;
-let storeId = 0
+let shopId = 0
 class BotConfiguration extends React.Component {
     constructor(props) {
         super(props)
@@ -73,24 +73,24 @@ class BotConfiguration extends React.Component {
             saveStatus: false,
         }
         var user = JSON.parse(localStorage.getItem('user'))
-        if(user && user.storeId) {
-            storeId = user.storeId
-            console.log("storeId: "+storeId)
+        if (user && user.shopId) {
+            shopId = user.shopId
+            console.log("shopId: " + shopId)
         }
     }
 
     componentDidMount() {
         _isMount = true
-        axios.get('http://localhost:3001/api/bot-config/'+storeId).then(res => {
+        axios.get('http://localhost:3001/api/bot-config/' + shopId).then(res => {
             var config = res.data.botConfig
             console.log(config)
-            if(config) {
-                var _enableSurvey = (config.requireEmail || config.requirePhone) ? true:false;
+            if (config) {
+                var _enableSurvey = (config.requireEmail || config.requirePhone) ? true : false;
                 //setting default object to use when reset config
                 defaultBotConfig = {
-                    ...defaultBotConfig, 
-                    name: config.botName, 
-                    theme : {
+                    ...defaultBotConfig,
+                    name: config.botName,
+                    theme: {
                         ...defaultBotConfig.theme,
                         headerBgColor: config.backgroundColor,
                         headerFontColor: config.textColor,
@@ -113,7 +113,7 @@ class BotConfiguration extends React.Component {
                     enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
                     enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
                     surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig
-                }) 
+                })
             }
         })
     }
@@ -135,31 +135,31 @@ class BotConfiguration extends React.Component {
     handleSave = () => {
         var config = {
             botName: this.state.botName,
-            storeId: storeId,
+            shopId: shopId,
             textColor: this.state.theme.userFontColor,
             backgroundColor: this.state.theme.userBubbleColor,
             configDate: new Date(),
-            intro:this.state.surveyConfig.intro,
+            intro: this.state.surveyConfig.intro,
             liveChat: this.state.enableLiveChat,
             requireEmail: (this.state.enableSurvey && this.state.surveyConfig.requireEmail) ? true : false,
-            requirePhone: (this.state.enableSurvey && this.state.surveyConfig.requirePhone) ? true: false,
+            requirePhone: (this.state.enableSurvey && this.state.surveyConfig.requirePhone) ? true : false,
         }
-        if(this.state.hasConfig) {
-            axios.put('http://localhost:3001/api/bot-config/'+storeId, config)
-            .then(res => {
-                console.log("update config response")
-                console.log(res.data)
-                this.setState({saveStatus: true})
-            })
+        if (this.state.hasConfig) {
+            axios.put('http://localhost:3001/api/bot-config/' + shopId, config)
+                .then(res => {
+                    console.log("update config response")
+                    console.log(res.data)
+                    this.setState({ saveStatus: true })
+                })
         } else {
             axios.post('http://localhost:3001/api/bot-config', config)
-            .then(res => {
-                console.log("save config response")
-                console.log(res.data)
-                this.setState({saveStatus: true})
-            })
+                .then(res => {
+                    console.log("save config response")
+                    console.log(res.data)
+                    this.setState({ saveStatus: true })
+                })
         }
-        
+
     }
     handleChangeName = (event) => {
         this.setState({
@@ -173,7 +173,7 @@ class BotConfiguration extends React.Component {
                 ...this.state.theme,
                 headerBgColor: color.hex,
                 userBubbleColor: color.hex,
-            } 
+            }
         })
     }
 
@@ -183,7 +183,7 @@ class BotConfiguration extends React.Component {
                 ...this.state.theme,
                 headerFontColor: color.hex,
                 userFontColor: color.hex,
-            } 
+            }
         })
     }
 
@@ -192,13 +192,13 @@ class BotConfiguration extends React.Component {
             theme: {
                 ...this.state.theme,
                 headerBgColor: gradient.background,
-                headerFontColor:gradient.color,
-                userBubbleColor:gradient.background,
-                userFontColor:gradient.color,
+                headerFontColor: gradient.color,
+                userBubbleColor: gradient.background,
+                userFontColor: gradient.color,
             }
         })
     }
-    
+
     handleOpenPicker = () => {
         this.setState({
             openColorPicker: true
@@ -224,107 +224,107 @@ class BotConfiguration extends React.Component {
     }
 
     handleEmailRequire = (event) => {
-        if(!event.target.checked && this.state.surveyConfig.requireEmail && !this.state.surveyConfig.requirePhone) {
+        if (!event.target.checked && this.state.surveyConfig.requireEmail && !this.state.surveyConfig.requirePhone) {
             return;
         }
-        this.setState({surveyConfig: {...this.state.surveyConfig, requireEmail: event.target.checked}})
+        this.setState({ surveyConfig: { ...this.state.surveyConfig, requireEmail: event.target.checked } })
     }
 
     handlePhoneRequire = (event) => {
-        if(!event.target.checked && !this.state.surveyConfig.requireEmail && this.state.surveyConfig.requirePhone) {
+        if (!event.target.checked && !this.state.surveyConfig.requireEmail && this.state.surveyConfig.requirePhone) {
             return;
         }
-        this.setState({surveyConfig: {...this.state.surveyConfig, requirePhone: event.target.checked}})
+        this.setState({ surveyConfig: { ...this.state.surveyConfig, requirePhone: event.target.checked } })
     }
 
     handleSurveyIntroChange = (event) => {
-        this.setState({surveyConfig: {...this.state.surveyConfig, intro: event.target.value}})
+        this.setState({ surveyConfig: { ...this.state.surveyConfig, intro: event.target.value } })
     }
 
     handleLiveChat = () => {
-        this.setState({enableLiveChat: !this.state.enableLiveChat})
+        this.setState({ enableLiveChat: !this.state.enableLiveChat })
     }
 
     handleSurvey = () => {
-        this.setState({enableSurvey: !this.state.enableSurvey})
+        this.setState({ enableSurvey: !this.state.enableSurvey })
     }
 
     render() {
-        let emailAndPhoneInput = 
-        <EmailPhoneInput 
-            theme = {this.state.theme}
-            surveyConfig = {this.state.surveyConfig}
-            onSubmitInfo = {this.handleSurvey}
-        />;
-        let backgroundPicker = 
-        <div>
-            {gradients.map((gradient, i) => (
-                <div 
-                    key = {i}
-                    style = {{
-                        display: 'inline-block', 
-                        margin: '5px', 
-                        background: `${gradient.background}`,
-                        borderRadius:'50%',
-                        width: '50px',
-                        height: '50px',
-                        cursor:'pointer',
-                        boxShadow: this.state.theme.headerBgColor === gradient.background ? 
-                            'rgba(0, 77, 255, 0.5) 0 0 3px 3px' : ''
+        let emailAndPhoneInput =
+            <EmailPhoneInput
+                theme={this.state.theme}
+                surveyConfig={this.state.surveyConfig}
+                onSubmitInfo={this.handleSurvey}
+            />;
+        let backgroundPicker =
+            <div>
+                {gradients.map((gradient, i) => (
+                    <div
+                        key={i}
+                        style={{
+                            display: 'inline-block',
+                            margin: '5px',
+                            background: `${gradient.background}`,
+                            borderRadius: '50%',
+                            width: '50px',
+                            height: '50px',
+                            cursor: 'pointer',
+                            boxShadow: this.state.theme.headerBgColor === gradient.background ?
+                                'rgba(0, 77, 255, 0.5) 0 0 3px 3px' : ''
                         }}
-                    onClick = {() => this.handleChangeTheme(gradient)}
-                >    
-                </div>
-            ))}
-        </div>
+                        onClick={() => this.handleChangeTheme(gradient)}
+                    >
+                    </div>
+                ))}
+            </div>
 
-        let survey = 
-        <div style = {styles.surveyContainer}>
-            <FormControl style = {{width: '100%'}}>
-                <InputLabel htmlFor="intro">Introduction line</InputLabel>
-                <Input id="intro"
-                    value={this.state.surveyConfig.intro}
-                    onChange={this.handleSurveyIntroChange} 
-                    fullWidth = {true}/>
-            </FormControl>
-            <FormControl style = {{width: '100%'}}>
-                <FormGroup>
-                    <Grid container spacing={1}>
-                        <Grid item xs={6}>
-                            <FormControlLabel
-                                control={
-                                <Checkbox
-                                    checked={this.state.surveyConfig.requireEmail}
-                                    onChange={this.handleEmailRequire}
-                                    value="emailRequire"
-                                    color="primary"
+        let survey =
+            <div style={styles.surveyContainer}>
+                <FormControl style={{ width: '100%' }}>
+                    <InputLabel htmlFor="intro">Introduction line</InputLabel>
+                    <Input id="intro"
+                        value={this.state.surveyConfig.intro}
+                        onChange={this.handleSurveyIntroChange}
+                        fullWidth={true} />
+                </FormControl>
+                <FormControl style={{ width: '100%' }}>
+                    <FormGroup>
+                        <Grid container spacing={1}>
+                            <Grid item xs={6}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={this.state.surveyConfig.requireEmail}
+                                            onChange={this.handleEmailRequire}
+                                            value="emailRequire"
+                                            color="primary"
+                                        />
+                                    }
+                                    label="Require email"
                                 />
-                                }
-                                label="Require email"
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <FormControlLabel
-                                control={
-                                <Checkbox
-                                    checked={this.state.surveyConfig.requirePhone}
-                                    onChange={this.handlePhoneRequire}
-                                    value="phoneRequire"
-                                    color="primary"
+                            </Grid>
+                            <Grid item xs={6}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={this.state.surveyConfig.requirePhone}
+                                            onChange={this.handlePhoneRequire}
+                                            value="phoneRequire"
+                                            color="primary"
+                                        />
+                                    }
+                                    label="Require phone"
                                 />
-                                }
-                                label="Require phone"
-                            />
+                            </Grid>
                         </Grid>
-                    </Grid>
-                </FormGroup>
-                <FormHelperText>You have to choose at least 1 option</FormHelperText>
-            </FormControl>
-        </div>
+                    </FormGroup>
+                    <FormHelperText>You have to choose at least 1 option</FormHelperText>
+                </FormControl>
+            </div>
 
         let steps = [
-            {id: 'greeting', message: 'Xin chào tôi có thể giúp gì cho bạn', trigger: 'user'},
-            {id: 'user', user: true, end: true}
+            { id: 'greeting', message: 'Xin chào tôi có thể giúp gì cho bạn', trigger: 'user' },
+            { id: 'user', user: true, end: true }
         ]
         return (
             <div className="app-wrapper" >
@@ -340,18 +340,18 @@ class BotConfiguration extends React.Component {
                                         value={this.state.botName}
                                         onChange={this.handleChangeName} />
                                 </FormControl>
-                                <br/><br/>
-                                <span style = {styles.optionTitle}>Background color: </span>
+                                <br /><br />
+                                <span style={styles.optionTitle}>Background color: </span>
                                 {backgroundPicker}
                                 <Button
-                                    variant = "contained"
-                                    color = "primary"
+                                    variant="contained"
+                                    color="primary"
                                     onClick={this.handleOpenPicker}
                                 >
                                     Style your own color
                                 </Button>
-                                <br/><br/>
-                                <span style = {styles.optionTitle}>Enable live-chat: </span>
+                                <br /><br />
+                                <span style={styles.optionTitle}>Enable live-chat: </span>
                                 <Switch
                                     checked={this.state.enableLiveChat}
                                     onChange={this.handleLiveChat}
@@ -359,10 +359,10 @@ class BotConfiguration extends React.Component {
                                     color="primary"
                                     inputProps={{ 'aria-label': 'primary checkbox' }}
                                 />
-                                <br/><br/>
+                                <br /><br />
                                 <Grid container spacing={1}>
                                     <Grid item xs={6}>
-                                        <span style = {styles.optionTitle}>Pre-chat survey: </span>
+                                        <span style={styles.optionTitle}>Pre-chat survey: </span>
                                         <Switch
                                             checked={this.state.enableSurvey}
                                             onChange={this.handleSurvey}
@@ -373,22 +373,22 @@ class BotConfiguration extends React.Component {
                                     </Grid>
                                     <Grid item xs={6}>
                                         {
-                                            this.state.enableSurvey ? 
-                                            <FormControlLabel
-                                                control={
-                                                    <Checkbox
-                                                        checked={this.state.showSurveyScreen}
-                                                        onChange={this.handleSurveyScreen}
-                                                        value="showSurveyScreen"
-                                                        color="primary"
-                                                    />
-                                                }
-                                                label={this.state.showSurveyScreen ? 'Hide survey screen':'Open survey screen'}
-                                            />: ''
+                                            this.state.enableSurvey ?
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={this.state.showSurveyScreen}
+                                                            onChange={this.handleSurveyScreen}
+                                                            value="showSurveyScreen"
+                                                            color="primary"
+                                                        />
+                                                    }
+                                                    label={this.state.showSurveyScreen ? 'Hide survey screen' : 'Open survey screen'}
+                                                /> : ''
                                         }
                                     </Grid>
-                                </Grid>                           
-                                { this.state.enableSurvey ? survey : ''}
+                                </Grid>
+                                {this.state.enableSurvey ? survey : ''}
                             </CardContent>
                         </Card>
                     </Grid>
@@ -397,23 +397,23 @@ class BotConfiguration extends React.Component {
                             <ChatBot
                                 headerTitle={this.state.botName}
                                 floating={true}
-                                hideBotAvatar = {true}
-                                hideUserAvatar = {true}
-                                bubbleStyle = {{borderRadius:'18px', margin: '2px 0px',}}
-                                steps = {steps}
-                                headerComponent = {
-                                    this.state.enableSurvey && this.state.showSurveyScreen ? emailAndPhoneInput : '' 
+                                hideBotAvatar={true}
+                                hideUserAvatar={true}
+                                bubbleStyle={{ borderRadius: '18px', margin: '2px 0px', }}
+                                steps={steps}
+                                headerComponent={
+                                    this.state.enableSurvey && this.state.showSurveyScreen ? emailAndPhoneInput : ''
                                 }
-                                opened = {true}
+                                opened={true}
                             />
                         </ThemeProvider>
-                        
+
                     </Grid>
                     <Grid item xs={12} style={{ textAlign: "right" }}>
                         <Button
                             variant="contained"
                             color="primary"
-                            style={{marginRight: '10px'}}
+                            style={{ marginRight: '10px' }}
                             onClick={this.handleSave}
                         >
                             Save
@@ -433,18 +433,18 @@ class BotConfiguration extends React.Component {
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description">
                     <DialogContent>
-                        <Grid container spacing = {1}>
-                            <Grid item xs = {6}>
-                                <span style = {styles.optionTitle}>Background</span>
+                        <Grid container spacing={1}>
+                            <Grid item xs={6}>
+                                <span style={styles.optionTitle}>Background</span>
                                 <SketchPicker
-                                    color = {this.state.theme.headerBgColor}
+                                    color={this.state.theme.headerBgColor}
                                     onChangeComplete={this.handleChangeBackground}
                                 />
                             </Grid>
-                            <Grid item xs = {6}>
-                                <span style = {styles.optionTitle}>Text Color</span>
+                            <Grid item xs={6}>
+                                <span style={styles.optionTitle}>Text Color</span>
                                 <SketchPicker
-                                    color = {this.state.theme.headerFontColor}
+                                    color={this.state.theme.headerFontColor}
                                     onChangeComplete={this.handleChangeTextColor}
                                 />
                             </Grid>
@@ -464,13 +464,13 @@ class BotConfiguration extends React.Component {
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description">
                     <DialogContent>
-                    <span style = {styles.optionTitle}>Save success</span>
-                    </DialogContent>   
+                        <span style={styles.optionTitle}>Save success</span>
+                    </DialogContent>
                     <DialogActions>
                         <Button onClick={this.handleCloseSave} autoFocus variant="contained" color="primary">
                             OK
                     </Button>
-                    </DialogActions>    
+                    </DialogActions>
                 </Dialog >
             </div >
         )

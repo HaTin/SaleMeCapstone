@@ -1,11 +1,10 @@
 const puppeteer = require('puppeteer');
 const domain = "https://www.amazon.com";
-const randomUseragent = require('random-useragent');
 const crawlData = async (keyword) => {
 
     // wrapper to catch errors
     try {
-        const chromeOptions = {            
+        const chromeOptions = {
             defaultViewport: { width: 1280, height: 1080 },
         };
         // create a new browser instance

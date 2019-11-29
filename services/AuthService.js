@@ -11,17 +11,17 @@ const generateToken = async (data) => {
 const saveUser = async (data) => {
     const hashPassword = await bcrypt.hash(data.password, saltRounds)
     data.password = hashPassword
-    const result = await knex('user').returning(['email', 'firstName', 'lastName', 'storeId']).insert(data)
+    const result = await knex('user').returning(['email', 'firstName', 'lastName', 'shopId']).insert(data)
     const response = util.createObj(result, 'user')
     return response
 }
-const isUserExisted = async (storeId) => {
-    const result = await knex('user').where({ storeId }).first('firstName', 'lastName', 'email')
+const isUserExisted = async (shopId) => {
+    const result = await knex('user').where({ shopId }).first('firstName', 'lastName', 'email')
     return result
 }
 
 const verifyUser = async ({ email, password }) => {
-    const user = await knex('User').where({ email }).first('firstName', 'lastName', 'email', 'password', 'storeId')
+    const user = await knex('User').where({ email }).first('firstName', 'lastName', 'email', 'password', 'shopId')
     if (user) {
         const match = await bcrypt.compare(password, user.password)
         if (match) {
@@ -29,7 +29,7 @@ const verifyUser = async ({ email, password }) => {
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                storeId: user.storeId
+                shopId: user.shopId
             }
             return newUser
         } else {

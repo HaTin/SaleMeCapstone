@@ -1,41 +1,41 @@
 const express = require('express')
 const axios = require('axios')
-const authController = require('../controllers/AuthController')
-const storeController = require('../controllers/StoreController2')
-const botController = require('../controllers/BotConfigurationController')
+const authService = require('../services/AuthService')
+const storeService = require('../services/StoreService')
+const botService = require('../services/BotConfigurationService')
 const responseStatus = require('../configs/responseStatus')
 const router = express.Router()
 const webhooks = require('../utilities/webhookData')
-const shopDataController = require('../controllers/shopDataController')
+const importService = require('../services/ImportService')
 
 router.post('/signup', async (req, res) => {
     try {
         const { firstName, lastName, email, shop, password } = req.body
-        const store = await storeController.isStoreExisted(shop)
+        const store = await storeService.isStoreExisted(shop)
         if (store) {
-            const userResult = await authController.saveUser({ firstName, lastName, email, storeId: store.id, password, roleId: 1 })
+            const userResult = await authService.saveUser({ firstName, lastName, email, shopId: store.id, password, roleId: 1 })
             const user = userResult.user
             const botData = {
                 botName: 'Bot',
-                storeId: store.id,
+                shopId: store.id,
                 textColor: 'rgb(255, 255, 255)',
                 backgroundColor: 'linear-gradient(135deg, rgb(19, 84, 122) 0%, rgb(128, 208, 199) 100%)',
                 configDate: new Date(),
-                intro:'',
-                liveChat: true,
-                requireEmail: false,
-                requirePhone: false
+                // intro: '',
+                // liveChat: true,
+                // requireEmail: false,
+                // requirePhone: false
             }
-            const result = await botController.saveConfiguration(botData)
+            const result = await botService.saveConfiguration(botData)
             const addScriptTagUrl = `https://${shop}/admin/api/2019-10/script_tags.json`
             const webhookSubscriptionUrl = `https://${shop}/admin/api/2019-10/webhooks.json`
-            
-           // const customerUrl = "https://"+shop+"/admin/api/2019-10/customers.json"
-           const productUrl = "https://"+shop+"/admin/api/2019-10/products.json?fields=id,title,product_type,vendor,options,tags,variants"
-           const orderUrl = "https://"+shop+"/admin/api/2019-10/orders.json?fields=id,name,line_items,customer&fulfillment_status=any&status=any"
-           const customCollectionUrl = "https://"+shop+"/admin/api/2019-10/custom_collections.json?fields=id,title"
-           const smartCollectionUrl = "https://"+shop+"/admin/api/2019-10/smart_collections.json?fields=id,title"
-           
+
+            // const customerUrl = "https://"+shop+"/admin/api/2019-10/customers.json"
+            const productUrl = "https://" + shop + "/admin/api/2019-10/products.json?fields=id,title,product_type,vendor,options,tags,variants"
+            const orderUrl = "https://" + shop + "/admin/api/2019-10/orders.json?fields=id,name,line_items,customer&fulfillment_status=any&status=any"
+            const customCollectionUrl = "https://" + shop + "/admin/api/2019-10/custom_collections.json?fields=id,title"
+            const smartCollectionUrl = "https://" + shop + "/admin/api/2019-10/smart_collections.json?fields=id,title"
+
             const shopRequestHeaders = {
                 'X-Shopify-Access-Token': store.token,
                 'Content-Type': 'application/json'
@@ -55,7 +55,7 @@ router.post('/signup', async (req, res) => {
             const scriptTags = {
                 "script_tag": {
                     "event": "onload",
-                    "src": `https://sales-bot-script.s3-ap-southeast-1.amazonaws.com/bundle.js?storeId=${result.botConfig.storeId}`
+                    "src": `https://sales-bot-script.s3-ap-southeast-1.amazonaws.com/bundle.js?shopId=${result.botConfig.shopId}`
                 }
             }
 
@@ -64,12 +64,12 @@ router.post('/signup', async (req, res) => {
             // checkAndSaveToCache(orderUrl, shopRequestHeaders, shop, store.token)
             // checkAndSaveToCache(customCollectionUrl, shopRequestHeaders, shop, store.token)
 
-            shopDataController.saveProducts(productUrl, shopRequestHeaders, shop)
-            shopDataController.saveOrders(orderUrl, shopRequestHeaders, shop)
-            shopDataController.saveCollections(customCollectionUrl,smartCollectionUrl, shopRequestHeaders, shop)
+            await importService.saveProducts(productUrl, shopRequestHeaders, shop)
+            importService.saveOrders(orderUrl, shopRequestHeaders, shop)
+            importService.saveCollections(customCollectionUrl, smartCollectionUrl, shopRequestHeaders, shop)
 
             await axios.post(addScriptTagUrl, scriptTags, { headers: shopRequestHeaders })
-            const token = await authController.generateToken(user)
+            const token = await authService.generateToken(user)
             return res.send(responseStatus.Code200({ user, token }))
         }
         return res.status(400).send(responseStatus.Code400())
@@ -83,8 +83,8 @@ router.post('/signup', async (req, res) => {
 router.post('/signin', async (req, res) => {
     try {
         const { email, password } = req.body
-        const user = await authController.verifyUser({ email, password })
-        const token = await authController.generateToken(user)
+        const user = await authService.verifyUser({ email, password })
+        const token = await authService.generateToken(user)
         return res.send(responseStatus.Code200({ user, token }))
     } catch (error) {
         console.log(error)
@@ -116,11 +116,11 @@ router.post('/signin', async (req, res) => {
 
 const webhookSubscription = async (subscriptionUrl, webhookObj, reqHeader) => {
     axios.post(subscriptionUrl, webhookObj, { headers: reqHeader })
-    .catch(function (error) {
-        if (error.response.status === 422) {
-            console.log("Code: " + error.response.status + " - webhook for the topic has been created")
-        }
-    })
+        .catch(function (error) {
+            if (error.response.status === 422) {
+                console.log("Code: " + error.response.status + " - webhook for the topic has been created")
+            }
+        })
 }
 
 module.exports = router

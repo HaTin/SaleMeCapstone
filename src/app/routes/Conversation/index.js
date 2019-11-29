@@ -183,8 +183,8 @@ class ChatPanelWithRedux extends Component {
 
   componentDidMount() {
     const { authUser, chatUsers } = this.props
-    const { storeId } = authUser
-    this.props.fetchChatUser({ storeId });
+    const { shopId } = authUser
+    this.props.fetchChatUser({ shopId });
     // this.props.fetchChatUserConversation()
   }
 

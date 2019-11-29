@@ -9,9 +9,9 @@ const crypto = require('crypto');
 const cookie = require('cookie');
 const nonce = require('nonce')();
 const querystring = require('querystring');
-const storeController = require('../controllers/StoreController2')
-const authController = require('../controllers/AuthController')
-const botController = require('../controllers/BotConfigurationController')
+const storeService = require('../services/StoreService')
+const authService = require('../services/AuthService')
+const botService = require('../services/BotConfigurationService')
 const forwardingAddress = process.env.FORWARDING_ADDRESS
 router.get('/', async (req, res) => {
     const shop = req.query.shop;
@@ -59,11 +59,11 @@ router.get('/callback', async (req, res) => {
         if (!hashEquals) {
             return res.status(400).send('HMAC validation failed');
         }
-        const store = await storeController.isStoreExisted(shop)
+        const store = await storeService.isStoreExisted(shop)
         if (store) {
-            const user = await authController.isUserExisted(store.id)
+            const user = await authService.isUserExisted(store.id)
             if (user) {
-                const token = await authController.generateToken(store)
+                const token = await authService.generateToken(store)
                 return res.redirect(`/?token=${token}`)
             } else {
                 return res.redirect(`http://localhost:3000/signup?shop=${shop}`)
@@ -84,7 +84,7 @@ router.get('/callback', async (req, res) => {
                         token: accessToken,
                         isActive: 1
                     }
-                    const response = await storeController.saveStore(store)
+                    const response = await storeService.saveStore(store)
                     return res.redirect(`http://localhost:3000/signup?shop=${response.store.name}`)
                 })
                 .catch((error) => {

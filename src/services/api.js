@@ -4,6 +4,6 @@ export const auth = {
     signIn: payload => client.post('/auth/signin', payload)
 }
 export const chat = {
-    getConversations: ({ storeId, pageNumber, rowPage }) => client.get(`/conversations/${storeId}?pageNumber=${pageNumber}&rowPage=${rowPage}`),
+    getConversations: ({ shopId, pageNumber, rowPage }) => client.get(`/conversations/${shopId}?pageNumber=${pageNumber}&rowPage=${rowPage}`),
     getMessages: conversationId => client.get(`/conversations/messages/${conversationId}`)
 }

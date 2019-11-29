@@ -1,5 +1,5 @@
-const storeController = require('../controllers/StoreController2')
-const shopDataController = require('../controllers/shopDataController')
+const storeController = require('./StoreService')
+const shopDataController = require('./ImportService')
 
 
 const updateProduct = async (updateProduct, shopName) => {

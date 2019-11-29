@@ -1,9 +1,9 @@
 const express = require('express')
 const router = express.Router()
-const userController = require('../controllers/UserController')
+// const userService = require('../services/user')
 router.get('/', async (req, res) => {
     try {
-        userController.getUsers()
+        // userService.getUsers()
     } catch (error) {
         console.log(error)
     }

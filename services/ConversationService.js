@@ -1,31 +1,31 @@
 const knex = require('../configs/knex-config')
 const util = require('../utilities/util')
-const shopifyController = require('./ShopifyController')
+const shopifyService = require('../services/ShopifyService')
 const axios = require('axios')
 // const redisController = require('./RedisController')
-const botService = require('../services/BotService')
-const mailService = require('../services/MailService')
+const botService = require('./BotService')
+const mailService = require('./MailService')
 const BOT_URL = 'http://bot.sales-bot.tech/api/Message/GetAnswer'
 const BOT_URL_SIMILAR = 'http://bot.sales-bot.tech/api/Find/SimilarProduct'
-const amazonCrawler = require('../AmazonProductCrawler')
+const amazonCrawler = require('./AmazonCrawlerService')
 const translate = require('@vitalets/google-translate-api');
 
 
 // const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
-    const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
+    const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'shopId', 'id')
     return conversation
 }
 
-const insertConversation = async ({ sessionId, storeId, lastMessage, userName, timestamp }) => {
+const insertConversation = async ({ sessionId, shopId, lastMessage, userName, timestamp }) => {
     const conversation = {
         sessionId,
-        storeId,
+        shopId,
         lastMessage,
         userName: userName ? userName : `#${util.makeId(5)}`,
         lastMessageTime: util.convertDatetime(timestamp)
     }
-    const result = await knex('conversation').returning(['sessionId', 'storeId', 'id', 'lastMessageTime']).insert(conversation)
+    const result = await knex('conversation').returning(['sessionId', 'shopId', 'id', 'lastMessageTime']).insert(conversation)
     return result[0]
 }
 
@@ -49,14 +49,14 @@ const generateBotAnswer = async (botData, socket) => {
         let response = null
         let store = null
         console.log(botData)
-        const { sessionId, storeId, timestamp, text, client, value } = botData
+        const { sessionId, shopId, timestamp, text, client, value } = botData
         let { state, data } = client
-        let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'storeId', 'id')
-        store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+        let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'shopId', 'id')
+        store = await knex('shop').where({ id: shopId }).first('id', 'name', 'token')
         if (!conversation) {
             conversation = await insertConversation({
                 sessionId,
-                storeId,
+                shopId,
                 lastMessage: text,
                 timestamp
             })
@@ -78,15 +78,13 @@ const generateBotAnswer = async (botData, socket) => {
                     break;
                 case 'input-order-number':
                     data.orderName = text
-                    const order = await shopifyController.getOrderByName(store, data.orderName)
+                    const order = await shopifyService.getOrderByName(store, data.orderName)
                     if (order && order.email === data.email) {
                         messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
                         messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
                         state = null
-                        data = null
                     } else {
                         messages.push({ text: `Không tìm thấy đơn hàng ${data.orderName} với email ${data.email}. Xin hãy thử lại`, type: 'text' })
-                        data = null
                         state = null
                     }
                     break;
@@ -134,7 +132,6 @@ const generateBotAnswer = async (botData, socket) => {
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (message === 'nullCustomer') {
                                 messages.push({ text: `Không tìm thấy đơn hàng nào với email ${email}. Xin hãy thử lại`, type: 'text' })
-                                data = null
                                 state = null
                             }
                             else if (!message && !orders.length) {
@@ -155,11 +152,9 @@ const generateBotAnswer = async (botData, socket) => {
                                 messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
                                 messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
                                 state = null
-                                data = null
                             }
                             else {
                                 messages.push({ text: `Không tìm thấy đơn hàng #${orderId} với email ${email}. Xin hãy thử lại`, type: 'text' })
-                                data = null
                                 state = null
                             }
                         } else {
@@ -183,7 +178,7 @@ const generateBotAnswer = async (botData, socket) => {
                         ]
                         messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     } else {
-                        const user = await knex('User').where({ storeId }).first('email')
+                        const user = await knex('User').where({ shopId }).first('email')
                         if (user) {
                             await knex('Conversation').where({ id: conversation.id }).update({ userName: customerEmail })
                             const question = data.question || ''
@@ -197,7 +192,6 @@ const generateBotAnswer = async (botData, socket) => {
                 case 'cancel':
                     messages.push({ text: 'Nếu bạn có bất kỳ câu hỏi nào, hãy hỏi tôi nhé!', type: 'text' })
                     state = null
-                    data = null
                     break;
                 case 'product-out-of-stock':
                     suggestedActions = [
@@ -226,11 +220,10 @@ const generateBotAnswer = async (botData, socket) => {
                     break;
                 case 'find-buy-with-products':
                     const productIds = await botService.getUsuallyBuyWithProducts({ productId: value })
-                    store = await knex('store').where({ id: storeId }).first('id', 'name', 'token')
+                    store = await knex('shop').where({ id: shopId }).first('id', 'name', 'token')
                     messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text' })
-                    await showProducts(messages, productIds, store)
                     state = null
-                    data = null
+                    await showProducts(messages, productIds, store)
                     break
                 case 'check-Amazon':
                     const products = data.products
@@ -260,7 +253,6 @@ const generateBotAnswer = async (botData, socket) => {
                         console.log(err)
                     }
                     state = null
-                    data = null
                     break;
                 case 'get-email-for-product-suggestion':
                     let userEmail = text
@@ -306,6 +298,12 @@ const generateBotAnswer = async (botData, socket) => {
                     state = 'get-email-for-product-suggestion'
                     messages.push({ text: 'Vui lòng nhập email', type: 'text' })
                     break
+                case 'ignore-email':
+                    data.noEmailRequire = true
+                    messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
+                    await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
+                    state = null
+                    break;
                 case 'show-product':
                     messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
                     await showProducts(messages, data.botResponse.products, store, data)
@@ -361,7 +359,13 @@ const generateBotAnswer = async (botData, socket) => {
                         const { products, report } = response.data
                         messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
                         await showProducts(messages, products, store, data)
-                    } else {
+                    } else if (data.noEmailRequire) {
+                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
+                        await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
+                        state = null
+                        break;
+                    }
+                    else {
                         let suggestedActions = [
                             {
                                 type: 'input-email-for-product-suggestion',
@@ -370,6 +374,10 @@ const generateBotAnswer = async (botData, socket) => {
                             {
                                 type: 'show-product',
                                 value: 'Tôi không muốn'
+                            },
+                            {
+                                type: 'ignore-email',
+                                value: 'Bỏ qua việc nhập email'
                             }
                         ]
                         messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
@@ -384,8 +392,8 @@ const generateBotAnswer = async (botData, socket) => {
                     collections.forEach(c => ids += c + ",")
                     ids = ids.substring(0, ids.length - 1)
                     let attachments = []
-                    let customCollections = await shopifyController.getCustomCollectionInfoByIds(store, ids)
-                    let smartCollections = await shopifyController.getSmartCollectionInfoByIds(store, ids)
+                    let customCollections = await shopifyService.getCustomCollectionInfoByIds(store, ids)
+                    let smartCollections = await shopifyService.getSmartCollectionInfoByIds(store, ids)
                     customCollections.forEach(c => {
                         const attachment = { contentType: 'collection', content: null }
                         attachment.title = c.title
@@ -450,10 +458,10 @@ const generateBotAnswer = async (botData, socket) => {
     }
 }
 
-const getConversations = async (storeId, pageNumber, rowPage) => {
+const getConversations = async (shopId, pageNumber, rowPage) => {
     const offset = (pageNumber - 1) * rowPage
     const limit = rowPage
-    const result = await knex('conversation').where({ storeId }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime')
+    const result = await knex('conversation').where({ shopId }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime')
     const response = util.createList(result, 'conversations')
     return response
 }
@@ -466,17 +474,17 @@ const getMessages = async (conversationId) => {
 
 
 
-const createConversation = async ({ message, storeId }) => {
+const createConversation = async ({ message, shopId }) => {
     const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const answer = await generateAnswerV2(message, storeId, sessionId);
+    const answer = await generateAnswerV2(message, shopId, sessionId);
     const conversation = {
         sessionId,
-        storeId,
+        shopId,
         // lastMessage: answer,
         userName: 'Anonymous User',
         lastMessageTime: util.getCurrentDatetime()
     }
-    const result = await knex('conversation').returning(['sessionId', 'storeId', 'id', 'lastMessageTime']).insert(conversation)
+    const result = await knex('conversation').returning(['sessionId', 'shopId', 'id', 'lastMessageTime']).insert(conversation)
     const conversationObj = util.createObj(result, 'conversation')
     const userMessage = {
         msgContent: message,
@@ -499,7 +507,7 @@ const createConversation = async ({ message, storeId }) => {
 }
 
 const updateConversation = async ({ conversation, message }) => {
-    const answer = await generateAnswerV2(message, conversation.storeId, conversation.sessionId);
+    const answer = await generateAnswerV2(message, conversation.shopId, conversation.sessionId);
     const userMessage = {
         msgContent: message,
         sender: 'user',
@@ -530,7 +538,7 @@ const showProducts = async (messages, products, store, data) => {
         //get all product with return ids
         let [usuallyWithProductIds, _products] = await Promise.all([
             botService.checkUsuallyBuyWithProducts(products),
-            shopifyController.getProductsById(store, ids)
+            shopifyService.getProductsById(store, ids)
         ])
         _products.forEach((product, index) => {
             const attachment = { contentType: 'product', content: null }
@@ -652,7 +660,7 @@ const findBestMatchVariant = (variants, productFromBot) => {
 
 
 const reportMessage = async (choice, botResponse) => {
-    // const store = await knex('store').where({ id: storeId }).first('id', 'name')
+    // const store = await knex('shop').where({ id: shopId }).first('id', 'name')
     // const response = await axios.get(BOT_URL, { params: { sentence: message } })
 
     const response = await axios.post(`http://bot.sales-bot.tech/api/Message/Report`, JSON.stringify(botResponse), {
