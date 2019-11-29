@@ -22,7 +22,6 @@ router.get('/', async (req, res) => {
         console.log(`redirectURI: ${redirectUri}`)
         const installUrl = 'https://' + shop + '/admin/oauth/authorize?client_id=' + apiKey + '&scope=' + scopes + '&state=' + state + '&redirect_uri=' + redirectUri;
         res.cookie('state', state);
-        // res.location(installUrl)
         res.redirect(installUrl);
         console.log(`installUrl: ${installUrl}`)
     } else {
@@ -91,7 +90,7 @@ router.get('/callback', async (req, res) => {
                     }
                     const response = await storeService.saveStore(store)
                     // return res.redirect(`http://localhost:3000/signup?shop=${response.store.name}`)
-                    return res.redirect(`/?shop=${response.store.name}`)
+                    return res.redirect(`/signup?shop=${response.store.name}`)
                 })
                 .catch((error) => {
                     console.log(error)
