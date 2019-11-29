@@ -51,14 +51,14 @@
 //     })
 
 //     router.route('/deactive/:id').put(function (req, res) {
-//         var storeId = req.params.id
+//         var shopId = req.params.id
 //         conn.connect().then(function () {
 //             var transaction = new sql.Transaction(conn);
 //             transaction.begin().then(function () {
 //                 var request = new sql.Request(transaction)
 //                 var query = "UPDATE Store "
 //                     + "SET IsActive='false', TimeUninstall='" + req.body.TimeUninstall
-//                     + "' WHERE Id=" + storeId;
+//                     + "' WHERE Id=" + shopId;
 //                 request.query(query).then(() => {
 //                     transaction.commit().then(function (recordSet) {
 //                         conn.close()

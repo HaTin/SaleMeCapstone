@@ -60,7 +60,7 @@
 //                 var request = new sql.Request(transaction)
 //                 var query = "INSERT INTO User(Email, Password, FirstName, LastName, RoleId, StoreId) "
 //                     + "VALUES('" + req.body.email + "','" + req.body.password + "','"
-//                     + req.body.firstName + "','" + req.body.lastName + "','1','" + req.body.storeId + "')"
+//                     + req.body.firstName + "','" + req.body.lastName + "','1','" + req.body.shopId + "')"
 //                 console.log(query)
 //                 request.query(query).then(() => {
 //                     transaction.commit().then(function (recordSet) {

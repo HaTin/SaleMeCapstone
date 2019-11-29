@@ -8,8 +8,8 @@ function* fetchChatUserRequest({ payload }) {
   try {
     const pageNumber = 1
     const rowPage = 10
-    const { storeId } = payload
-    const response = yield call(chat.getConversations, { storeId, pageNumber, rowPage });
+    const { shopId } = payload
+    const response = yield call(chat.getConversations, { shopId, pageNumber, rowPage });
     const { conversations } = response.data
     yield put(fetchChatUserSuccess(conversations));
   } catch (error) {
