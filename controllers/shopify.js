@@ -14,11 +14,14 @@ const authService = require('../services/AuthService')
 const botService = require('../services/BotConfigurationService')
 const forwardingAddress = process.env.FORWARDING_ADDRESS
 router.get('/', async (req, res) => {
+    console.log(req.query)
     const shop = req.query.shop;
     if (shop) {
         const state = nonce();
         const redirectUri = forwardingAddress + '/shopify/callback';
+        console.log(`redirectURI: ${redirectUri}`)
         const installUrl = 'https://' + shop + '/admin/oauth/authorize?client_id=' + apiKey + '&scope=' + scopes + '&state=' + state + '&redirect_uri=' + redirectUri;
+        console.log(`installUrl: ${installUrl}`)
         res.cookie('state', state);
         res.redirect(installUrl);
     } else {
