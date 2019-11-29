@@ -66,7 +66,8 @@ router.get('/callback', async (req, res) => {
                 const token = await authService.generateToken(store)
                 return res.redirect(`/?token=${token}`)
             } else {
-                return res.redirect(`http://localhost:3000/signup?shop=${shop}`)
+                return res.redirect(`/signup?shop=${shop}`)
+                // return res.redirect(`http://localhost:3000/signup?shop=${shop}`)
             }
         } else {
             const accessTokenRequestUrl = 'https://' + shop + '/admin/oauth/access_token';
@@ -82,10 +83,11 @@ router.get('/callback', async (req, res) => {
                     const store = {
                         name: shop,
                         token: accessToken,
-                        isActive: 1
+                        isActive: 0
                     }
                     const response = await storeService.saveStore(store)
-                    return res.redirect(`http://localhost:3000/signup?shop=${response.store.name}`)
+                    // return res.redirect(`http://localhost:3000/signup?shop=${response.store.name}`)
+                    return res.redirect(`/?shop=${response.store.name}`)
                 })
                 .catch((error) => {
                     console.log(error)
