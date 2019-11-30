@@ -28,7 +28,7 @@ const isRoleExisted = async (role) => {
 }
 
 const saveRole = async (role) => {
-    const result = await knex('role').returning(["id"]).insert(data)
+    const result = await knex('role').returning(["id"]).insert({roleName: role})
     response = util.createObj(result,"id")
     return response
 }
