@@ -404,7 +404,7 @@ const generateBotAnswer = async (botData, socket) => {
                     smartCollections.forEach(s => {
                         const attachment = { contentType: 'collection', content: null }
                         attachment.title = s.title
-                        attachment.image = c.image.src
+                        attachment.image = s.image.src
                         attachment.buttons = [{ title: 'Xem', type: 'open-url', value: `${store.name}/collections/${s.handle}` }]
                         attachments.push(attachment)
                     })
