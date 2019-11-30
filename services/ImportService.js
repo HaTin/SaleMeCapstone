@@ -1,5 +1,6 @@
 const axios = require('axios')
 const BOT_URL = 'http://bot.sales-bot.tech/api/Import/'
+const BOT_URL_DELETE = 'http://bot.sales-bot.tech/api/Delete';
 const storeService = require('./StoreService')
 
 const saveProduct = async (product, shopName) => {
@@ -46,7 +47,6 @@ const saveOrder = async (order, shopName) => {
 
 const saveCollection = async (collection, shopName) => {
     let productInCollection = await getProductInCollection(collection.id, shopName)
-    console.log(productInCollection)
     let productIds = productInCollection.data.products.map(p => p.id)
     var c = {
         shop: shopName,
@@ -58,10 +58,25 @@ const saveCollection = async (collection, shopName) => {
     return { collection: c }
 }
 
+const deleteProduct = async (id) => {
+    axios.delete(BOT_URL_DELETE+"/Product", {params: {productId: id}})
+    return {id: id}
+}
+
+const deleteCollection = async (id) => {
+    axios.delete(BOT_URL_DELETE+"/Collection", {params: {collectionId: id}})
+    return {id: id}
+}
+
+const deleteOrder = async (id) => {
+    axios.delete(BOT_URL_DELETE+"/Order", {params: {orderId: id}})
+    return {id: id}
+}
+
 const getProductInCollection = async (collectionId, shopName) => {
     const store = await storeService.isStoreExisted(shopName)
     var reqHeader = { 'X-Shopify-Access-Token': store.token }
-    var url = `https://${shopName}/admin/api/2019-10/products.json?collection_id=${collectionId}&fields=id,title`
+    var url = `https://${shopName}/admin/api/2019-10/products.json?collection_id=${collectionId}&fields=id,title`        
     return axios.get(url, { headers: reqHeader })
 }
 
@@ -171,4 +186,7 @@ module.exports = {
     saveProduct,
     saveOrder,
     saveCollection,
+    deleteOrder,
+    deleteCollection,
+    deleteProduct,
 }

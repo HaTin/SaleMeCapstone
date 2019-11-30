@@ -41,16 +41,15 @@ router.post('/signup', async (req, res) => {
                 'Content-Type': 'application/json'
             };
 
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.updateProduct, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.createProduct, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteProduct, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.createCustomer, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.updateCustomer, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.createOrder, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.updateOrder, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.createCollection, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.updateCollection, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteCollection, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.updateProduct, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.createProduct, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteProduct, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.createOrder, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.updateOrder, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteOrder, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.createCollection, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.updateCollection, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteCollection, shopRequestHeaders)
 
             const scriptTags = {
                 "script_tag": {
