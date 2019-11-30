@@ -1,15 +1,17 @@
 const knex = require('../configs/knex-config')
 const util = require('../utilities/util')
 const config = require('../configs/config')
-const bcrypt = require('bcrypt')
-const saltRounds = 5;
+// const bcrypt = require('bcrypt')
+const CryptoJS = require("crypto-js");
+const secretKey = 'abcs321';
 const jwt = require('jsonwebtoken')
 const generateToken = async (data) => {
     const token = jwt.sign(data, config.secret, { expiresIn: config.tokenExpire })
     return token
 }
 const saveUser = async (data) => {
-    const hashPassword = await bcrypt.hash(data.password, saltRounds)
+    // const hashPassword = '123456'
+    const hashPassword = CryptoJS.AES.encrypt(data.password, secretKey).toString()
     data.password = hashPassword
     const result = await knex('user').returning(['email', 'firstName', 'lastName', 'shopId']).insert(data)
     const response = util.createObj(result, 'user')
@@ -20,11 +22,17 @@ const isUserExisted = async (shopId) => {
     return result
 }
 
+
+const verifyToken = async () => {
+
+}
+
 const verifyUser = async ({ email, password }) => {
     const user = await knex('User').where({ email }).first('firstName', 'lastName', 'email', 'password', 'shopId')
     if (user) {
-        const match = await bcrypt.compare(password, user.password)
-        if (match) {
+        const bytes = CryptoJS.AES.decrypt(user.password, secretKey);
+        const plainPassword = bytes.toString(CryptoJS.enc.Utf8)
+        if (plainPassword === password) {
             const newUser = {
                 email: user.email,
                 firstName: user.firstName,

@@ -14,13 +14,16 @@ const authService = require('../services/AuthService')
 const botService = require('../services/BotConfigurationService')
 const forwardingAddress = process.env.FORWARDING_ADDRESS
 router.get('/', async (req, res) => {
+    console.log(req.query)
     const shop = req.query.shop;
     if (shop) {
         const state = nonce();
         const redirectUri = forwardingAddress + '/shopify/callback';
+        console.log(`redirectURI: ${redirectUri}`)
         const installUrl = 'https://' + shop + '/admin/oauth/authorize?client_id=' + apiKey + '&scope=' + scopes + '&state=' + state + '&redirect_uri=' + redirectUri;
         res.cookie('state', state);
         res.redirect(installUrl);
+        console.log(`installUrl: ${installUrl}`)
     } else {
         return res.status(400).send('Missing shop parameter. Please add ?shop=your-development-shop.myshopify.com to your request');
     }
@@ -87,7 +90,7 @@ router.get('/callback', async (req, res) => {
                     }
                     const response = await storeService.saveStore(store)
                     // return res.redirect(`http://localhost:3000/signup?shop=${response.store.name}`)
-                    return res.redirect(`/?shop=${response.store.name}`)
+                    return res.redirect(`/signup?shop=${response.store.name}`)
                 })
                 .catch((error) => {
                     console.log(error)
