@@ -13,7 +13,15 @@ router.post('/signup', async (req, res) => {
         const { firstName, lastName, email, shop, password } = req.body
         const store = await storeService.isStoreExisted(shop)
         if (store) {
-            const userResult = await authService.saveUser({ firstName, lastName, email, shopId: store.id, password, roleId: 1 })
+            const role = await authService.isRoleExisted('user');
+            let roleId
+            if(!role) {
+                const response = await authService.saveRole("user");
+                roleId = response.id                
+            } else {
+                roleId = role.id
+            }
+            const userResult = await authService.saveUser({ firstName, lastName, email, shopId: store.id, password, roleId: roleId })
             const user = userResult.user
             const botData = {
                 botName: 'Bot',

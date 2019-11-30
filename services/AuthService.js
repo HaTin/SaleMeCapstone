@@ -22,7 +22,16 @@ const isUserExisted = async (shopId) => {
     return result
 }
 
+const isRoleExisted = async (role) => {
+    const result  = await knex('role').where({roleName:role}).first('id')
+    return result
+}
 
+const saveRole = async (role) => {
+    const result = await knex('role').returning(["id"]).insert(data)
+    response = util.createObj(result,"id")
+    return response
+}
 const verifyToken = async () => {
 
 }
@@ -51,5 +60,7 @@ module.exports = {
     generateToken,
     saveUser,
     isUserExisted,
-    verifyUser
+    verifyUser,
+    isRoleExisted,
+    saveRole,
 }
