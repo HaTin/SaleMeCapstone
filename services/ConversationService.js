@@ -463,6 +463,13 @@ const getConversations = async (shopId, pageNumber, rowPage) => {
     const limit = rowPage
     const result = await knex('conversation').where({ shopId }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime')
     const response = util.createList(result, 'conversations')
+    if (result.length) {
+        response.pageNumber = pageNumber + 1
+    }
+    else {
+        response.end = true
+        response.pageNumber = pageNumber
+    }
     return response
 }
 
