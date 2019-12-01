@@ -293,8 +293,16 @@ const generateBotAnswer = async (botData, socket) => {
                             }
                         }
                         else {
-                            messages.push({ text: 'Không tìm thấy khách hàng, vui lòng thử lại', type: 'text' })
-                            state = null
+                            const suggestedActions = [
+                                {
+                                    type:'input-email-for-product-suggestion',
+                                    value:'Nhập lại email'
+                                }, {
+                                    type: 'show-product',
+                                    value: 'Không nhập email nữa'
+                                }
+                            ]
+                            messages.push({ text: 'Không tìm thấy khách hàng',suggestedActions, type: 'text' })
                         }
                     }
                     break;
