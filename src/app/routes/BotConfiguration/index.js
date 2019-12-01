@@ -33,6 +33,7 @@ import EmailPhoneInput from './EmailPhoneInput'
 import defaultTheme from './botDefaultStyle'
 import gradients from './gradientList'
 import { ThemeProvider } from 'styled-components';
+import SendIcon from '@material-ui/icons/Send';
 
 let defaultBotConfig = {
     name: 'Bot',
@@ -53,6 +54,9 @@ const styles = {
     surveyContainer: {
         marginTop: '10px',
         width: '100%',
+    },
+    chatBubble: {
+
     },
 }
 
@@ -323,15 +327,15 @@ class BotConfiguration extends React.Component {
             </div>
 
         let steps = [
-            { id: 'greeting', message: 'Xin chào tôi có thể giúp gì cho bạn', trigger: 'user' },
-            { id: 'user', user: true, end: true }
+            { id: 'greeting', message: 'Xin chào, Tôi là hệ thống hỗ trợ khách hàng. Tôi có thể giúp gì cho bạn?', trigger: 'user' },
+            { id: 'user', message:'mình muốn tìm áo', end: true }
         ]
         return (
             <div className="app-wrapper" >
                 <ContainerHeader match={this.props.match} title={<IntlMessages id="Store Management" />} />
                 <Grid container spacing={1}>
                     <Grid item xs={8}>
-                        <Card style={{ minHeight: '540px' }}>
+                        <Card style={{ minHeight: '300px' }}>
                             <CardHeader title="Bot information" />
                             <CardContent>
                                 <FormControl>
@@ -351,7 +355,7 @@ class BotConfiguration extends React.Component {
                                     Style your own color
                                 </Button>
                                 <br /><br />
-                                <span style={styles.optionTitle}>Enable live-chat: </span>
+                                {/* <span style={styles.optionTitle}>Enable live-chat: </span>
                                 <Switch
                                     checked={this.state.enableLiveChat}
                                     onChange={this.handleLiveChat}
@@ -388,12 +392,13 @@ class BotConfiguration extends React.Component {
                                         }
                                     </Grid>
                                 </Grid>
-                                {this.state.enableSurvey ? survey : ''}
+                                {this.state.enableSurvey ? survey : ''} */}
                             </CardContent>
                         </Card>
                     </Grid>
                     <Grid item xs={4}>
-                        <ThemeProvider theme={this.state.theme}>
+                                
+                        {/* <ThemeProvider theme={this.state.theme}>
                             <ChatBot
                                 headerTitle={this.state.botName}
                                 floating={true}
@@ -401,12 +406,36 @@ class BotConfiguration extends React.Component {
                                 hideUserAvatar={true}
                                 bubbleStyle={{ borderRadius: '18px', margin: '2px 0px', }}
                                 steps={steps}
-                                headerComponent={
-                                    this.state.enableSurvey && this.state.showSurveyScreen ? emailAndPhoneInput : ''
-                                }
+                                hideHeader={true}
                                 opened={true}
                             />
-                        </ThemeProvider>
+                        </ThemeProvider> */}
+                        <Card style={{ minHeight: '300px' }}>
+                            <div className = "message-area">
+                                <strong>{this.state.botName}</strong>
+                                <Card style={{
+                                    maxWidth: '240px', 
+                                    padding: '5px 10px', 
+                                    marginBottom:'5px',
+                                    borderRadius: '10px'}}>
+                                    Xin chào, Tôi là hệ thống hỗ trợ khách hàng. Tôi có thể giúp gì cho bạn?
+                                </Card>
+                                <Card style={{
+                                    maxWidth: '200px', 
+                                    float:'right', 
+                                    padding:'5px 10px',
+                                    marginBottom:'5px',
+                                    background: this.state.theme.userBubbleColor,
+                                    color: this.state.theme.userFontColor,
+                                    borderRadius: '10px'}}>
+                                    mình muốn tìm áo
+                                </Card>
+                            </div>
+                            <div className = "text-input">
+                                <span className="chat-placeholder">Nhập tin nhắn...</span>
+                                <SendIcon className="send-icon"/>
+                            </div>
+                        </Card>
 
                     </Grid>
                     <Grid item xs={12} style={{ textAlign: "right" }}>

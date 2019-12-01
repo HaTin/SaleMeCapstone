@@ -158,17 +158,18 @@ class Header extends React.Component {
           }
 
           <Link className="app-logo mr-2 d-none d-sm-block" to="/">
-            <img src={require("assets/images/logo.png")} alt="Jambo" title="Jambo"/>
+            {/* <img src={require("assets/images/logo.png")} alt="Jambo" title="Jambo"/> */}
+            <span className="app-logo">SaleMe</span>
           </Link>
 
 
-          <SearchBox styleName="d-none d-lg-block" placeholder=""
+          {/* <SearchBox styleName="d-none d-lg-block" placeholder=""
                      onChange={this.updateSearchText.bind(this)}
-                     value={this.state.searchText}/>
+                     value={this.state.searchText}/> */}
           {(navigationStyle === HORIZONTAL_NAVIGATION && horizontalNavPosition === INSIDE_THE_HEADER) &&
           <Menu/>}
 
-          <ul className="header-notifications list-inline ml-auto">
+          {/* <ul className="header-notifications list-inline ml-auto">
             <li className="list-inline-item">
               <Dropdown
                 className="quick-menu app-notification"
@@ -307,7 +308,7 @@ class Header extends React.Component {
                 </DropdownMenu>
               </Dropdown>
             </li>}
-          </ul>
+          </ul> */}
           
           <div className="ellipse-shape"></div>
         </Toolbar>

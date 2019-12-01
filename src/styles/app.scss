@@ -99,18 +99,48 @@ Version        : 1.0
 @import "slider/slick-carousel";
 @import "module/_module-dir";
 @import "colorTheme/_color-theme-dir";
-.rsc-header {
+/*.rsc-header {
     padding: 15px !important;
     height: 70px !important;
 }
-
+*/
 .rsc-container {
     position: relative !important;
     left: 0px !important;
     top: 0px !important;
-    height: 540px !important;
+    /*height: 500px !important;*/
 }
 
 h2 {
     color:white;
+}
+
+.message-area {
+    height: 260px;
+    padding: 6px;
+    background:rgba(0,0,0,0.03);
+}
+
+.text-input {
+    height:60px;
+    padding: 10px 16px;
+    border-width: 1px 0 0;
+    border-style: solid;
+    border-color:rgba(0,0,0,0.08);
+    padding-top: 17px;
+}
+
+.chat-placeholder {
+    color:rgba(0,0,0,0.3);
+}
+
+.send-icon {
+    color: rgba(0,0,0,0.7);
+    float: right;
+}
+
+.app-logo {
+    font-size: 30px;
+    color: white;
+    font-weight: bold;
 }
