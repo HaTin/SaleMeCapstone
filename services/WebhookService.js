@@ -1,45 +1,40 @@
-const storeController = require('./StoreService')
-const shopDataController = require('./ImportService')
-
+const importService = require('./ImportService')
 
 const updateProduct = async (updateProduct, shopName) => {
-    await shopDataController.saveProduct(updateProduct, shopName)
+    await importService.saveProduct(updateProduct, shopName)
 }
 
-const removeProduct = async (id, shopName) => {
-    
+const removeProduct = async (id) => {
+    await importService.deleteProduct(id)
 }
 
 const saveNewProduct = async (newProduct, shopName) => {
-    await shopDataController.saveProduct(newProduct, shopName)
+    await importService.saveProduct(newProduct, shopName)
 }
 
 const updateCollection = async (updateCollection, shopName) => {
-    await shopDataController.saveCollection(updateCollection, shopName)
+    await importService.saveCollection(updateCollection, shopName)
 }
 
-const removeCollection = async (id, shopName) => {
-    
+const removeCollection = async (id) => {
+    await importService.deleteCollection(id)
 }
 
 const saveNewCollection = async (newCollection, shopName) => {
-    await shopDataController.saveCollection(newCollection, shopName)
+    await importService.saveCollection(newCollection, shopName)
 }
 
-const saveNewCustomer = async (newCustomer, shopName) => {
-    
-}
-
-const updateCustomer = async (updateCustomer, shopName) => {
-   
-}
 
 const saveNewOrder = async (newOrder, shopName) => {
-    await shopDataController.saveOrder(newOrder, shopName)
+    await importService.saveOrder(newOrder, shopName)
 }
 
 const updateOrder = async (updateOrder, shopName) => {
-    await shopDataController.saveOrder(updateOrder, shopName)
+    await importService.saveOrder(updateOrder, shopName)
+}
+
+const removeOrder = async (id) => {
+    await importService.deleteOrder(id)
 }
 
 
@@ -52,6 +47,5 @@ module.exports = {
     removeCollection,
     saveNewOrder,
     updateOrder,
-    saveNewCustomer,
-    updateCustomer
+    removeOrder,
 }

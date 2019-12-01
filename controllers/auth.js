@@ -13,7 +13,15 @@ router.post('/signup', async (req, res) => {
         const { firstName, lastName, email, shop, password } = req.body
         const store = await storeService.isStoreExisted(shop)
         if (store) {
-            const userResult = await authService.saveUser({ firstName, lastName, email, shopId: store.id, password, roleId: 1 })
+            const role = await authService.isRoleExisted('user');
+            let roleId
+            if(!role) {
+                const response = await authService.saveRole("user");
+                roleId = response.id                
+            } else {
+                roleId = role.id
+            }
+            const userResult = await authService.saveUser({ firstName, lastName, email, shopId: store.id, password, roleId: roleId })
             const user = userResult.user
             const botData = {
                 botName: 'Bot',
@@ -41,16 +49,15 @@ router.post('/signup', async (req, res) => {
                 'Content-Type': 'application/json'
             };
 
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.updateProduct, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.createProduct, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteProduct, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.createCustomer, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.updateCustomer, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.createOrder, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.updateOrder, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.createCollection, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.updateCollection, shopRequestHeaders)
-            // await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteCollection, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.updateProduct, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.createProduct, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteProduct, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.createOrder, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.updateOrder, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteOrder, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.createCollection, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.updateCollection, shopRequestHeaders)
+            await webhookSubscription(webhookSubscriptionUrl, webhooks.deleteCollection, shopRequestHeaders)
 
             const scriptTags = {
                 "script_tag": {
