@@ -63,12 +63,15 @@ export const INIT_URL = 'init_url';
 // Chat Module const
 
 export const FETCH_ALL_CHAT_USER = 'fetch_all_chat_user';
+export const FETCH_MORE_CHAT_USER = 'fetch_more_chat_user';
+export const FETCH_MORE_CHAT_USER_SUCCESS = 'fetch_more_chat_user_success';
 export const FETCH_ALL_CHAT_USER_CONVERSATION = 'fetch_all_chat_user_conversation';
 export const FETCH_ALL_CHAT_USER_SUCCESS = 'fetch_all_chat_user_success';
 export const FETCH_ALL_CHAT_USER_CONVERSATION_SUCCESS = 'fetch_all_chat_user_conversation_success';
 export const FILTER_USERS = 'filter_users';
 export const ON_SELECT_USER = 'on_select_user';
 export const ON_SHOW_LOADER = 'on_show_loader';
+export const ON_SHOW_USER_LOADER = 'on_show_user_loader';
 export const ON_HIDE_LOADER = 'on_hide_loader';
 export const USER_INFO_STATE = 'user_info_state';
 export const SUBMIT_COMMENT = 'submit_comment';

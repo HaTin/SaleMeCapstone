@@ -20,7 +20,7 @@ const UserCell = ({ chat, selectedSectionId, onSelectUser }) => {
 
         <div className="chat-info col-xl-8 col-6">
           <span className="name h4">{chat.userName}</span>
-          {/* <div className="chat-info-des">{chat.lastMessage.substring(0, 25) + "..."}</div> */}
+          <div className="chat-info-des">{chat.lastMessage.length > 30 ? chat.lastMessage.substring(0, 25) + "..." : chat.lastMessage}</div>
           <div className="last-message-time">{formatDate(chat.lastMessageTime)}</div>
         </div>
 
