@@ -15,7 +15,10 @@ import {
   USER_INFO_STATE,
   FETCH_MORE_CHAT_USER,
   FETCH_MORE_CHAT_USER_SUCCESS,
-  ON_SHOW_USER_LOADER
+  ON_SHOW_USER_LOADER,
+  REMOVE_CHAT_USER,
+  REMOVE_CHAT_USER_SUCCESS,
+  SET_STATE
 } from 'constants/ActionTypes';
 
 export const fetchChatUser = (payload) => {
@@ -100,6 +103,28 @@ export const hideLoader = () => {
     type: ON_HIDE_LOADER,
   };
 };
+
+export const removeChatUser = (id) => {
+  return {
+    type: REMOVE_CHAT_USER,
+    payload: id
+  };
+};
+
+
+export const setState = (payload) => {
+  return {
+    type: SET_STATE,
+    payload
+  }
+}
+
+export const removeChatUserSuccess = (payload) => {
+  return {
+    type: REMOVE_CHAT_USER_SUCCESS,
+    payload
+  };
+}
 
 
 export const showUserLoader = () => {

@@ -757,6 +757,23 @@ a.btn-outline-geekblue {
   }
 }
 
+.MuiIconButton-root:hover{
+  background-color: rgba(0, 0, 0, 0) !important
+}
+
+.chat-user .MuiIconButton-root{
+  visibility: hidden;
+}
+
+.chat-user-item.active, .chat-user-item:hover .MuiIconButton-root{
+  visibility: visible;
+}
+.no-user{
+  text-align: center;
+  font-weight: bold;
+  font-size: 20px;
+}
+
 .col-half {
   @media screen and (max-width: 400px) {
     flex: 0 0 50%;

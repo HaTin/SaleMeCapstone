@@ -37,6 +37,17 @@ router.get('/messages/:conversationId', async (req, res) => {
         res.status(error.status || 500).send(error)
     }
 })
+
+router.delete('/messages/:conversationId', async (req, res) => {
+    try {
+        const response = await conversationService.deleteConversation(req.params.conversationId)
+        return res.send(responseStatus.Code200(response))
+    } catch (error) {
+        console.log(error)
+        res.status(error.status || 500).send(error)
+    }
+})
+
 router.post('/report', async (req, res) => {
     try {
         const { message, shopId } = req.body
