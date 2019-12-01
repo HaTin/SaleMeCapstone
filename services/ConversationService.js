@@ -85,7 +85,7 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
                         state = null
                     } else {
-                        messages.push({ text: `Không tìm thấy đơn hàng ${data.orderName} với email ${data.email}. Xin hãy thử lại`, type: 'text' })
+                        messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text' })
                         state = null
                     }
                     break;
@@ -155,7 +155,7 @@ const generateBotAnswer = async (botData, socket) => {
                                 state = null
                             }
                             else {
-                                messages.push({ text: `Không tìm thấy đơn hàng #${orderId} với email ${email}. Xin hãy thử lại`, type: 'text' })
+                                messages.push({ text: `Không tìm thấy đơn hàng nào với email ${email}. Xin hãy thử lại`, type: 'text' })
                                 state = null
                             }
                         } else {
