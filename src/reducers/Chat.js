@@ -16,7 +16,8 @@ import {
   UPDATE_MESSAGE_VALUE,
   ON_SHOW_USER_LOADER,
   REMOVE_CHAT_USER_SUCCESS,
-  UPDATE_SEARCH_CHAT_USER
+  UPDATE_SEARCH_CHAT_USER,
+  REMOVE_CHAT_USER_FAILED
 } from 'constants/ActionTypes';
 import { USER_INFO_STATE } from '../constants/ActionTypes';
 
@@ -64,11 +65,17 @@ export default (state = INIT_STATE, action) => {
       }
     }
     case REMOVE_CHAT_USER_SUCCESS: {
-      console.log(action.payload)
       return {
         ...state,
         chatUsers: [...state.chatUsers.filter(chat => chat.id !== action.payload.id)],
         deleteSuccess: true
+      }
+    }
+    case REMOVE_CHAT_USER_FAILED: {
+      return {
+        ...state,
+        message: action.payload.errorMessage,
+        deleteFailed: true
       }
     }
     case SET_STATE: {

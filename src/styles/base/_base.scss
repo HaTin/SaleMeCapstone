@@ -774,6 +774,114 @@ a.btn-outline-geekblue {
   font-size: 20px;
 }
 
+.slick-container{
+  width: 100%;
+  margin-left: -32px;
+}
+
+
+.slick-container .chat-element-slider {
+  padding: 0px 32px;
+  display: inline-block;
+  width: calc(100% + 32px);
+  box-sizing: border-box;
+  position: relative;
+  text-align: left;
+}
+.slick-slide {
+  /* outline: none; */
+  outline: none;
+  max-width: 230px;
+  margin-right: 10px;
+}
+
+.chat-element-button-group .MuiButton-root{
+  border-radius: 0px;
+}
+.chat-element-button-group a:hover {
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.chat-element-button .MuiButton-label{
+  text-align: center;
+}
+
+.slick-slider{
+  margin-bottom: 0px !important;
+}
+.product-wrapper{
+  width: 100%;
+  display: inline-block;
+}
+.mutiple {
+  min-width: 220px !important;
+  border: 1px solid rgb(221, 221, 221);
+  overflow: hidden;
+  display: inline-block;
+  background: #fff;
+  border-radius: 0.25em;;
+}
+.image{
+  background-position: 50% 50%;
+  border-bottom: 0.5px solid rgb(221, 221, 221);
+  border-right-color: rgb(221, 221, 221);
+  border-left-color: rgb(221, 221, 221);
+}
+
+.chat-element-info{
+  margin-top: -4px;
+  line-height: 1.28em;
+  word-wrap:break-word;
+  white-space: pre-wrap;
+  text-align: left;
+  flex: 1 1 auto;
+  max-height: 130px;
+}
+
+.chat-element-title{
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  font-weight: 600;
+}
+
+.chat-element-text{
+  min-height: 83px;
+  padding: 6px 18px;
+  font-size: 16px;
+  box-sizing: border-box;
+  margin-top: 11px;
+
+}
+.chat-element-subtitle{
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+  text-overflow: ellipsis;
+  white-space: pre-line;
+  width: 100%;
+  word-break:break-word;
+  text-align: center;
+  margin-top: 4px;
+}
+.chat-element-button{
+  display: block;
+  width: 100%;
+  font-weight: 600;
+  border-top: 0.5px solid rgb(221, 221, 221) !important;
+}
+.product-image{
+  margin: auto;
+  object-fit: cover;
+  max-width: 220px;
+  height: 280px;
+}
+.attachments {
+  max-width: 350px;
+  margin-right: -16px;
+}
+
 .col-half {
   @media screen and (max-width: 400px) {
     flex: 0 0 50%;

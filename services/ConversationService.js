@@ -323,30 +323,7 @@ const generateBotAnswer = async (botData, socket) => {
                     state = null
                     break;
             }
-            const insertFields = messages.map(message => {
-                if (message.text) {
-                    lastMessage = message.text
-                }
-                return {
-                    msgContent: message.text,
-                    sender: 'bot',
-                    type: message.type,
-                    attachment: JSON.stringify(message.attachments || ''),
-                    time: util.convertDatetime(message.timestamp),
-                    conversationId: conversation.id
-                }
-            })
-            await knex('Message').insert(insertFields)
-            await knex('Conversation').where({ id: conversation.id }).update({ lastMessage })
-            // messages.map(async message => {
-            //     await insertMessage({
-            //         msgContent: message.text,
-            //         sender: 'bot',
-            //         conversationId: conversation.id,
-            //         type: message.type,
-            //         attachment: message.attachments || ''
-            //     })
-            // })
+            await insertBotMessage(messages, conversation)
             return { state, messages, data }
         }
         const requestData = {
@@ -472,26 +449,35 @@ const generateBotAnswer = async (botData, socket) => {
                 ]
                 messages.push({ text: 'Hệ thống không hiểu câu hỏi của bạn', suggestedActions, type: 'text' })
         }
-        const insertFields = messages.map(message => {
-            if (message.text) {
-                lastMessage = message.text
-            }
-            return {
-                msgContent: message.text,
-                sender: 'bot',
-                type: message.type,
-                attachment: JSON.stringify(message.attachments || ''),
-                time: util.convertDatetime(message.timestamp),
-                conversationId: conversation.id
-            }
-        })
-        await knex('Message').insert(insertFields)
-        await knex('Conversation').where({ id: conversation.id }).update({ lastMessage })
+        await insertBotMessage(messages, conversation)
         return { messages, state, data }
     } catch (error) {
         console.log(error)
         socket.emit('response', [{ text: 'Đã xảy ra lỗi, vui lòng thử lại', type: 'text' }])
+        return { state: null, data: null }
     }
+}
+
+const insertBotMessage = async (messages, conversation) => {
+    const insertFields = messages.map(message => {
+        if (message.text) {
+            lastMessage = message.text
+        }
+        const field = {
+            msgContent: message.text,
+            sender: 'bot',
+            type: message.type,
+            attachment: JSON.stringify(message.attachments || ''),
+            time: util.convertDatetime(message.timestamp),
+            conversationId: conversation.id
+        }
+        if (message.type === 'link') {
+            field.attachment = message.link
+        }
+        return field
+    })
+    await knex('Message').insert(insertFields)
+    await knex('Conversation').where({ id: conversation.id }).update({ lastMessage })
 }
 
 const getConversations = async (shopId, pageNumber, rowPage) => {
@@ -512,7 +498,7 @@ const getConversations = async (shopId, pageNumber, rowPage) => {
 }
 
 const getMessages = async (conversationId) => {
-    const result = await knex('message').where({ conversationId }).select('msgContent', 'id', 'sender', 'time')
+    const result = await knex('message').where({ conversationId }).select('msgContent', 'id', 'sender', 'time', 'type', 'attachment')
     const response = util.createList(result, 'messages')
     return response
 }
@@ -718,16 +704,26 @@ const reportMessage = async (choice, botResponse) => {
     return response
 }
 
-const searchConversation = async (search, storeId) => {
-    await knex.select('*').from('conversation').join()
-    const conversations = await knex('conversation').where(shopId).first('sessionId', 'shopId', 'id')
-    const messages = await knex('')
+const searchMessage = async (search, shopId) => {
+    const result = await knex.select('*').from('conversation').join('message', 'message.conversationId', 'conversation.id').
+        where('msgContent', 'like', `%${search}%`).andWhere({ shopId })
+    return util.createList(result, 'conversations')
+    // const conversations = await knex('conversation').where({ shopId }).first('sessionId', 'shopId', 'id')
+    // const messages = await knex('')
 }
 
 const deleteConversation = async (id) => {
-    const deleteMessageResult = await knex('message').where({ conversationId: id }).del()
-    const result = await knex('conversation').where({ id }).del()
-    return { id }
+    const { connections } = global
+    const conversation = await knex('conversation').where({ id }).first('sessionId')
+    const connectionsArr = Object.keys(connections)
+    const isConnecting = connectionsArr.some(con => con === conversation.sessionId)
+    if (!isConnecting) {
+        const deleteMessageResult = await knex('message').where({ conversationId: id }).del()
+        const result = await knex('conversation').where({ id }).del()
+        return { id }
+    } else {
+        throw new Error('Customer is currently connecting')
+    }
 }
 
 
@@ -735,6 +731,7 @@ module.exports = {
     findConversation,
     createConversation,
     updateConversation,
+    searchMessage,
     getConversations,
     getMessages,
     generateBotAnswer,

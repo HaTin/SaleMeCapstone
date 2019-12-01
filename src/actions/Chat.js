@@ -3,6 +3,7 @@ import {
   FETCH_ALL_CHAT_USER_CONVERSATION,
   FETCH_ALL_CHAT_USER_CONVERSATION_SUCCESS,
   FETCH_ALL_CHAT_USER_SUCCESS,
+  REMOVE_CHAT_USER_FAILED,
   FILTER_CONTACT,
   FILTER_USERS,
   ON_HIDE_LOADER,
@@ -122,6 +123,14 @@ export const setState = (payload) => {
 export const removeChatUserSuccess = (payload) => {
   return {
     type: REMOVE_CHAT_USER_SUCCESS,
+    payload
+  };
+}
+
+
+export const removeChatUserFailed = (payload) => {
+  return {
+    type: REMOVE_CHAT_USER_FAILED,
     payload
   };
 }
