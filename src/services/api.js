@@ -5,5 +5,6 @@ export const auth = {
 }
 export const chat = {
     getConversations: ({ shopId, pageNumber, rowPage }) => client.get(`/conversations/${shopId}?pageNumber=${pageNumber}&rowPage=${rowPage}`),
+    deleteConversation: conversationId => client.delete(`/conversations/messages/${conversationId}`),
     getMessages: conversationId => client.get(`/conversations/messages/${conversationId}`)
 }

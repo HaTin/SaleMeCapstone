@@ -72,12 +72,14 @@ export const FILTER_USERS = 'filter_users';
 export const ON_SELECT_USER = 'on_select_user';
 export const ON_SHOW_LOADER = 'on_show_loader';
 export const ON_SHOW_USER_LOADER = 'on_show_user_loader';
+export const REMOVE_CHAT_USER = 'remove_chat_user';
+export const REMOVE_CHAT_USER_SUCCESS = 'remove_chat_user_success';
 export const ON_HIDE_LOADER = 'on_hide_loader';
 export const USER_INFO_STATE = 'user_info_state';
 export const SUBMIT_COMMENT = 'submit_comment';
 export const UPDATE_MESSAGE_VALUE = 'update_message_value';
 export const UPDATE_SEARCH_CHAT_USER = 'update_search_chat_user';
-
+export const SET_STATE = 'set_state'
 //// Mail Module const
 
 

@@ -1,12 +1,12 @@
 import React from 'react';
 import * as moment from 'moment';
-
+import LongMenu from '../long/LongMenu'
 const formatDate = (timeString) => {
   const date = moment(timeString)
   return date.fromNow()
 }
 
-const UserCell = ({ chat, selectedSectionId, onSelectUser }) => {
+const UserCell = ({ chat, selectedSectionId, onSelectUser, handleOption }) => {
   return (
     <div key={chat.id} className={`chat-user-item ${selectedSectionId === chat.id ? 'active' : ''}`} onClick={() => {
       onSelectUser(chat);
@@ -26,6 +26,7 @@ const UserCell = ({ chat, selectedSectionId, onSelectUser }) => {
 
         <div className="chat-date col-xl-2 col-3">
           <div className="bg-primary rounded-circle badge text-white">{chat.unreadMessage}</div>
+          <LongMenu handleOption={handleOption} />
         </div>
       </div>
     </div>

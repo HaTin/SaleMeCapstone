@@ -9,11 +9,13 @@ import {
   FILTER_USERS,
   ON_HIDE_LOADER,
   ON_SELECT_USER,
+  SET_STATE,
   ON_TOGGLE_DRAWER,
   SHOW_MESSAGE,
   SUBMIT_COMMENT,
   UPDATE_MESSAGE_VALUE,
   ON_SHOW_USER_LOADER,
+  REMOVE_CHAT_USER_SUCCESS,
   UPDATE_SEARCH_CHAT_USER
 } from 'constants/ActionTypes';
 import { USER_INFO_STATE } from '../constants/ActionTypes';
@@ -61,7 +63,20 @@ export default (state = INIT_STATE, action) => {
         userLoader: true
       }
     }
-
+    case REMOVE_CHAT_USER_SUCCESS: {
+      console.log(action.payload)
+      return {
+        ...state,
+        chatUsers: [...state.chatUsers.filter(chat => chat.id !== action.payload.id)],
+        deleteSuccess: true
+      }
+    }
+    case SET_STATE: {
+      return {
+        ...state,
+        ...action.payload
+      }
+    }
     case ON_SELECT_USER: {
       return {
         ...state,

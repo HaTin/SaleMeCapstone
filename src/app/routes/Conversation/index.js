@@ -11,6 +11,7 @@ import Conversation from 'components/chatPanel/Conversation/index';
 import ContactList from 'components/chatPanel/ContactList/index';
 import SearchBox from 'components/SearchBox';
 import IntlMessages from 'util/IntlMessages';
+import Swal from 'sweetalert2'
 import {
   fetchChatUser,
   fetchChatUserConversation,
@@ -22,6 +23,8 @@ import {
   submitComment,
   updateMessageValue,
   updateSearchChatUser,
+  setState,
+  removeChatUser,
   userInfoState
 } from 'actions/Chat'
 import CustomScrollbars from 'util/CustomScrollbars';
@@ -148,11 +151,12 @@ class ChatPanelWithRedux extends Component {
           onScroll={this.onScroll} onUpdate={this.handleUpdate.bind(this)}
         >
           {this.props.chatUsers.length === 0 ?
-            <div className="p-5">{this.props.userNotFound}</div>
+            <div className="p-5 no-user">{this.props.userNotFound}</div>
             :
             <ChatUserList chatUsers={this.props.chatUsers}
               selectedSectionId={this.props.selectedSectionId}
-              onSelectUser={this.onSelectUser.bind(this)} />
+              onSelectUser={this.onSelectUser.bind(this)}
+              handleOption={this.handleOption.bind(this)} />
           }
           {this.props.userLoader &&
             <div className="loader-view w-100" style={{ height: '50px' }}>
@@ -168,6 +172,22 @@ class ChatPanelWithRedux extends Component {
     this.setState({ selectedTabIndex: value });
   };
 
+  handleOption = (conversation, option) => {
+    if (option === 0) {
+      Swal.fire({
+        icon: 'question',
+        title: `Delete Conversation?`,
+        text: `Are you sure you want to remove this conversation? You won't be able to undo it`,
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Remove it'
+      }).then((result) => {
+        if (result.value) {
+          this.props.removeChatUser(conversation.id)
+        }
+      })
+    }
+  }
+
   handleUpdate(values) {
     const { pageNumber, authUser, end } = this.props
     const { shopId } = authUser
@@ -176,9 +196,7 @@ class ChatPanelWithRedux extends Component {
     // t will be greater than 1 if we are about to reach the bottom
     const t = ((scrollTop + pad) / (scrollHeight - clientHeight));
     if (t > 1 && !end && t !== Infinity) {
-      console.log(pageNumber)
-      // console.log('fetchMore')
-      this.props.fetchMoreChatUser({ shopId, pageNumber })
+      // this.props.fetchMoreChatUser({ shopId, pageNumber })
     }
   }
 
@@ -225,6 +243,15 @@ class ChatPanelWithRedux extends Component {
   onChatToggleDrawer() {
     this.props.onChatToggleDrawer();
   }
+  showAlert(type) {
+    if (type === 'deleted') {
+      Swal.fire({
+        icon: 'success',
+        title: `Delete Conversation Success`,
+      })
+      this.props.setState({ deleteSuccess: false })
+    }
+  }
 
   render() {
     const { loader, userState, drawerState, match, chatUsers } = this.props;
@@ -237,6 +264,7 @@ class ChatPanelWithRedux extends Component {
     }
     return (
       <div className="app-wrapper app-wrapper-module">
+        {this.props.deleteSuccess && this.showAlert('deleted')}
         <div className="app-module chat-module animated slideInUpTiny animation-duration-3">
           <div className="chat-module-box">
             {/* <div className="d-block d-xl-none">
@@ -256,6 +284,7 @@ class ChatPanelWithRedux extends Component {
             }
           </div>
         </div>
+
       </div>
     )
   }
@@ -277,6 +306,7 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     message,
     chatUsers,
     end,
+    deleteSuccess,
     userLoader,
     conversationList,
     conversation
@@ -297,6 +327,7 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     selectedUser,
     message,
     chatUsers,
+    deleteSuccess,
     conversationList,
     conversation
   }
@@ -310,7 +341,9 @@ export default connect(mapStateToProps, {
   hideLoader,
   userInfoState,
   submitComment,
+  removeChatUser,
   updateMessageValue,
+  setState,
   updateSearchChatUser,
   fetchMoreChatUser,
   onChatToggleDrawer
