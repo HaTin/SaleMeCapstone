@@ -28,6 +28,18 @@ router.get('/:shopId', async (req, res) => {
         res.status(error.status || 500).send(error)
     }
 })
+router.post('/search', async (req, res) => {
+    try {
+        const { search, shopId } = req.body
+        const response = await conversationService.searchMessage(search, shopId)
+        res.send(responseStatus.Code200(response))
+    } catch (err) {
+        console.log(err)
+        res.status(err.status || 500).send(err)
+    }
+})
+
+
 router.get('/messages/:conversationId', async (req, res) => {
     try {
         const response = await conversationService.getMessages(req.params.conversationId)
@@ -44,7 +56,7 @@ router.delete('/messages/:conversationId', async (req, res) => {
         return res.send(responseStatus.Code200(response))
     } catch (error) {
         console.log(error)
-        res.status(error.status || 500).send(error)
+        res.status(error.status || 500).send(error.message || error)
     }
 })
 
@@ -58,4 +70,6 @@ router.post('/report', async (req, res) => {
         res.status(err.status || 500).send(err)
     }
 })
+
+
 module.exports = router

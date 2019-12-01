@@ -252,9 +252,16 @@ class ChatPanelWithRedux extends Component {
       this.props.setState({ deleteSuccess: false })
     }
   }
+  showErrorMessage() {
+    Swal.fire({
+      icon: 'error',
+      title: this.props.alertMessage
+    })
+    this.props.setState({ alertMessage: '', showMessage: false })
+  }
 
   render() {
-    const { loader, userState, drawerState, match, chatUsers } = this.props;
+    const { loader, userState, drawerState, match, chatUsers, showMessage } = this.props;
     const conversationId = match.params ? match.params.id : null
     if (drawerState) {
       const user = chatUsers.find(user => user.id == conversationId)
@@ -265,6 +272,7 @@ class ChatPanelWithRedux extends Component {
     return (
       <div className="app-wrapper app-wrapper-module">
         {this.props.deleteSuccess && this.showAlert('deleted')}
+        {this.props.showMessage && this.showErrorMessage()}
         <div className="app-module chat-module animated slideInUpTiny animation-duration-3">
           <div className="chat-module-box">
             {/* <div className="d-block d-xl-none">
@@ -303,11 +311,13 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     contactList,
     selectedUser,
     pageNumber,
+    alertMessage,
     message,
     chatUsers,
     end,
     deleteSuccess,
     userLoader,
+    showMessage,
     conversationList,
     conversation
   } = chatData;
@@ -317,7 +327,9 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     loader,
     authUser,
     userNotFound,
+    alertMessage,
     userLoader,
+    showMessage,
     drawerState,
     selectedSectionId,
     userState,

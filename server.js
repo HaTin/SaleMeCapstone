@@ -46,13 +46,14 @@ if (process.env.NODE_ENV === 'production') {
         return res.redirect(`http://localhost:3000/?token=${token}`)
     });
 }
-let connections = []
+// let connections = []
+global.connections = {}
 io.on("connection", (socket) => {
-    connections[socket.id] = { state: '', data: {} }
+    global.connections[socket.id] = { state: '', data: {} }
     socket.on("message", async data => {
         // show loading message
         socket.emit('response', [{ text: '', typing: true, type: 'text' }])
-        const client = connections[socket.id]
+        const client = global.connections[socket.id]
         console.log(data)
         client.state = data.type || client.state
         const response = await chatService.generateBotAnswer({ ...data, sessionId: socket.id, client }, socket)
@@ -60,12 +61,12 @@ io.on("connection", (socket) => {
             state: response.state ? response.state : '',
             data: response.data ? response.data : {}
         }
-        connections[socket.id] = newState
-        console.log(connections[socket.id])
+        global.connections[socket.id] = newState
+        console.log(global.connections[socket.id])
         socket.emit('response', response.messages)
     });
     socket.on('disconnect', () => {
-        delete connections[socket.id]
+        delete global.connections[socket.id]
     })
 });
 

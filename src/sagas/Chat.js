@@ -30,7 +30,8 @@ function* removeChatUserRequest({ payload }) {
     console.log(response.data)
     yield put(removeChatUserSuccess(response.data))
   } catch (error) {
-    yield put(showChatMessage(error));
+    const errorMessage = error.response.data || 'Error'
+    yield put(showChatMessage(errorMessage));
   }
 }
 

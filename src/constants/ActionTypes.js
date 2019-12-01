@@ -74,6 +74,7 @@ export const ON_SHOW_LOADER = 'on_show_loader';
 export const ON_SHOW_USER_LOADER = 'on_show_user_loader';
 export const REMOVE_CHAT_USER = 'remove_chat_user';
 export const REMOVE_CHAT_USER_SUCCESS = 'remove_chat_user_success';
+export const REMOVE_CHAT_USER_FAILED = 'remove_chat_user_failed';
 export const ON_HIDE_LOADER = 'on_hide_loader';
 export const USER_INFO_STATE = 'user_info_state';
 export const SUBMIT_COMMENT = 'submit_comment';
