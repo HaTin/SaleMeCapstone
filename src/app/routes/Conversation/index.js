@@ -14,6 +14,7 @@ import IntlMessages from 'util/IntlMessages';
 import {
   fetchChatUser,
   fetchChatUserConversation,
+  fetchMoreChatUser,
   filterUsers,
   hideLoader,
   onChatToggleDrawer,
@@ -133,12 +134,19 @@ class ChatPanelWithRedux extends Component {
             </div>
           </div>
         </div>
+        <div className="search-wrapper">
+          <SearchBox placeholder="Search conversation"
+            onChange={this.updateSearchChatUser.bind(this)}
+            value={this.props.searchChatUser} />
+        </div>
       </div>
 
       <div className="chat-sidenav-content">
 
         <CustomScrollbars className="chat-sidenav-scroll scrollbar"
-          style={{ height: this.props.width >= 1200 ? 'calc(100vh - 250px)' : 'calc(100vh - 202px)' }}>
+          style={{ height: this.props.width >= 1200 ? 'calc(100vh - 250px)' : 'calc(100vh - 202px)' }}
+          onScroll={this.onScroll} onUpdate={this.handleUpdate.bind(this)}
+        >
           {this.props.chatUsers.length === 0 ?
             <div className="p-5">{this.props.userNotFound}</div>
             :
@@ -146,13 +154,34 @@ class ChatPanelWithRedux extends Component {
               selectedSectionId={this.props.selectedSectionId}
               onSelectUser={this.onSelectUser.bind(this)} />
           }
+          {this.props.userLoader &&
+            <div className="loader-view w-100" style={{ height: '50px' }}>
+              <CircularProgress size={30} />
+            </div>
+          }
         </CustomScrollbars>
       </div>
+
     </div>
   };
   handleChange = (event, value) => {
     this.setState({ selectedTabIndex: value });
   };
+
+  handleUpdate(values) {
+    const { pageNumber, authUser, end } = this.props
+    const { shopId } = authUser
+    const { scrollTop, scrollHeight, clientHeight } = values;
+    const pad = 0.5;
+    // t will be greater than 1 if we are about to reach the bottom
+    const t = ((scrollTop + pad) / (scrollHeight - clientHeight));
+    if (t > 1 && !end && t !== Infinity) {
+      console.log(pageNumber)
+      // console.log('fetchMore')
+      this.props.fetchMoreChatUser({ shopId, pageNumber })
+    }
+  }
+
 
   handleChangeIndex = index => {
     this.setState({ selectedTabIndex: index });
@@ -182,9 +211,9 @@ class ChatPanelWithRedux extends Component {
   }
 
   componentDidMount() {
-    const { authUser, chatUsers } = this.props
+    const { authUser, chatUsers, pageNumber } = this.props
     const { shopId } = authUser
-    this.props.fetchChatUser({ shopId });
+    this.props.fetchChatUser({ shopId, pageNumber: 1 });
     // this.props.fetchChatUserConversation()
   }
 
@@ -244,19 +273,25 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     searchChatUser,
     contactList,
     selectedUser,
+    pageNumber,
     message,
     chatUsers,
+    end,
+    userLoader,
     conversationList,
     conversation
   } = chatData;
   return {
     width,
+    pageNumber,
     loader,
     authUser,
     userNotFound,
+    userLoader,
     drawerState,
     selectedSectionId,
     userState,
+    end,
     searchChatUser,
     contactList,
     selectedUser,
@@ -277,5 +312,6 @@ export default connect(mapStateToProps, {
   submitComment,
   updateMessageValue,
   updateSearchChatUser,
+  fetchMoreChatUser,
   onChatToggleDrawer
 })(ChatPanelWithRedux);

@@ -34,7 +34,7 @@ const insertMessage = async ({ sender, timestamp, conversationId, msgContent, ty
         msgContent,
         sender,
         type,
-        attachment,
+        attachment: JSON.stringify(attachment),
         time: util.convertDatetime(timestamp),
         conversationId
     }
@@ -301,7 +301,7 @@ const generateBotAnswer = async (botData, socket) => {
                 case 'ignore-email':
                     data.noEmailRequire = true
                     messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
-                    await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
+                    await showProducts(messages, data.botResponse.products, store, data)
                     state = null
                     break;
                 case 'show-product':
@@ -310,15 +310,26 @@ const generateBotAnswer = async (botData, socket) => {
                     state = null
                     break;
             }
-            messages.map(async message => {
-                await insertMessage({
+            const insertFields = messages.map(message => {
+                return {
                     msgContent: message.text,
                     sender: 'bot',
-                    conversationId: conversation.id,
                     type: message.type,
-                    attachment: message.attachments || ''
-                })
+                    attachment: JSON.stringify(message.attachments || ''),
+                    time: util.convertDatetime(message.timestamp),
+                    conversationId: conversation.id
+                }
             })
+            await knex('Message').insert(insertFields)
+            // messages.map(async message => {
+            //     await insertMessage({
+            //         msgContent: message.text,
+            //         sender: 'bot',
+            //         conversationId: conversation.id,
+            //         type: message.type,
+            //         attachment: message.attachments || ''
+            //     })
+            // })
             return { state, messages, data }
         }
         const requestData = {
@@ -442,15 +453,17 @@ const generateBotAnswer = async (botData, socket) => {
                 ]
                 messages.push({ text: 'Hệ thống không hiểu câu hỏi của bạn', suggestedActions, type: 'text' })
         }
-        messages.map(async message => {
-            await insertMessage({
+        const insertFields = messages.map(message => {
+            return {
                 msgContent: message.text,
                 sender: 'bot',
-                conversationId: conversation.id,
                 type: message.type,
-                attachment: message.attachments || ''
-            })
+                attachment: JSON.stringify(message.attachments || ''),
+                time: util.convertDatetime(message.timestamp),
+                conversationId: conversation.id
+            }
         })
+        await knex('Message').insert(insertFields)
         return { messages, state, data }
     } catch (error) {
         console.log(error)
@@ -461,7 +474,7 @@ const generateBotAnswer = async (botData, socket) => {
 const getConversations = async (shopId, pageNumber, rowPage) => {
     const offset = (pageNumber - 1) * rowPage
     const limit = rowPage
-    const result = await knex('conversation').where({ shopId }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime')
+    const result = await knex('conversation').where({ shopId }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime', 'lastMessage')
     const response = util.createList(result, 'conversations')
     if (result.length) {
         response.pageNumber = pageNumber + 1

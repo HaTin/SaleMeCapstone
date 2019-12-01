@@ -4,6 +4,7 @@ import conversationList from 'app/routes/Conversation/data/conversationList';
 import {
   FETCH_ALL_CHAT_USER_CONVERSATION_SUCCESS,
   FETCH_ALL_CHAT_USER_SUCCESS,
+  FETCH_MORE_CHAT_USER_SUCCESS,
   FILTER_CONTACT,
   FILTER_USERS,
   ON_HIDE_LOADER,
@@ -12,6 +13,7 @@ import {
   SHOW_MESSAGE,
   SUBMIT_COMMENT,
   UPDATE_MESSAGE_VALUE,
+  ON_SHOW_USER_LOADER,
   UPDATE_SEARCH_CHAT_USER
 } from 'constants/ActionTypes';
 import { USER_INFO_STATE } from '../constants/ActionTypes';
@@ -19,6 +21,8 @@ import { USER_INFO_STATE } from '../constants/ActionTypes';
 
 const INIT_STATE = {
   loader: true,
+  pageNumber: 1,
+  userLoader: false,
   userNotFound: 'No user found',
   drawerState: false,
   selectedSectionId: '',
@@ -26,6 +30,7 @@ const INIT_STATE = {
   searchChatUser: '',
   selectedUser: null,
   message: '',
+  end: false,
   chatUsers: [],
   conversationList: [], //ony for prod
   // chatUsers: users.filter((user) => user.recent),
@@ -48,6 +53,12 @@ export default (state = INIT_STATE, action) => {
             !user.recent && user.name.toLowerCase().indexOf(action.payload.toLowerCase()) > -1
           )
         }
+      }
+    }
+    case ON_SHOW_USER_LOADER: {
+      return {
+        ...state,
+        userLoader: true
       }
     }
 
@@ -106,9 +117,21 @@ export default (state = INIT_STATE, action) => {
     case FETCH_ALL_CHAT_USER_SUCCESS: {
       return {
         ...state,
-        chatUsers: action.payload,
+        chatUsers: action.payload.conversations,
+        pageNumber: action.payload.pageNumber,
         loader: false,
         drawerState: true,
+        end: false
+      }
+    }
+    case FETCH_MORE_CHAT_USER_SUCCESS: {
+      return {
+        ...state,
+        chatUsers: [...state.chatUsers, ...action.payload.conversations],
+        pageNumber: action.payload.pageNumber,
+        end: action.payload.end,
+        loader: false,
+        userLoader: false
       }
     }
     case FETCH_ALL_CHAT_USER_CONVERSATION_SUCCESS: {

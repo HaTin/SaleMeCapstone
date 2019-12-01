@@ -63,7 +63,7 @@ class App extends React.Component {
                 <Route component={asyncComponent(() => import('components/Error404'))} />
               </Switch>
             </div>
-            <Footer />
+            {/* <Footer /> */}
           </main>
         </div>
       </div>

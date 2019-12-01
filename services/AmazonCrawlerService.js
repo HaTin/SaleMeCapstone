@@ -27,7 +27,7 @@ const crawlData = async (keyword) => {
         await page.waitForSelector('.s-image');
         // create a screenshots
         const products = await page.evaluate(() => {
-            const productList = Array.from(document.querySelectorAll('.s-search-results > div.s-result-item')).slice(0, 3);
+            const productList = Array.from(document.querySelectorAll('.s-search-results > div.s-result-item[data-asin]:not([data-asin=""])')).slice(0, 3);
             return productList.map(product => {
                 const p = {
                     name: product.querySelector(".a-text-normal") ? product.querySelector(".a-text-normal").innerText : null,

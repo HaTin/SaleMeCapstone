@@ -12,15 +12,32 @@ import {
   SUBMIT_COMMENT,
   UPDATE_MESSAGE_VALUE,
   UPDATE_SEARCH_CHAT_USER,
-  USER_INFO_STATE
+  USER_INFO_STATE,
+  FETCH_MORE_CHAT_USER,
+  FETCH_MORE_CHAT_USER_SUCCESS,
+  ON_SHOW_USER_LOADER
 } from 'constants/ActionTypes';
 
-export const fetchChatUser = (shopId) => {
+export const fetchChatUser = (payload) => {
   return {
     type: FETCH_ALL_CHAT_USER,
-    payload: shopId
+    payload: payload
   };
 };
+
+export const fetchMoreChatUser = (payload) => {
+  return {
+    type: FETCH_MORE_CHAT_USER,
+    payload: payload
+  };
+};
+export const fetchMoreChatUserSuccess = (payload) => {
+  return {
+    type: FETCH_MORE_CHAT_USER_SUCCESS,
+    payload
+  }
+};
+
 export const fetchChatUserConversation = (conversationId) => {
   return {
     type: FETCH_ALL_CHAT_USER_CONVERSATION,
@@ -81,6 +98,13 @@ export const submitComment = () => {
 export const hideLoader = () => {
   return {
     type: ON_HIDE_LOADER,
+  };
+};
+
+
+export const showUserLoader = () => {
+  return {
+    type: ON_SHOW_USER_LOADER,
   };
 };
 
