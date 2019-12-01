@@ -292,6 +292,10 @@ const generateBotAnswer = async (botData, socket) => {
                                 state = null
                             }
                         }
+                        else {
+                            messages.push({ text: 'Không tìm thấy khách hàng, vui lòng thử lại', type: 'text' })
+                            state = null
+                        }
                     }
                     break;
                 case 'input-email-for-product-suggestion':
