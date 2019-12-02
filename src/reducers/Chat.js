@@ -17,7 +17,8 @@ import {
   ON_SHOW_USER_LOADER,
   REMOVE_CHAT_USER_SUCCESS,
   UPDATE_SEARCH_CHAT_USER,
-  REMOVE_CHAT_USER_FAILED
+  REMOVE_CHAT_USER_FAILED,
+  SEARCH_CHAT_USER_SUCCESS
 } from 'constants/ActionTypes';
 import { USER_INFO_STATE } from '../constants/ActionTypes';
 
@@ -126,6 +127,9 @@ export default (state = INIT_STATE, action) => {
         })
 
       }
+    }
+    case SEARCH_CHAT_USER_SUCCESS: {
+      return { ...state, searchResults: action.payload, isSearching: true }
     }
 
     case UPDATE_MESSAGE_VALUE: {
