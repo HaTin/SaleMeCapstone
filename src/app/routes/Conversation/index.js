@@ -16,6 +16,7 @@ import {
   fetchChatUser,
   fetchChatUserConversation,
   fetchMoreChatUser,
+  searchMessage,
   filterUsers,
   hideLoader,
   onChatToggleDrawer,
@@ -153,7 +154,7 @@ class ChatPanelWithRedux extends Component {
           {this.props.chatUsers.length === 0 ?
             <div className="p-5 no-user">{this.props.userNotFound}</div>
             :
-            <ChatUserList chatUsers={this.props.chatUsers}
+            <ChatUserList chatUsers={!this.props.isSearching ? this.props.chatUsers : this.props.searchResults}
               selectedSectionId={this.props.selectedSectionId}
               onSelectUser={this.onSelectUser.bind(this)}
               handleOption={this.handleOption.bind(this)} />
@@ -236,8 +237,8 @@ class ChatPanelWithRedux extends Component {
   }
 
   updateSearchChatUser(evt) {
-    this.props.updateSearchChatUser(evt.target.value);
-    this.props.filterUsers(evt.target.value);
+    this.props.searchMessage({ search: evt.target.value, shopId: this.props.authUser.shopId });
+    // this.props.filterUsers(evt.target.value);
   }
 
   onChatToggleDrawer() {
@@ -250,6 +251,14 @@ class ChatPanelWithRedux extends Component {
         title: `Delete Conversation Success`,
       })
       this.props.setState({ deleteSuccess: false })
+      if (this.props.isSearching) {
+        // this.props.onSelectUser(null)
+        this.props.searchMessage({ search: this.props.searchChatUser, shopId: this.props.authUser.shopId })
+        this.props.setState({
+          selectedSectionId: null,
+          selectedUser: null
+        })
+      }
     }
   }
   showErrorMessage() {
@@ -315,6 +324,8 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     message,
     chatUsers,
     end,
+    searchResults,
+    isSearching,
     deleteSuccess,
     userLoader,
     showMessage,
@@ -341,6 +352,8 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     chatUsers,
     deleteSuccess,
     conversationList,
+    searchResults,
+    isSearching,
     conversation
   }
 };
@@ -356,6 +369,7 @@ export default connect(mapStateToProps, {
   removeChatUser,
   updateMessageValue,
   setState,
+  searchMessage,
   updateSearchChatUser,
   fetchMoreChatUser,
   onChatToggleDrawer

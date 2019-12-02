@@ -19,6 +19,8 @@ import {
   ON_SHOW_USER_LOADER,
   REMOVE_CHAT_USER,
   REMOVE_CHAT_USER_SUCCESS,
+  SEARCH_CHAT_USER,
+  SEARCH_CHAT_USER_SUCCESS,
   SET_STATE
 } from 'constants/ActionTypes';
 
@@ -163,6 +165,22 @@ export const updateSearchChatUser = (userName) => {
     payload: userName
   };
 };
+
+export const searchMessage = (payload) => {
+  return {
+    type: SEARCH_CHAT_USER,
+    payload
+  };
+};
+
+export const searchChatUserSuccess = (payload) => {
+  return {
+    type: SEARCH_CHAT_USER_SUCCESS,
+    payload
+  };
+};
+
+
 export const onChatToggleDrawer = () => {
   return {
     type: ON_TOGGLE_DRAWER
