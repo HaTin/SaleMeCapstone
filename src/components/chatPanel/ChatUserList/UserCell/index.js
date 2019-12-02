@@ -14,7 +14,7 @@ const UserCell = ({ chat, selectedSectionId, onSelectUser, handleOption }) => {
       <div className="chat-user-row row">
         <div className="chat-avatar col-xl-2 col-3">
           <div className="chat-avatar-mode">
-            <img src="https://via.placeholder.com/150x150" className="rounded-circle size-40" alt={chat.userName} />
+            <img src="https://icon-library.net/images/default-user-icon/default-user-icon-8.jpg" className="rounded-circle size-40" alt={chat.userName} />
           </div>
         </div>
 
