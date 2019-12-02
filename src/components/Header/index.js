@@ -1,23 +1,23 @@
 import React from 'react';
-import {Link,withRouter} from 'react-router-dom';
-import {connect} from 'react-redux';
+import { Link, withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
 import AppBar from '@material-ui/core/AppBar';
 import Avatar from '@material-ui/core/Avatar';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
-import {Dropdown, DropdownMenu, DropdownToggle} from 'reactstrap';
+import { Dropdown, DropdownMenu, DropdownToggle } from 'reactstrap';
 import {
-    BELOW_THE_HEADER,
-    COLLAPSED_DRAWER,
-    FIXED_DRAWER,
-    HORIZONTAL_NAVIGATION,
-    INSIDE_THE_HEADER
+  BELOW_THE_HEADER,
+  COLLAPSED_DRAWER,
+  FIXED_DRAWER,
+  HORIZONTAL_NAVIGATION,
+  INSIDE_THE_HEADER
 } from 'constants/ActionTypes';
 import SearchBox from 'components/SearchBox';
 import MailNotification from '../MailNotification/index';
 import AppNotification from '../AppNotification/index';
 import CardHeader from 'components/dashboard/Common/CardHeader/index';
-import {switchLanguage, toggleCollapsedNav} from 'actions/Setting';
+import { switchLanguage, toggleCollapsedNav } from 'actions/Setting';
 import IntlMessages from 'util/IntlMessages';
 import LanguageSwitcher from 'components/LanguageSwitcher/index';
 import Menu from 'components/TopNav/Menu';
@@ -93,51 +93,51 @@ class Header extends React.Component {
     return (
       <ul className="jr-list jr-list-half">
         <li className="jr-list-item">
-            <Link className="jr-list-link" to="/app/calendar/basic">
-                <i className="zmdi zmdi-calendar zmdi-hc-fw"/>
-                <span className="jr-list-text"><IntlMessages id="sidebar.calendar.basic"/></span>
-            </Link>
+          <Link className="jr-list-link" to="/app/calendar/basic">
+            <i className="zmdi zmdi-calendar zmdi-hc-fw" />
+            <span className="jr-list-text"><IntlMessages id="sidebar.calendar.basic" /></span>
+          </Link>
         </li>
 
         <li className="jr-list-item">
           <Link className="jr-list-link" to="/app/to-do">
-            <i className="zmdi zmdi-check-square zmdi-hc-fw"/>
-            <span className="jr-list-text"><IntlMessages id="sidebar.appModule.toDo"/></span>
+            <i className="zmdi zmdi-check-square zmdi-hc-fw" />
+            <span className="jr-list-text"><IntlMessages id="sidebar.appModule.toDo" /></span>
           </Link>
         </li>
 
         <li className="jr-list-item">
           <Link className="jr-list-link" to="/app/mail">
-            <i className="zmdi zmdi-email zmdi-hc-fw"/>
-            <span className="jr-list-text"><IntlMessages id="sidebar.appModule.mail"/></span>
+            <i className="zmdi zmdi-email zmdi-hc-fw" />
+            <span className="jr-list-text"><IntlMessages id="sidebar.appModule.mail" /></span>
           </Link>
         </li>
 
         <li className="jr-list-item">
-            <Link className="jr-list-link" to="/app/chat">
-                <i className="zmdi zmdi-comment zmdi-hc-fw"/>
-                <span className="jr-list-text"><IntlMessages id="sidebar.appModule.chat"/></span>
-            </Link>
+          <Link className="jr-list-link" to="/app/chat">
+            <i className="zmdi zmdi-comment zmdi-hc-fw" />
+            <span className="jr-list-text"><IntlMessages id="sidebar.appModule.chat" /></span>
+          </Link>
         </li>
 
         <li className="jr-list-item">
-            <Link className="jr-list-link" to="/app/contact">
-                <i className="zmdi zmdi-account-box zmdi-hc-fw"/>
-                <span className="jr-list-text"><IntlMessages id="sidebar.appModule.contact"/></span>
-            </Link>
+          <Link className="jr-list-link" to="/app/contact">
+            <i className="zmdi zmdi-account-box zmdi-hc-fw" />
+            <span className="jr-list-text"><IntlMessages id="sidebar.appModule.contact" /></span>
+          </Link>
         </li>
 
         <li className="jr-list-item">
-            <Link className="jr-list-link" to="/">
-                <i className="zmdi zmdi-plus-circle-o zmdi-hc-fw"/>
-                <span className="jr-list-text">Add New</span>
-            </Link>
+          <Link className="jr-list-link" to="/">
+            <i className="zmdi zmdi-plus-circle-o zmdi-hc-fw" />
+            <span className="jr-list-text">Add New</span>
+          </Link>
         </li>
       </ul>)
   };
 
   render() {
-    const {drawerType, locale, navigationStyle, horizontalNavPosition} = this.props;
+    const { drawerType, locale, navigationStyle, horizontalNavPosition } = this.props;
     const drawerStyle = drawerType.includes(FIXED_DRAWER) ? 'd-block d-xl-none' : drawerType.includes(COLLAPSED_DRAWER) ? 'd-block' : 'd-none';
 
     return (
@@ -146,28 +146,28 @@ class Header extends React.Component {
         <Toolbar className="app-toolbar" disableGutters={false}>
           {navigationStyle === HORIZONTAL_NAVIGATION ?
             <div className="d-block d-md-none pointer mr-3" onClick={this.onToggleCollapsedNav}>
-                            <span className="jr-menu-icon">
-                              <span className="menu-icon"/>
-                            </span>
+              <span className="jr-menu-icon">
+                <span className="menu-icon" />
+              </span>
             </div>
             :
             <IconButton className={`jr-menu-icon mr-3 ${drawerStyle}`} aria-label="Menu"
-                        onClick={this.onToggleCollapsedNav}>
-              <span className="menu-icon"/>
+              onClick={this.onToggleCollapsedNav}>
+              <span className="menu-icon" />
             </IconButton>
           }
 
-          <Link className="app-logo mr-2 d-none d-sm-block" to="/">
-            {/* <img src={require("assets/images/logo.png")} alt="Jambo" title="Jambo"/> */}
-            <span className="app-logo">SaleMe</span>
-          </Link>
+          {/* <Link className="app-logo mr-2 d-none d-sm-block" to="/"> */}
+          {/* <img src={require("assets/images/logo.png")} alt="Jambo" title="Jambo"/> */}
+          <span className="app-logo">SaleMe</span>
+          {/* </Link> */}
 
 
           {/* <SearchBox styleName="d-none d-lg-block" placeholder=""
                      onChange={this.updateSearchText.bind(this)}
                      value={this.state.searchText}/> */}
           {(navigationStyle === HORIZONTAL_NAVIGATION && horizontalNavPosition === INSIDE_THE_HEADER) &&
-          <Menu/>}
+            <Menu />}
 
           {/* <ul className="header-notifications list-inline ml-auto">
             <li className="list-inline-item">
@@ -309,7 +309,7 @@ class Header extends React.Component {
               </Dropdown>
             </li>}
           </ul> */}
-          
+
           <div className="ellipse-shape"></div>
         </Toolbar>
       </AppBar>
@@ -319,9 +319,9 @@ class Header extends React.Component {
 }
 
 
-const mapStateToProps = ({settings}) => {
-  const {drawerType, locale, navigationStyle, horizontalNavPosition} = settings;
-  return {drawerType, locale, navigationStyle, horizontalNavPosition}
+const mapStateToProps = ({ settings }) => {
+  const { drawerType, locale, navigationStyle, horizontalNavPosition } = settings;
+  return { drawerType, locale, navigationStyle, horizontalNavPosition }
 };
 
-export default withRouter(connect(mapStateToProps, {toggleCollapsedNav, switchLanguage})(Header));
+export default withRouter(connect(mapStateToProps, { toggleCollapsedNav, switchLanguage })(Header));

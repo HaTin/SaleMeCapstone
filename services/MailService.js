@@ -18,14 +18,14 @@ const sendMail = ({ receiver, customerEmail, redirectURL, question }) => {
     return new Promise((resolve, reject) => {
         fs.readFile(filePath, { encoding: 'utf-8' }, (err, data) => {
             if (err) reject(err)
-            const content = `<br><center><h2>Bạn nhận được câu hỏi của khách hàng ${customerEmail} từ hệ thống Buyer Assistant</h2>            
+            const content = `<br><center><h2>Bạn nhận được câu hỏi của khách hàng ${customerEmail} từ hệ thống SaleMe</h2>            
             <div><span style="font-weight: bold">Câu hỏi của khách hàng:</span><span> ${question}</span></div>
             <div><a class="button-mobile" href="${redirectURL}">Nhấn vào đây để xem chi tiết cuộc trò chuyện</a></div>
             <div>Hệ thống hiện tại không thể trả lời câu hỏi này </div>
             <br><br><br><br>`
             data = data.replace(/CONTENT_HTML/g, content)
             var mainOptions = {
-                from: 'Buyer Assistant',
+                from: 'SaleMe',
                 to: receiver,
                 subject: 'Câu hỏi của khách hàng',
                 text: '',
