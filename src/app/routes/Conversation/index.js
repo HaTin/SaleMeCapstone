@@ -74,7 +74,7 @@ class ChatPanelWithRedux extends Component {
 
           <div className="chat-avatar mr-2">
             <div className="chat-avatar-mode">
-              <img src="https://via.placeholder.com/150x150"
+              <img src="https://icon-library.net/images/default-user-icon/default-user-icon-8.jpg"
                 className="rounded-circle size-60"
                 alt="" />
 
@@ -125,7 +125,7 @@ class ChatPanelWithRedux extends Component {
         <div className="chat-user-hd">
           <div className="chat-avatar mr-3" >
             <div className="chat-avatar-mode">
-              <img id="user-avatar-button" src="https://via.placeholder.com/150x150"
+              <img id="user-avatar-button" src="https://img.icons8.com/carbon-copy/2x/bot.png"
                 className="rounded-circle size-50"
                 alt="" />
               {/* <span className="chat-mode online" /> */}
