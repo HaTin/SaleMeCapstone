@@ -11,6 +11,10 @@ const amazonCrawler = require('./AmazonCrawlerService')
 const translate = require('@vitalets/google-translate-api');
 
 
+// getNextAnswer:post(previousQuestion, currentQuestion) =>
+// getAnswer => if (type == product) && previousType == product => getNextAnswer
+
+
 // const answerArr = ['Đây là câu trả lời mẫu', 'Tôi không hiểu câu hỏi của bạn', 'Cảm ơn câu hỏi của bạn']
 const findConversation = async (sessionId) => {
     const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'shopId', 'id')
@@ -401,14 +405,14 @@ const generateBotAnswer = async (botData, socket) => {
                     customCollections.forEach(c => {
                         const attachment = { contentType: 'collection', content: null }
                         attachment.title = c.title
-                        attachment.image = c.image ? c.image.src:'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
+                        attachment.image = c.image ? c.image.src : 'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
                         attachment.buttons = [{ title: "Xem", type: 'open-url', value: `${store.name}/collections/${c.handle}` }]
                         attachments.push(attachment)
                     })
                     smartCollections.forEach(s => {
                         const attachment = { contentType: 'collection', content: null }
                         attachment.title = s.title
-                        attachment.image = s.image?s.image.src:'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
+                        attachment.image = s.image ? s.image.src : 'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
                         attachment.buttons = [{ title: 'Xem', type: 'open-url', value: `${store.name}/collections/${s.handle}` }]
                         attachments.push(attachment)
                     })
@@ -581,12 +585,12 @@ const showProducts = async (messages, products, store, data) => {
                 }
             })
             attachment.title = product.title
-            attachment.image = product.image?product.image.src:'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
-            attachment.variants = product.variants
+            attachment.image = product.image ? product.image.src : 'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
+            // attachment.variants = product.variants            
             attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
             const bestMatchVariant = findBestMatchVariant(product.variants, _product)
             const variantParams = bestMatchVariant ? `?variant=${bestMatchVariant.id}` : ''
-            attachment.price = bestMatchVariant ? bestMatchVariant.price : null
+            attachment.price = bestMatchVariant ? bestMatchVariant.price : product.variants[0].price
 
             //checking stock
             var totalStock = 0
