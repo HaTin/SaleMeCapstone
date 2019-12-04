@@ -11,8 +11,12 @@ const saveItemToList = (key, item) => {
     })
 }
 
+const removeKey = async (key) => {
+    return redisClient.del(key)
+}
+
 const setItem = async (key, item, expire) => {
-     redisClient.set(key, JSON.stringify(item))
+    return redisClient.set(key, JSON.stringify(item))
     // redisClient.expire(key, expire || 3600)
 }
 
