@@ -1,9 +1,12 @@
 import React from 'react';
-import * as moment from 'moment';
+import moment from 'moment';
 import LongMenu from '../long/LongMenu'
+import 'moment/locale/vi'
+moment.locale('vi')
 const formatDate = (timeString) => {
-  const date = moment(timeString)
-  return date.fromNow()
+  const date = moment(timeString).fromNow()
+  return date
+  // return date.fromNow()
 }
 
 const UserCell = ({ chat, selectedSectionId, onSelectUser, handleOption }) => {

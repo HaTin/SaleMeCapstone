@@ -7,7 +7,6 @@ const SentMessageCell = ({ conversation }) => {
     conversation.attachment = null
   }
   const attachment = JSON.parse(conversation.attachment)
-  console.log(attachment)
   return (
     <div className="d-flex flex-nowrap chat-item flex-row-reverse">
 
@@ -22,7 +21,6 @@ const SentMessageCell = ({ conversation }) => {
         </div>
       }
       {/* <div className="time text-muted text-right mt-2">{conversation.time}</div> */}
-
     </div>
   )
 };

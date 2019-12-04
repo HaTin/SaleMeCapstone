@@ -42,7 +42,7 @@ class App extends Component {
       if (!authUser) {
         return (<Redirect to={'/signin'} />);
       } else if (initURL === '' || initURL === '/' || initURL === '/signin' || initURL === '/signup') {
-        return (<Redirect to={'/app/dashboard'} />);
+        return (<Redirect to={'/app/bot-config'} />);
       } else {
         return (<Redirect to={initURL} />);
       }

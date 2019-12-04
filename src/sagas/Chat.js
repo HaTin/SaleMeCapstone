@@ -27,9 +27,7 @@ function* fetchChatUserRequest({ payload }) {
 
 function* removeChatUserRequest({ payload }) {
   try {
-    console.log(payload)
     const response = yield call(chat.deleteConversation, payload)
-    console.log(response.data)
     yield put(removeChatUserSuccess(response.data))
   } catch (error) {
     const errorMessage = error.response.data || 'Error'
@@ -62,21 +60,9 @@ function* fetchChatUserConversationRequest({ payload }) {
 
 function* searchConversationRequest({ payload }) {
   try {
-    console.log(payload)
-    yield put(setState({ searchChatUser: payload.search }))
     if (payload.search) {
       const response = yield call(chat.searchMessage, payload);
-      console.log(response)
-      const mapConversation = response.data.conversations.map(con => {
-        const conversation = {
-          id: con.conversationId,
-          lastMessageTime: con.time,
-          lastMessage: con.msgContent,
-          userName: con.username
-        }
-        return conversation
-      })
-      yield put(searchChatUserSuccess(mapConversation))
+      yield put(searchChatUserSuccess(response.data.conversations))
     } else {
       yield put(setState({ isSearching: false }))
     }
@@ -103,7 +89,7 @@ export function* removeChatUserSaga() {
 }
 
 export function* searchMessageSaga() {
-  yield takeLatest(SEARCH_CHAT_USER, searchConversationRequest)
+  yield takeEvery(SEARCH_CHAT_USER, searchConversationRequest)
 }
 // export default function* rootSaga() {
 //   yield all([fetchChatUserConversation,
