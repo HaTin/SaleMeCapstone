@@ -63,20 +63,20 @@ class CreateAccount extends React.Component {
         <div className="app-login-main-content">
 
           <div className="app-logo-content d-flex flex-column align-items-center justify-content-center">
-            <h2 className="text-white font-weight-bold">Connect with SA bot</h2>
+            <h2 className="text-white font-weight-bold">Kết nối với SaleMe</h2>
             <img src={require("assets/images/shopify-logo.png")} width="200" alt="jambo" title="jambo" />
           </div>
 
           <div className="app-login-content">
             <div className="app-login-header mb-4">
-              <h1><strong>Complete Your Account</strong></h1>
+              <h1><strong>Tạo tài khoản</strong></h1>
             </div>
 
             <div className="app-login-form">
               <form>
                 <fieldset>
                   <TextField
-                    label='Shop'
+                    label='Cửa hàng'
                     fullWidth
                     onChange={(event) => this.setState({ shop: event.target.value })}
                     defaultValue={shop}
@@ -85,7 +85,7 @@ class CreateAccount extends React.Component {
                     className="mt-1 my-sm-3"
                   />
                   <TextField
-                    label='First Name'
+                    label='Họ'
                     fullWidth
                     onChange={(event) => this.setState({ firstName: event.target.value })}
                     defaultValue={firstName}
@@ -93,7 +93,7 @@ class CreateAccount extends React.Component {
                     className="mt-1 my-sm-3"
                   />
                   <TextField
-                    label='Last Name'
+                    label='Tên'
                     fullWidth
                     onChange={(event) => this.setState({ lastName: event.target.value })}
                     defaultValue={lastName}
@@ -101,7 +101,7 @@ class CreateAccount extends React.Component {
                     className="mt-1 my-sm-3"
                   />
                   <TextField
-                    label={<IntlMessages id="Email Address" />}
+                    label={<IntlMessages id="Email" />}
                     type='email'
                     fullWidth
                     onChange={(event) => this.setState({ email: event.target.value })}
@@ -111,7 +111,7 @@ class CreateAccount extends React.Component {
                   />
                   <TextField
                     type='password'
-                    label='Password'
+                    label='Mật khẩu'
                     fullWidth
                     onChange={(event) => this.setState({ password: event.target.value })}
                     defaultValue={password}
@@ -120,7 +120,7 @@ class CreateAccount extends React.Component {
                   />
                   <TextField
                     type='password'
-                    label='Password Confirm'
+                    label='Xác nhận mật khẩu'
                     fullWidth
                     onChange={(event) => this.setState({ passwordConfirm: event.target.value })}
                     defaultValue={passwordConfirm}
@@ -134,7 +134,7 @@ class CreateAccount extends React.Component {
                       // this.props.showAuthLoader();
                       this.props.userSignUp({ email, firstName, lastName, shop, password });
                     }} variant="contained" color="primary">
-                      Create Account
+                      Tạo tài khoản
                     </Button>
                   </div>
                 </fieldset>

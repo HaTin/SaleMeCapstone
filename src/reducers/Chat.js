@@ -27,7 +27,7 @@ const INIT_STATE = {
   loader: true,
   pageNumber: 1,
   userLoader: false,
-  userNotFound: 'No user found',
+  userNotFound: 'Không tìm thấy người dùng',
   drawerState: false,
   selectedSectionId: '',
   userState: 1,
@@ -165,6 +165,7 @@ export default (state = INIT_STATE, action) => {
         ...state,
         conversation: action.payload,
         loader: false,
+        scrollDown: true
       }
     }
     case SHOW_MESSAGE: {

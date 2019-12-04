@@ -16,7 +16,6 @@ const findConversation = async (sessionId) => {
     const conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'shopId', 'id')
     return conversation
 }
-
 const insertConversation = async ({ sessionId, shopId, lastMessage, userName, timestamp }) => {
     const conversation = {
         sessionId,
@@ -143,7 +142,7 @@ const generateBotAnswer = async (botData, socket) => {
                             }
                             else if (type === 'order' && orders && orders.length > 0) {
                                 const orderId = orders[0]
-                                const orderResponse = await axios.get(`https://${store.name}/admin/api/2019-10/orders/${orderId}.json`, {
+                                const orderResponse = await axios.get(`https://${store.name}/admin/api/2019-10/orders/${orderId}.json?fields=order_number,order_status_url&fulfillment_status=any&status=any`, {
                                     params: {},
                                     headers: {
                                         'X-Shopify-Access-Token': store.token
@@ -695,7 +694,6 @@ const findBestMatchVariant = (variants, productFromBot) => {
 const reportMessage = async (choice, botResponse) => {
     // const store = await knex('shop').where({ id: shopId }).first('id', 'name')
     // const response = await axios.get(BOT_URL, { params: { sentence: message } })
-
     const response = await axios.post(`http://bot.sales-bot.tech/api/Message/Report`, JSON.stringify(botResponse), {
         params: {
             choice: choice
@@ -705,8 +703,13 @@ const reportMessage = async (choice, botResponse) => {
 }
 
 const searchMessage = async (search, shopId) => {
-    const result = await knex.select('*').from('conversation').join('message', 'message.conversationId', 'conversation.id').
-        where('msgContent', 'like', `%${search}%`).andWhere({ shopId })
+    const result = await knex.select({
+        id: 'conversation.id',
+        lastMessageTime: 'message.time',
+        lastMessage: 'message.msgContent',
+        userName: 'conversation.userName'
+    }).from('conversation').join('message', 'message.conversationId', 'conversation.id').
+        where('msgContent', 'like', `%${search}%`).andWhere({ shopId }).orderBy('message.time', 'asc')
     return util.createList(result, 'conversations')
     // const conversations = await knex('conversation').where({ shopId }).first('sessionId', 'shopId', 'id')
     // const messages = await knex('')
@@ -722,7 +725,7 @@ const deleteConversation = async (id) => {
         const result = await knex('conversation').where({ id }).del()
         return { id }
     } else {
-        throw new Error('Customer is currently connecting')
+        throw new Error('Cuộc trò chuyện vẫn đang diễn ra')
     }
 }
 

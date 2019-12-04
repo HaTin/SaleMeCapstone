@@ -50,7 +50,7 @@ class SignIn extends React.Component {
 
           <div className="app-login-content">
             <div className="app-login-header mb-4">
-              <h1 className="font-weight-bold">Sign In</h1>
+              <h1 className="font-weight-bold">Đăng nhập</h1>
             </div>
 
             <div className="app-login-form">

@@ -43,10 +43,10 @@ class ChatPanelWithRedux extends Component {
   };
 
   onSelectUser = (user) => {
-    this.props.onSelectUser(user);
-    // setTimeout(() => {
-    //   this.props.hideLoader();
-    // }, 500);
+    const { selectedUser } = this.props
+    if (!selectedUser || user.id !== selectedUser.id) {
+      this.props.onSelectUser(user);
+    }
   };
 
 
@@ -62,9 +62,8 @@ class ChatPanelWithRedux extends Component {
   };
 
   Communication = () => {
-    const { message, selectedUser, conversation } = this.props;
+    const { message, selectedUser, conversation, scrollComponent } = this.props;
     // const { conversationData } = conversation;
-
     return <div className="chat-main">
       <div className="chat-main-header">
         <IconButton className="d-block d-xl-none chat-btn" aria-label="Menu"
@@ -90,7 +89,7 @@ class ChatPanelWithRedux extends Component {
 
       </div>
 
-      <CustomScrollbars className="chat-list-scroll scrollbar">
+      <CustomScrollbars ref={s => { this.myRef = s }} className="chat-list-scroll scrollbar">
         <Conversation conversationData={conversation}
           selectedUser={selectedUser} />
       </CustomScrollbars>
@@ -139,9 +138,9 @@ class ChatPanelWithRedux extends Component {
           </div>
         </div>
         <div className="search-wrapper">
-          <SearchBox placeholder="Search conversation"
+          <SearchBox placeholder="Tìm cuộc hội thoại"
             onChange={this.updateSearchChatUser.bind(this)}
-            value={this.props.searchChatUser} />
+            value={this.state.search} />
         </div>
       </div>
 
@@ -154,7 +153,8 @@ class ChatPanelWithRedux extends Component {
           {this.props.chatUsers.length === 0 ?
             <div className="p-5 no-user">{this.props.userNotFound}</div>
             :
-            <ChatUserList chatUsers={!this.props.isSearching ? this.props.chatUsers : this.props.searchResults}
+            <ChatUserList
+              chatUsers={!this.props.isSearching ? this.props.chatUsers : this.props.searchResults}
               selectedSectionId={this.props.selectedSectionId}
               onSelectUser={this.onSelectUser.bind(this)}
               handleOption={this.handleOption.bind(this)} />
@@ -177,12 +177,14 @@ class ChatPanelWithRedux extends Component {
     if (option === 0) {
       Swal.fire({
         icon: 'question',
-        title: `Delete Conversation?`,
-        text: `Are you sure you want to remove this conversation? You won't be able to undo it`,
+        title: `Xóa cuộc trò chuyện?`,
+        text: `Bạn có chắc muốn xóa cuộc trò chuyện này? Hành động này không thể hoàn tác`,
         showCancelButton: true,
-        confirmButtonText: 'Yes, Remove it'
+        cancelButtonText: 'Hủy',
+        confirmButtonText: 'Xóa'
       }).then((result) => {
         if (result.value) {
+          this.props.setState({ deleteUserId: conversation.id })
           this.props.removeChatUser(conversation.id)
         }
       })
@@ -224,8 +226,11 @@ class ChatPanelWithRedux extends Component {
 
   constructor() {
     super();
+    this.myRef = React.createRef();
     this.state = {
       selectedTabIndex: 0,
+      search: '',
+      timeout: 0
     }
   }
 
@@ -233,11 +238,22 @@ class ChatPanelWithRedux extends Component {
     const { authUser, chatUsers, pageNumber } = this.props
     const { shopId } = authUser
     this.props.fetchChatUser({ shopId, pageNumber: 1 });
+    // setInterval(() => {
+    //   this.props.fetchChatUser({ shopId, pageNumber: 1 });
+    // }, 3000)
     // this.props.fetchChatUserConversation()
   }
 
   updateSearchChatUser(evt) {
-    this.props.searchMessage({ search: evt.target.value, shopId: this.props.authUser.shopId });
+    const search = evt.target.value
+    const shopId = this.props.authUser.shopId
+    this.setState((state) => ({
+      search
+    }));
+    if (this.state.timeout) clearTimeout(this.state.timeout)
+    this.state.timeout = setTimeout(() => {
+      this.props.searchMessage({ search, shopId });
+    }, 800)
     // this.props.filterUsers(evt.target.value);
   }
 
@@ -248,12 +264,13 @@ class ChatPanelWithRedux extends Component {
     if (type === 'deleted') {
       Swal.fire({
         icon: 'success',
-        title: `Delete Conversation Success`,
+        title: `Xóa thành công`,
       })
       this.props.setState({ deleteSuccess: false })
       if (this.props.isSearching) {
-        // this.props.onSelectUser(null)
         this.props.searchMessage({ search: this.props.searchChatUser, shopId: this.props.authUser.shopId })
+      }
+      if (this.props.selectedUser && this.props.deleteUserId === this.props.selectedUser.id) {
         this.props.setState({
           selectedSectionId: null,
           selectedUser: null
@@ -318,6 +335,7 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     userState,
     searchChatUser,
     contactList,
+    deleteUserId,
     selectedUser,
     pageNumber,
     alertMessage,
@@ -327,6 +345,7 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     searchResults,
     isSearching,
     deleteSuccess,
+    scrollDown,
     userLoader,
     showMessage,
     conversationList,
@@ -337,6 +356,7 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     pageNumber,
     loader,
     authUser,
+    deleteUserId,
     userNotFound,
     alertMessage,
     userLoader,
@@ -347,6 +367,7 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     end,
     searchChatUser,
     contactList,
+    scrollDown,
     selectedUser,
     message,
     chatUsers,

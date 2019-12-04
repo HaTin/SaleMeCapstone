@@ -48,27 +48,33 @@ if (process.env.NODE_ENV === 'production') {
 }
 // let connections = []
 global.connections = {}
-io.on("connection", (socket) => {
-    global.connections[socket.id] = { state: '', data: {} }
-    socket.on("message", async data => {
-        // show loading message
-        socket.emit('response', [{ text: '', typing: true, type: 'text' }])
-        const client = global.connections[socket.id]
-        console.log(data)
-        client.state = data.type || client.state
-        const response = await chatService.generateBotAnswer({ ...data, sessionId: socket.id, client }, socket)
-        const newState = {
-            state: response.state ? response.state : '',
-            data: response.data ? response.data : {}
-        }
-        global.connections[socket.id] = newState
-        console.log(global.connections[socket.id])
-        socket.emit('response', response.messages)
+try {
+    io.on("connection", (socket) => {
+        console.log(socket)
+        global.connections[socket.id] = { state: '', data: {} }
+        socket.on("message", async data => {
+            // show loading message
+            socket.emit('response', [{ text: '', typing: true, type: 'text' }])
+            const client = global.connections[socket.id]
+            console.log(data)
+            client.state = data.type || client.state
+            const response = await chatService.generateBotAnswer({ ...data, sessionId: socket.id, client }, socket)
+            const newState = {
+                state: response.state ? response.state : '',
+                data: response.data ? response.data : {}
+            }
+            global.connections[socket.id] = newState
+            console.log(global.connections[socket.id])
+            socket.emit('response', response.messages)
+        });
+        socket.on('disconnect', () => {
+            delete global.connections[socket.id]
+        })
     });
-    socket.on('disconnect', () => {
-        delete global.connections[socket.id]
-    })
-});
+} catch (error) {
+    console.log(error)
+}
+
 
 server.listen(3001, () => {
     console.log('App listening on port 3001!');
