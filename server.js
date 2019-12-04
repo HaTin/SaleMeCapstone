@@ -18,7 +18,7 @@ const authController = require('./controllers/auth')
 const webhookController = require('./controllers/webhook')
 const importController = require('./controllers/import')
 const chatService = require('./services/ConversationService')
-
+const redisController = require('./controllers/redis')
 
 // app.use(logger('common'))
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -35,6 +35,7 @@ app.use('/webhook', webhookController)
 app.use('/api/conversations', conversationController)
 app.use('/api/auth', authController)
 app.use('/api/shop-data', importController)
+app.use('/api/redis', redisController)
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'build')));
     app.get('/*', function (req, res) {

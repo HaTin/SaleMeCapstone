@@ -401,14 +401,14 @@ const generateBotAnswer = async (botData, socket) => {
                     customCollections.forEach(c => {
                         const attachment = { contentType: 'collection', content: null }
                         attachment.title = c.title
-                        attachment.image = c.image.src
+                        attachment.image = c.image ? c.image.src:'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
                         attachment.buttons = [{ title: "Xem", type: 'open-url', value: `${store.name}/collections/${c.handle}` }]
                         attachments.push(attachment)
                     })
                     smartCollections.forEach(s => {
                         const attachment = { contentType: 'collection', content: null }
                         attachment.title = s.title
-                        attachment.image = s.image.src
+                        attachment.image = s.image?s.image.src:'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
                         attachment.buttons = [{ title: 'Xem', type: 'open-url', value: `${store.name}/collections/${s.handle}` }]
                         attachments.push(attachment)
                     })
@@ -581,7 +581,7 @@ const showProducts = async (messages, products, store, data) => {
                 }
             })
             attachment.title = product.title
-            attachment.image = product.image.src
+            attachment.image = product.image?product.image.src:'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
             attachment.variants = product.variants
             attachment.currencyCode = product.variants[0].presentment_prices[0].price.currency_code
             const bestMatchVariant = findBestMatchVariant(product.variants, _product)
