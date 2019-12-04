@@ -1,5 +1,5 @@
 import { all, call, fork, put, takeEvery, takeLatest } from 'redux-saga/effects';
-import { FETCH_ALL_CHAT_USER, FETCH_ALL_CHAT_USER_CONVERSATION, ON_SELECT_USER, FETCH_MORE_CHAT_USER, ON_SHOW_USER_LOADER, REMOVE_CHAT_USER } from 'constants/ActionTypes';
+import { FETCH_ALL_CHAT_USER, FETCH_ALL_CHAT_USER_CONVERSATION, ON_SELECT_USER, FETCH_MORE_CHAT_USER, ON_SHOW_USER_LOADER, REMOVE_CHAT_USER, SEARCH_CHAT_USER } from 'constants/ActionTypes';
 import {
   fetchChatUserConversationSuccess,
   fetchChatUserSuccess,
@@ -8,7 +8,9 @@ import {
   removeChatUser,
   removeChatUserSuccess,
   showUserLoader,
-  fetchMoreChatUserSuccess
+  fetchMoreChatUserSuccess,
+  setState,
+  searchChatUserSuccess
 } from 'actions/Chat';
 import { chat } from 'services/api'
 const rowPage = 8
@@ -58,6 +60,32 @@ function* fetchChatUserConversationRequest({ payload }) {
   }
 }
 
+function* searchConversationRequest({ payload }) {
+  try {
+    console.log(payload)
+    yield put(setState({ searchChatUser: payload.search }))
+    if (payload.search) {
+      const response = yield call(chat.searchMessage, payload);
+      console.log(response)
+      const mapConversation = response.data.conversations.map(con => {
+        const conversation = {
+          id: con.conversationId,
+          lastMessageTime: con.time,
+          lastMessage: con.msgContent,
+          userName: con.username
+        }
+        return conversation
+      })
+      yield put(searchChatUserSuccess(mapConversation))
+    } else {
+      yield put(setState({ isSearching: false }))
+    }
+    // yield put(searchChatUserSuccess(response.data));
+  } catch (error) {
+    // yield put(showChatMessage(error));
+  }
+}
+
 export function* fetchChatUser() {
   yield takeEvery(FETCH_ALL_CHAT_USER, fetchChatUserRequest);
 }
@@ -73,6 +101,10 @@ export function* fetchMoreChatUsers() {
 export function* removeChatUserSaga() {
   yield takeLatest(REMOVE_CHAT_USER, removeChatUserRequest)
 }
+
+export function* searchMessageSaga() {
+  yield takeLatest(SEARCH_CHAT_USER, searchConversationRequest)
+}
 // export default function* rootSaga() {
 //   yield all([fetchChatUserConversation,
 //     fetchChatUser, fetchMoreChatUsers]);
@@ -82,5 +114,6 @@ export default function* rootSaga() {
   yield all([fork(fetchChatUserConversation),
   fork(fetchChatUser),
   fork(removeChatUserSaga),
-  fork(fetchMoreChatUsers)]);
+  fork(fetchMoreChatUsers),
+  fork(searchMessageSaga)]);
 }
