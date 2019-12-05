@@ -1,14 +1,10 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import Button from '@material-ui/core/Button';
-import SwipeableViews from 'react-swipeable-views';
-import Drawer from '@material-ui/core/Drawer';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import IconButton from '@material-ui/core/IconButton'
-import Input from '@material-ui/core/Input'
 import ChatUserList from 'components/chatPanel/ChatUserList/index';
 import Conversation from 'components/chatPanel/Conversation/index';
-import ContactList from 'components/chatPanel/ContactList/index';
 import SearchBox from 'components/SearchBox';
 import IntlMessages from 'util/IntlMessages';
 import Swal from 'sweetalert2'
@@ -89,7 +85,7 @@ class ChatPanelWithRedux extends Component {
 
       </div>
 
-      <CustomScrollbars ref={s => { this.myRef = s }} className="chat-list-scroll scrollbar">
+      <CustomScrollbars ref={this.scrollComponent} className="chat-list-scroll scrollbar">
         <Conversation conversationData={conversation}
           selectedUser={selectedUser} />
       </CustomScrollbars>
@@ -133,7 +129,7 @@ class ChatPanelWithRedux extends Component {
           </div>
           <div className="module-user-info d-flex flex-column justify-content-center">
             <div className="module-title">
-              <h1 className="mb-0 f text-primary font-weight-bold">{<IntlMessages id="chat.chatUser" />}</h1>
+              <h1 className="mb-0 f text-primary font-weight-bold">Trò chuyện</h1>
             </div>
           </div>
         </div>
@@ -226,11 +222,20 @@ class ChatPanelWithRedux extends Component {
 
   constructor() {
     super();
-    this.myRef = React.createRef();
+    this.scrollComponent = React.createRef();
     this.state = {
       selectedTabIndex: 0,
       search: '',
       timeout: 0
+    }
+  }
+  componentDidUpdate(prevProps) {
+    const scrollBar = this.scrollComponent.current
+    if (this.props.scrollDown && scrollBar) {
+      setTimeout(() => {
+        scrollBar.scrollToBottom()
+      }, 200)
+      this.props.setState({ scrollDown: false })
     }
   }
 
@@ -267,7 +272,6 @@ class ChatPanelWithRedux extends Component {
         title: `Xóa thành công`,
       })
       this.props.setState({ deleteSuccess: false })
-      console.log(this.props.isSearching)
       if (this.props.isSearching) {
         this.props.searchMessage({ search: this.state.search, shopId: this.props.authUser.shopId })
       }
@@ -302,12 +306,6 @@ class ChatPanelWithRedux extends Component {
         {this.props.showMessage && this.showErrorMessage()}
         <div className="app-module chat-module animated slideInUpTiny animation-duration-3">
           <div className="chat-module-box">
-            {/* <div className="d-block d-xl-none">
-              <Drawer open={drawerState}
-                onClose={this.onChatToggleDrawer.bind(this)}>
-                {this.ChatUsers()}
-              </Drawer>
-            </div> */}
             <div className="chat-sidenav d-none d-xl-flex">
               {this.ChatUsers()}
             </div>
