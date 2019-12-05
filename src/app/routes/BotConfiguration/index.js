@@ -34,17 +34,18 @@ import defaultTheme from './botDefaultStyle'
 import gradients from './gradientList'
 import { ThemeProvider } from 'styled-components';
 import SendIcon from '@material-ui/icons/Send';
+import ChipInput from 'material-ui-chip-input'
 
 let defaultBotConfig = {
     name: 'Bot',
     theme: defaultTheme,
-    enableSurvey: false,
-    enableLiveChat: true,
-    surveyConfig: {
-        intro: 'Please introduce yourself',
-        requireEmail: true,
-        requirePhone: false,
-    },
+    // enableSurvey: false,
+    // enableLiveChat: true,
+    // surveyConfig: {
+    //     intro: 'Please introduce yourself',
+    //     requireEmail: true,
+    //     requirePhone: false,
+    // },
 }
 
 const styles = {
@@ -55,9 +56,10 @@ const styles = {
         marginTop: '10px',
         width: '100%',
     },
-    chatBubble: {
-
-    },
+    keywordHint: {
+        fontSize: 'small',
+        color: 'rgba(0,0,0,0.7)'
+    }
 }
 
 let _isMount = false;
@@ -69,12 +71,13 @@ class BotConfiguration extends React.Component {
             botName: Object.assign({}, defaultBotConfig).name,
             openColorPicker: false,
             theme: Object.assign({}, defaultBotConfig).theme,
-            enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
-            enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
-            showSurveyScreen: true,
-            surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig,
+            // enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
+            // enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
+            // showSurveyScreen: true,
+            // surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig,
             hasConfig: false,
             saveStatus: false,
+            shopKeyword:[]
         }
         var user = JSON.parse(localStorage.getItem('user'))
         if (user && user.shopId) {
@@ -87,38 +90,43 @@ class BotConfiguration extends React.Component {
         _isMount = true
         axios.get('http://localhost:3001/api/bot-config/' + shopId).then(res => {
             var config = res.data.botConfig
-            console.log(config)
             if (config) {
-                var _enableSurvey = (config.requireEmail || config.requirePhone) ? true : false;
+                // var _enableSurvey = (config.requireEmail || config.requirePhone) ? true : false;
                 //setting default object to use when reset config
                 defaultBotConfig = {
                     ...defaultBotConfig,
                     name: config.botName,
                     theme: {
                         ...defaultBotConfig.theme,
-                        headerBgColor: config.backgroundColor,
-                        headerFontColor: config.textColor,
+                        // headerBgColor: config.backgroundColor,
+                        // headerFontColor: config.textColor,
                         userBubbleColor: config.backgroundColor,
                         userFontColor: config.textColor
                     },
-                    enableSurvey: _enableSurvey,
-                    enableLiveChat: config.liveChat,
-                    surveyConfig: {
-                        ...this.state.surveyConfig,
-                        intro: config.intro,
-                        requireEmail: (_enableSurvey && !config.requireEmail) ? false : true,
-                        requirePhone: (_enableSurvey && config.requirePhone) ? true : false,
-                    }
+                    // enableSurvey: _enableSurvey,
+                    // enableLiveChat: config.liveChat,
+                    // surveyConfig: {
+                    //     ...this.state.surveyConfig,
+                    //     intro: config.intro,
+                    //     requireEmail: (_enableSurvey && !config.requireEmail) ? false : true,
+                    //     requirePhone: (_enableSurvey && config.requirePhone) ? true : false,
+                    // }
                 }
                 this.setState({
                     hasConfig: true,
                     botName: Object.assign({}, defaultBotConfig).name,
                     theme: Object.assign({}, defaultBotConfig).theme,
-                    enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
-                    enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
-                    surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig
+                    // enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
+                    // enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
+                    // surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig
                 })
             }
+        })
+
+        axios.get('http://localhost:3001/api/keyword/'+shopId)
+        .then(res => {
+            const keywords = res.data.keywords.map((k) => {return k.keyword})
+            this.setState({shopKeyword: keywords})
         })
     }
 
@@ -130,9 +138,9 @@ class BotConfiguration extends React.Component {
         this.setState({
             botName: Object.assign({}, defaultBotConfig).name,
             theme: Object.assign({}, defaultBotConfig).theme,
-            enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
-            enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
-            surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig,
+            // enableSurvey: Object.assign({}, defaultBotConfig).enableSurvey,
+            // enableLiveChat: Object.assign({}, defaultBotConfig).enableLiveChat,
+            // surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig,
         })
     }
 
@@ -143,10 +151,10 @@ class BotConfiguration extends React.Component {
             textColor: this.state.theme.userFontColor,
             backgroundColor: this.state.theme.userBubbleColor,
             configDate: new Date(),
-            intro: this.state.surveyConfig.intro,
-            liveChat: this.state.enableLiveChat,
-            requireEmail: (this.state.enableSurvey && this.state.surveyConfig.requireEmail) ? true : false,
-            requirePhone: (this.state.enableSurvey && this.state.surveyConfig.requirePhone) ? true : false,
+            // intro: this.state.surveyConfig.intro,
+            // liveChat: this.state.enableLiveChat,
+            // requireEmail: (this.state.enableSurvey && this.state.surveyConfig.requireEmail) ? true : false,
+            // requirePhone: (this.state.enableSurvey && this.state.surveyConfig.requirePhone) ? true : false,
         }
         if (this.state.hasConfig) {
             axios.put('http://localhost:3001/api/bot-config/' + shopId, config)
@@ -175,7 +183,7 @@ class BotConfiguration extends React.Component {
         this.setState({
             theme: {
                 ...this.state.theme,
-                headerBgColor: color.hex,
+                // headerBgColor: color.hex,
                 userBubbleColor: color.hex,
             }
         })
@@ -185,7 +193,7 @@ class BotConfiguration extends React.Component {
         this.setState({
             theme: {
                 ...this.state.theme,
-                headerFontColor: color.hex,
+                // headerFontColor: color.hex,
                 userFontColor: color.hex,
             }
         })
@@ -195,8 +203,8 @@ class BotConfiguration extends React.Component {
         this.setState({
             theme: {
                 ...this.state.theme,
-                headerBgColor: gradient.background,
-                headerFontColor: gradient.color,
+                // headerBgColor: gradient.background,
+                // headerFontColor: gradient.color,
                 userBubbleColor: gradient.background,
                 userFontColor: gradient.color,
             }
@@ -221,45 +229,66 @@ class BotConfiguration extends React.Component {
         })
     }
 
-    handleSurveyScreen = () => {
-        this.setState({
-            showSurveyScreen: !this.state.showSurveyScreen
-        })
-    }
+    // handleSurveyScreen = () => {
+    //     this.setState({
+    //         showSurveyScreen: !this.state.showSurveyScreen
+    //     })
+    // }
 
-    handleEmailRequire = (event) => {
-        if (!event.target.checked && this.state.surveyConfig.requireEmail && !this.state.surveyConfig.requirePhone) {
-            return;
+    // handleEmailRequire = (event) => {
+    //     if (!event.target.checked && this.state.surveyConfig.requireEmail && !this.state.surveyConfig.requirePhone) {
+    //         return;
+    //     }
+    //     this.setState({ surveyConfig: { ...this.state.surveyConfig, requireEmail: event.target.checked } })
+    // }
+
+    // handlePhoneRequire = (event) => {
+    //     if (!event.target.checked && !this.state.surveyConfig.requireEmail && this.state.surveyConfig.requirePhone) {
+    //         return;
+    //     }
+    //     this.setState({ surveyConfig: { ...this.state.surveyConfig, requirePhone: event.target.checked } })
+    // }
+
+    // handleSurveyIntroChange = (event) => {
+    //     this.setState({ surveyConfig: { ...this.state.surveyConfig, intro: event.target.value } })
+    // }
+
+    // handleLiveChat = () => {
+    //     this.setState({ enableLiveChat: !this.state.enableLiveChat })
+    // }
+
+    // handleSurvey = () => {
+    //     this.setState({ enableSurvey: !this.state.enableSurvey })
+    // }
+
+    handleAddKeyword(chip) {
+        //check exist
+        if(this.state.shopKeyword.indexOf(chip.toLowerCase())<0){
+            var keyword = {
+                shopId: shopId,
+                keyword: chip.toLowerCase(),
+                isActive: true,
+            }
+            axios.post("http://localhost:3001/api/keyword",keyword)
+            this.setState({shopKeyword:[...this.state.shopKeyword,chip.toLowerCase()]})
         }
-        this.setState({ surveyConfig: { ...this.state.surveyConfig, requireEmail: event.target.checked } })
+        
     }
 
-    handlePhoneRequire = (event) => {
-        if (!event.target.checked && !this.state.surveyConfig.requireEmail && this.state.surveyConfig.requirePhone) {
-            return;
-        }
-        this.setState({ surveyConfig: { ...this.state.surveyConfig, requirePhone: event.target.checked } })
-    }
-
-    handleSurveyIntroChange = (event) => {
-        this.setState({ surveyConfig: { ...this.state.surveyConfig, intro: event.target.value } })
-    }
-
-    handleLiveChat = () => {
-        this.setState({ enableLiveChat: !this.state.enableLiveChat })
-    }
-
-    handleSurvey = () => {
-        this.setState({ enableSurvey: !this.state.enableSurvey })
+    handleDeleteKeyword = (chip, index) => {
+        let keywords = [...this.state.shopKeyword]
+        keywords.splice(index,1)
+        this.setState({shopKeyword: keywords})
+        axios.put("http://localhost:3001/api/keyword/"+shopId,{keyword: chip})
     }
 
     render() {
-        let emailAndPhoneInput =
-            <EmailPhoneInput
-                theme={this.state.theme}
-                surveyConfig={this.state.surveyConfig}
-                onSubmitInfo={this.handleSurvey}
-            />;
+        // let emailAndPhoneInput =
+        //     <EmailPhoneInput
+        //         theme={this.state.theme}
+        //         surveyConfig={this.state.surveyConfig}
+        //         onSubmitInfo={this.handleSurvey}
+        //     />;
         let backgroundPicker =
             <div>
                 {gradients.map((gradient, i) => (
@@ -273,7 +302,7 @@ class BotConfiguration extends React.Component {
                             width: '50px',
                             height: '50px',
                             cursor: 'pointer',
-                            boxShadow: this.state.theme.headerBgColor === gradient.background ?
+                            boxShadow: this.state.theme.userBubbleColor === gradient.background ?
                                 'rgba(0, 77, 255, 0.5) 0 0 3px 3px' : ''
                         }}
                         onClick={() => this.handleChangeTheme(gradient)}
@@ -282,79 +311,91 @@ class BotConfiguration extends React.Component {
                 ))}
             </div>
 
-        let survey =
-            <div style={styles.surveyContainer}>
-                <FormControl style={{ width: '100%' }}>
-                    <InputLabel htmlFor="intro">Introduction line</InputLabel>
-                    <Input id="intro"
-                        value={this.state.surveyConfig.intro}
-                        onChange={this.handleSurveyIntroChange}
-                        fullWidth={true} />
-                </FormControl>
-                <FormControl style={{ width: '100%' }}>
-                    <FormGroup>
-                        <Grid container spacing={1}>
-                            <Grid item xs={6}>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={this.state.surveyConfig.requireEmail}
-                                            onChange={this.handleEmailRequire}
-                                            value="emailRequire"
-                                            color="primary"
-                                        />
-                                    }
-                                    label="Require email"
-                                />
-                            </Grid>
-                            <Grid item xs={6}>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={this.state.surveyConfig.requirePhone}
-                                            onChange={this.handlePhoneRequire}
-                                            value="phoneRequire"
-                                            color="primary"
-                                        />
-                                    }
-                                    label="Require phone"
-                                />
-                            </Grid>
-                        </Grid>
-                    </FormGroup>
-                    <FormHelperText>You have to choose at least 1 option</FormHelperText>
-                </FormControl>
-            </div>
+        // let survey =
+        //     <div style={styles.surveyContainer}>
+        //         <FormControl style={{ width: '100%' }}>
+        //             <InputLabel htmlFor="intro">Introduction line</InputLabel>
+        //             <Input id="intro"
+        //                 value={this.state.surveyConfig.intro}
+        //                 onChange={this.handleSurveyIntroChange}
+        //                 fullWidth={true} />
+        //         </FormControl>
+        //         <FormControl style={{ width: '100%' }}>
+        //             <FormGroup>
+        //                 <Grid container spacing={1}>
+        //                     <Grid item xs={6}>
+        //                         <FormControlLabel
+        //                             control={
+        //                                 <Checkbox
+        //                                     checked={this.state.surveyConfig.requireEmail}
+        //                                     onChange={this.handleEmailRequire}
+        //                                     value="emailRequire"
+        //                                     color="primary"
+        //                                 />
+        //                             }
+        //                             label="Require email"
+        //                         />
+        //                     </Grid>
+        //                     <Grid item xs={6}>
+        //                         <FormControlLabel
+        //                             control={
+        //                                 <Checkbox
+        //                                     checked={this.state.surveyConfig.requirePhone}
+        //                                     onChange={this.handlePhoneRequire}
+        //                                     value="phoneRequire"
+        //                                     color="primary"
+        //                                 />
+        //                             }
+        //                             label="Require phone"
+        //                         />
+        //                     </Grid>
+        //                 </Grid>
+        //             </FormGroup>
+        //             <FormHelperText>You have to choose at least 1 option</FormHelperText>
+        //         </FormControl>
+        //     </div>
 
-        let steps = [
-            { id: 'greeting', message: 'Xin chào, Tôi là hệ thống hỗ trợ khách hàng. Tôi có thể giúp gì cho bạn?', trigger: 'user' },
-            { id: 'user', message:'mình muốn tìm áo', end: true }
-        ]
+        // let steps = [
+        //     { id: 'greeting', message: 'Xin chào, Tôi là hệ thống hỗ trợ khách hàng. Tôi có thể giúp gì cho bạn?', trigger: 'user' },
+        //     { id: 'user', message:'mình muốn tìm áo', end: true }
+        // ]
         return (
             <div className="app-wrapper" >
                 <ContainerHeader match={this.props.match} title={<IntlMessages id="Store Management" />} />
                 <Grid container spacing={1}>
                     <Grid item xs={8}>
                         <Card style={{ minHeight: '300px' }}>
-                            <CardHeader title="Bot information" />
+                            <CardHeader title="Thông tin chatbot" />
                             <CardContent>
                                 <FormControl>
-                                    <InputLabel htmlFor="bot-name">Name</InputLabel>
+                                    <InputLabel htmlFor="bot-name">Tên bot</InputLabel>
                                     <Input id="bot-name"
                                         value={this.state.botName}
                                         onChange={this.handleChangeName} />
                                 </FormControl>
                                 <br /><br />
-                                <span style={styles.optionTitle}>Background color: </span>
+                                <span style={styles.optionTitle}>Màu nền: </span>
                                 {backgroundPicker}
                                 <Button
                                     variant="contained"
                                     color="primary"
                                     onClick={this.handleOpenPicker}
                                 >
-                                    Style your own color
+                                    Tự chọn màu
                                 </Button>
                                 <br /><br />
+                                <span style={styles.optionTitle}>Từ khóa của shop: </span>
+                                <br/>
+                                <span style={styles.keywordHint}>Hãy nhập từ khóa để chatbot có thể trả lời chính xác hơn. Ví dụ: "Áo", "Quần"</span>
+                                <br/>
+                                <span style={styles.keywordHint}>Để tạo từ khóa hãy nhập 1 từ bất kỳ và nhấn enter</span>
+                                <br/>
+                                <ChipInput
+                                    value={this.state.shopKeyword}
+                                    onAdd={(chip) => this.handleAddKeyword(chip)}
+                                    onDelete={(chip, index) => this.handleDeleteKeyword(chip, index)}
+                                />
+                                
                                 {/* <span style={styles.optionTitle}>Enable live-chat: </span>
                                 <Switch
                                     checked={this.state.enableLiveChat}
@@ -464,16 +505,16 @@ class BotConfiguration extends React.Component {
                     <DialogContent>
                         <Grid container spacing={1}>
                             <Grid item xs={6}>
-                                <span style={styles.optionTitle}>Background</span>
+                                <span style={styles.optionTitle}>Màu nền</span>
                                 <SketchPicker
-                                    color={this.state.theme.headerBgColor}
+                                    color={this.state.theme.userBubbleColor}
                                     onChangeComplete={this.handleChangeBackground}
                                 />
                             </Grid>
                             <Grid item xs={6}>
-                                <span style={styles.optionTitle}>Text Color</span>
+                                <span style={styles.optionTitle}>Màu chữ</span>
                                 <SketchPicker
-                                    color={this.state.theme.headerFontColor}
+                                    color={this.state.theme.userFontColor}
                                     onChangeComplete={this.handleChangeTextColor}
                                 />
                             </Grid>
@@ -493,7 +534,7 @@ class BotConfiguration extends React.Component {
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description">
                     <DialogContent>
-                        <span style={styles.optionTitle}>Save success</span>
+                        <span style={styles.optionTitle}>Lưu thành công</span>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={this.handleCloseSave} autoFocus variant="contained" color="primary">
