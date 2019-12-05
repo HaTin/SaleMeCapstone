@@ -13,6 +13,7 @@ import {
   searchChatUserSuccess
 } from 'actions/Chat';
 import { chat } from 'services/api'
+const defaultErrorMessage = 'Có lỗi đã xảy ra, Vui lòng thử lại'
 const rowPage = 8
 function* fetchChatUserRequest({ payload }) {
   try {
@@ -21,7 +22,7 @@ function* fetchChatUserRequest({ payload }) {
     const { conversations } = response.data
     yield put(fetchChatUserSuccess({ conversations, pageNumber: response.data.pageNumber }));
   } catch (error) {
-    yield put(showChatMessage(error));
+    yield put(showChatMessage(defaultErrorMessage));
   }
 }
 
@@ -43,7 +44,7 @@ function* fetchMoreChatUserRequest({ payload }) {
     const { conversations, end } = response.data
     yield put(fetchMoreChatUserSuccess({ conversations, pageNumber: response.data.pageNumber, end }));
   } catch (error) {
-    yield put(showChatMessage(error));
+    yield put(showChatMessage(defaultErrorMessage));
   }
 }
 
@@ -54,7 +55,7 @@ function* fetchChatUserConversationRequest({ payload }) {
     const { messages } = response.data
     yield put(fetchChatUserConversationSuccess(messages));
   } catch (error) {
-    yield put(showChatMessage(error));
+    yield put(showChatMessage(defaultErrorMessage));
   }
 }
 
@@ -68,7 +69,7 @@ function* searchConversationRequest({ payload }) {
     }
     // yield put(searchChatUserSuccess(response.data));
   } catch (error) {
-    // yield put(showChatMessage(error));
+    yield put(showChatMessage(defaultErrorMessage));
   }
 }
 
@@ -89,7 +90,7 @@ export function* removeChatUserSaga() {
 }
 
 export function* searchMessageSaga() {
-  yield takeEvery(SEARCH_CHAT_USER, searchConversationRequest)
+  yield takeLatest(SEARCH_CHAT_USER, searchConversationRequest)
 }
 // export default function* rootSaga() {
 //   yield all([fetchChatUserConversation,

@@ -138,7 +138,7 @@ class ChatPanelWithRedux extends Component {
           </div>
         </div>
         <div className="search-wrapper">
-          <SearchBox placeholder="Tìm cuộc hội thoại"
+          <SearchBox placeholder="Tìm cuộc trò chuyện"
             onChange={this.updateSearchChatUser.bind(this)}
             value={this.state.search} />
         </div>
@@ -150,7 +150,7 @@ class ChatPanelWithRedux extends Component {
           style={{ height: this.props.width >= 1200 ? 'calc(100vh - 250px)' : 'calc(100vh - 202px)' }}
           onScroll={this.onScroll} onUpdate={this.handleUpdate.bind(this)}
         >
-          {this.props.chatUsers.length === 0 ?
+          {this.props.chatUsers.length === 0 || (this.props.isSearching && !this.props.searchResults.length) ?
             <div className="p-5 no-user">{this.props.userNotFound}</div>
             :
             <ChatUserList
@@ -192,13 +192,13 @@ class ChatPanelWithRedux extends Component {
   }
 
   handleUpdate(values) {
-    const { pageNumber, authUser, end } = this.props
+    const { pageNumber, authUser, end, isSearching } = this.props
     const { shopId } = authUser
     const { scrollTop, scrollHeight, clientHeight } = values;
     const pad = 0.5;
     // t will be greater than 1 if we are about to reach the bottom
     const t = ((scrollTop + pad) / (scrollHeight - clientHeight));
-    if (t > 1 && !end && t !== Infinity) {
+    if (t > 1 && !end && t !== Infinity && !isSearching) {
       // this.props.fetchMoreChatUser({ shopId, pageNumber })
     }
   }
@@ -267,8 +267,9 @@ class ChatPanelWithRedux extends Component {
         title: `Xóa thành công`,
       })
       this.props.setState({ deleteSuccess: false })
+      console.log(this.props.isSearching)
       if (this.props.isSearching) {
-        this.props.searchMessage({ search: this.props.searchChatUser, shopId: this.props.authUser.shopId })
+        this.props.searchMessage({ search: this.state.search, shopId: this.props.authUser.shopId })
       }
       if (this.props.selectedUser && this.props.deleteUserId === this.props.selectedUser.id) {
         this.props.setState({

@@ -26,7 +26,8 @@ const insertConversation = async ({ sessionId, shopId, lastMessage, userName, ti
         shopId,
         lastMessage,
         userName: userName ? userName : `#${util.makeId(5)}`,
-        lastMessageTime: util.convertDatetime(timestamp)
+        lastMessageTime: util.convertDatetime(timestamp),
+        isDeleted: false
     }
     const result = await knex('conversation').returning(['sessionId', 'shopId', 'id', 'lastMessageTime']).insert(conversation)
     return result[0]
@@ -486,7 +487,7 @@ const insertBotMessage = async (messages, conversation) => {
 const getConversations = async (shopId, pageNumber, rowPage) => {
     const offset = (pageNumber - 1) * rowPage
     const limit = rowPage
-    // const result = await knex('conversation').where({ shopId }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime', 'lastMessage')
+    // const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime', 'lastMessage')
     const result = await knex('conversation').where({ shopId }).orderBy('lastMessageTime', 'desc').select('id', 'userName', 'lastMessageTime', 'lastMessage')
     const response = util.createList(result, 'conversations')
     if (result.length) {
@@ -713,7 +714,7 @@ const searchMessage = async (search, shopId) => {
         lastMessage: 'message.msgContent',
         userName: 'conversation.userName'
     }).from('conversation').join('message', 'message.conversationId', 'conversation.id').
-        where('msgContent', 'like', `%${search}%`).andWhere({ shopId }).orderBy('message.time', 'asc')
+        where('msgContent', 'like', `%${search}%`).andWhere('conversation.isDeleted', '=', 0).andWhere({ shopId }).orderBy('message.time', 'asc')
     return util.createList(result, 'conversations')
     // const conversations = await knex('conversation').where({ shopId }).first('sessionId', 'shopId', 'id')
     // const messages = await knex('')
@@ -725,8 +726,8 @@ const deleteConversation = async (id) => {
     const connectionsArr = Object.keys(connections)
     const isConnecting = connectionsArr.some(con => con === conversation.sessionId)
     if (!isConnecting) {
-        const deleteMessageResult = await knex('message').where({ conversationId: id }).del()
-        const result = await knex('conversation').where({ id }).del()
+        const result = await knex('conversation').where({ id }).update({ isDeleted: true })
+        knex('message').where({ conversationId: id }).update({ isDeleted: true })
         return { id }
     } else {
         throw new Error('Cuộc trò chuyện vẫn đang diễn ra')
