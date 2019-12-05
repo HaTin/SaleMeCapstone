@@ -27,7 +27,7 @@ const INIT_STATE = {
   loader: true,
   pageNumber: 1,
   userLoader: false,
-  userNotFound: 'Không tìm thấy người dùng',
+  userNotFound: 'Không tìm thấy cuộc trò chuyện',
   drawerState: false,
   selectedSectionId: '',
   userState: 1,
@@ -36,6 +36,7 @@ const INIT_STATE = {
   message: '',
   end: false,
   chatUsers: [],
+  searchResults: [],
   conversationList: [], //ony for prod
   // chatUsers: users.filter((user) => user.recent),
   // conversationList: conversationList,
