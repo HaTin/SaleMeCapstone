@@ -23,6 +23,8 @@ export const BELOW_THE_HEADER = 'below_the_header';
 
 export const SHOW_MESSAGE = 'show_message';
 export const HIDE_MESSAGE = 'hide_message';
+export const SHOW_CHAT_MESSAGE = 'show_chat_message';
+export const HIDE_CHAT_MESSAGE = 'hide_chat_message';
 
 export const FETCH_ALL_CONTACT = 'fetch_all_contact';
 export const FETCH_ALL_CONTACT_SUCCESS = 'fetch_all_contact_success';

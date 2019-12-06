@@ -9,7 +9,8 @@ import {
   ON_HIDE_LOADER,
   ON_SELECT_USER,
   ON_TOGGLE_DRAWER,
-  SHOW_MESSAGE,
+  SHOW_CHAT_MESSAGE,
+  HIDE_CHAT_MESSAGE,
   SUBMIT_COMMENT,
   UPDATE_MESSAGE_VALUE,
   UPDATE_SEARCH_CHAT_USER,
@@ -66,11 +67,16 @@ export const fetchChatUserConversationSuccess = (mails) => {
 
 export const showChatMessage = (message) => {
   return {
-    type: SHOW_MESSAGE,
+    type: SHOW_CHAT_MESSAGE,
     payload: message
   };
 };
 
+export const hideChatMessage = () => {
+  return {
+    type: HIDE_CHAT_MESSAGE,
+  };
+};
 export const filterContacts = (userName) => {
   return {
     type: FILTER_CONTACT,

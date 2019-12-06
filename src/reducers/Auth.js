@@ -31,7 +31,9 @@ export default (state = INIT_STATE, action) => {
             return {
                 ...state,
                 loader: false,
-                authUser: action.payload
+                authUser: action.payload,
+                alertMessage: '',
+                showMessage: false
             }
         }
         case INIT_URL: {
@@ -44,11 +46,10 @@ export default (state = INIT_STATE, action) => {
             return {
                 ...state,
                 authUser: null,
-                initURL: '/app/dashboard/default',
+                initURL: '/app/bot-config',
                 loader: false
             }
         }
-
         case SHOW_MESSAGE: {
             return {
                 ...state,

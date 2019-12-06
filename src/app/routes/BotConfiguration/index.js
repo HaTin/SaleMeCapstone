@@ -77,7 +77,7 @@ class BotConfiguration extends React.Component {
             // surveyConfig: Object.assign({}, defaultBotConfig).surveyConfig,
             hasConfig: false,
             saveStatus: false,
-            shopKeyword:[]
+            shopKeyword: []
         }
         var user = JSON.parse(localStorage.getItem('user'))
         if (user && user.shopId) {
@@ -123,11 +123,11 @@ class BotConfiguration extends React.Component {
             }
         })
 
-        axios.get('http://localhost:3001/api/keyword/'+shopId)
-        .then(res => {
-            const keywords = res.data.keywords.map((k) => {return k.keyword})
-            this.setState({shopKeyword: keywords})
-        })
+        axios.get('http://localhost:3001/api/keyword/' + shopId)
+            .then(res => {
+                const keywords = res.data.keywords.map((k) => { return k.keyword })
+                this.setState({ shopKeyword: keywords })
+            })
     }
 
     componentWillUnmount() {
@@ -263,23 +263,23 @@ class BotConfiguration extends React.Component {
 
     handleAddKeyword(chip) {
         //check exist
-        if(this.state.shopKeyword.indexOf(chip.toLowerCase())<0){
+        if (this.state.shopKeyword.indexOf(chip.toLowerCase()) < 0) {
             var keyword = {
                 shopId: shopId,
                 keyword: chip.toLowerCase(),
                 isActive: true,
             }
-            axios.post("http://localhost:3001/api/keyword",keyword)
-            this.setState({shopKeyword:[...this.state.shopKeyword,chip.toLowerCase()]})
+            axios.post("http://localhost:3001/api/keyword", keyword)
+            this.setState({ shopKeyword: [...this.state.shopKeyword, chip.toLowerCase()] })
         }
-        
+
     }
 
     handleDeleteKeyword = (chip, index) => {
         let keywords = [...this.state.shopKeyword]
-        keywords.splice(index,1)
-        this.setState({shopKeyword: keywords})
-        axios.put("http://localhost:3001/api/keyword/"+shopId,{keyword: chip})
+        keywords.splice(index, 1)
+        this.setState({ shopKeyword: keywords })
+        axios.put("http://localhost:3001/api/keyword/" + shopId, { keyword: chip })
     }
 
     render() {
@@ -385,17 +385,17 @@ class BotConfiguration extends React.Component {
                                 </Button>
                                 <br /><br />
                                 <span style={styles.optionTitle}>Từ khóa của shop: </span>
-                                <br/>
+                                <br />
                                 <span style={styles.keywordHint}>Hãy nhập từ khóa để chatbot có thể trả lời chính xác hơn. Ví dụ: "Áo", "Quần"</span>
-                                <br/>
+                                <br />
                                 <span style={styles.keywordHint}>Để tạo từ khóa hãy nhập 1 từ bất kỳ và nhấn enter</span>
-                                <br/>
+                                <br />
                                 <ChipInput
                                     value={this.state.shopKeyword}
                                     onAdd={(chip) => this.handleAddKeyword(chip)}
                                     onDelete={(chip, index) => this.handleDeleteKeyword(chip, index)}
                                 />
-                                
+
                                 {/* <span style={styles.optionTitle}>Enable live-chat: </span>
                                 <Switch
                                     checked={this.state.enableLiveChat}
@@ -438,7 +438,7 @@ class BotConfiguration extends React.Component {
                         </Card>
                     </Grid>
                     <Grid item xs={4}>
-                                
+
                         {/* <ThemeProvider theme={this.state.theme}>
                             <ChatBot
                                 headerTitle={this.state.botName}
@@ -452,29 +452,31 @@ class BotConfiguration extends React.Component {
                             />
                         </ThemeProvider> */}
                         <Card style={{ minHeight: '300px' }}>
-                            <div className = "message-area">
+                            <div className="message-area">
                                 <strong>{this.state.botName}</strong>
                                 <Card style={{
-                                    maxWidth: '240px', 
-                                    padding: '5px 10px', 
-                                    marginBottom:'5px',
-                                    borderRadius: '10px'}}>
+                                    maxWidth: '240px',
+                                    padding: '5px 10px',
+                                    marginBottom: '5px',
+                                    borderRadius: '10px'
+                                }}>
                                     Xin chào, Tôi là hệ thống hỗ trợ khách hàng. Tôi có thể giúp gì cho bạn?
                                 </Card>
                                 <Card style={{
-                                    maxWidth: '200px', 
-                                    float:'right', 
-                                    padding:'5px 10px',
-                                    marginBottom:'5px',
+                                    maxWidth: '200px',
+                                    float: 'right',
+                                    padding: '5px 10px',
+                                    marginBottom: '5px',
                                     background: this.state.theme.userBubbleColor,
                                     color: this.state.theme.userFontColor,
-                                    borderRadius: '10px'}}>
+                                    borderRadius: '10px'
+                                }}>
                                     mình muốn tìm áo
                                 </Card>
                             </div>
-                            <div className = "text-input">
+                            <div className="text-input">
                                 <span className="chat-placeholder">Nhập tin nhắn...</span>
-                                <SendIcon className="send-icon"/>
+                                <SendIcon className="send-icon" />
                             </div>
                         </Card>
 

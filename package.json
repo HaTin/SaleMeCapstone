@@ -80,6 +80,7 @@
     "react-joyride": "^2.0.5",
     "react-jvectormap": "^0.0.12",
     "react-loadable": "^5.5.0",
+    "react-material-ui-form-validator": "^2.0.9",
     "react-notifications": "^1.4.3",
     "react-number-format": "^4.0.8",
     "react-placeholder": "^3.0.2",

@@ -23,13 +23,13 @@ const isUserExisted = async (shopId) => {
 }
 
 const isRoleExisted = async (role) => {
-    const result  = await knex('role').where({roleName:role}).first('id')
+    const result = await knex('role').where({ roleName: role }).first('id')
     return result
 }
 
 const saveRole = async (role) => {
-    const result = await knex('role').returning(["id"]).insert({roleName: role})
-    response = util.createObj(result,"id")
+    const result = await knex('role').returning(["id"]).insert({ roleName: role })
+    response = util.createObj(result, "id")
     return response
 }
 const verifyToken = async () => {
@@ -50,10 +50,10 @@ const verifyUser = async ({ email, password }) => {
             }
             return newUser
         } else {
-            throw new Error('Incorrect Password')
+            throw new Error('Email hoặc mật khẩu không chính xác')
         }
     }
-    else throw new Error('Email is not existed')
+    else throw new Error('Email hoặc mật khẩu không chính xác')
 }
 
 module.exports = {

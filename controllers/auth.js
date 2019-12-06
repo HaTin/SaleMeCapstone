@@ -15,9 +15,9 @@ router.post('/signup', async (req, res) => {
         if (store) {
             const role = await authService.isRoleExisted('user');
             let roleId
-            if(!role) {
+            if (!role) {
                 const response = await authService.saveRole("user");
-                roleId = response.id                
+                roleId = response.id
             } else {
                 roleId = role.id
             }
@@ -95,7 +95,7 @@ router.post('/signin', async (req, res) => {
         return res.send(responseStatus.Code200({ user, token }))
     } catch (error) {
         console.log(error)
-        res.status(error.status || 500).send(error)
+        res.status(400).send(error.message || '')
     }
 })
 
