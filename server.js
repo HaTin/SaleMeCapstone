@@ -20,6 +20,7 @@ const importController = require('./controllers/import')
 const chatService = require('./services/ConversationService')
 const redisController = require('./controllers/redis')
 const keywordController = require('./controllers/keyword')
+const redisService = require('./services/RedisService')
 // app.use(logger('common'))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -54,24 +55,33 @@ global.connections = {}
 try {
     io.on("connection", (socket) => {
         console.log(socket)
-        global.connections[socket.id] = { state: '', data: {} }
+        // global.connections[socket.id] = { state: '', data: {} }
+        redisService.setItem(socket.id, { state: '', data: {}, messages: [] })
         socket.on("message", async data => {
             // show loading message
+            const client = await redisService.getKeys(socket.id)
             socket.emit('response', [{ text: '', typing: true, type: 'text' }])
-            const client = global.connections[socket.id]
+            // const client = global.connections[socket.id]
             console.log(data)
+            client.messages.push(data)
             client.state = data.type || client.state
             const response = await chatService.generateBotAnswer({ ...data, sessionId: socket.id, client }, socket)
             const newState = {
                 state: response.state ? response.state : '',
-                data: response.data ? response.data : {}
+                data: response.data ? response.data : {},
+                messages: [...client.messages, ...response.messages]
             }
-            global.connections[socket.id] = newState
-            console.log(global.connections[socket.id])
+            // const globalState = {
+            //     state: newState.state,
+            //     data: newState.data
+            // }
+            // global.connections[socket.id] = globalState
+            await redisService.setItem(socket.id, newState)
             socket.emit('response', response.messages)
         });
         socket.on('disconnect', () => {
-            delete global.connections[socket.id]
+            redisService.removeKeys(socket.id)
+            // delete global.connections[socket.id]
         })
     });
 } catch (error) {

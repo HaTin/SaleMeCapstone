@@ -1,6 +1,7 @@
 const knex = require('../configs/knex-config')
 const util = require('../utilities/util')
 const shopifyService = require('../services/ShopifyService')
+const redisService = require('../services/redisService')
 const axios = require('axios')
 // const redisController = require('./RedisController')
 const botService = require('./BotService')
@@ -9,6 +10,7 @@ const BOT_URL = 'http://bot.sales-bot.tech/api/Message/GetAnswer'
 const BOT_URL_SIMILAR = 'http://bot.sales-bot.tech/api/Find/SimilarProduct'
 const amazonCrawler = require('./AmazonCrawlerService')
 const translate = require('@vitalets/google-translate-api');
+
 
 
 // getNextAnswer:post(previousQuestion, currentQuestion) =>
@@ -488,7 +490,7 @@ const getConversations = async (shopId, pageNumber, rowPage) => {
     const offset = (pageNumber - 1) * rowPage
     const limit = rowPage
     // const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime', 'lastMessage')
-    const result = await knex('conversation').where({ shopId }).orderBy('lastMessageTime', 'desc').select('id', 'userName', 'lastMessageTime', 'lastMessage')
+    const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').select('id', 'userName', 'lastMessageTime', 'lastMessage')
     const response = util.createList(result, 'conversations')
     if (result.length) {
         response.pageNumber = pageNumber + 1
@@ -721,10 +723,11 @@ const searchMessage = async (search, shopId) => {
 }
 
 const deleteConversation = async (id) => {
-    const { connections } = global
+    // const { connections } = global
     const conversation = await knex('conversation').where({ id }).first('sessionId')
-    const connectionsArr = Object.keys(connections)
-    const isConnecting = connectionsArr.some(con => con === conversation.sessionId)
+    const isConnecting = await redisService.checkKeyExisted(conversation.sessionId)
+    // const connectionsArr = Object.keys(connections)
+    // const isConnecting = connectionsArr.some(con => con === conversation.sessionId)
     if (!isConnecting) {
         const result = await knex('conversation').where({ id }).update({ isDeleted: true })
         knex('message').where({ conversationId: id }).update({ isDeleted: true })

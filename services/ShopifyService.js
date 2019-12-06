@@ -33,7 +33,7 @@ const getOrderById = async (store, orderId) => {
 }
 
 const getOrderByName = async (store, orderName) => {
-    const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json`, {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json?fields=order_number,email,order_status_url&fulfillment_status=any&status=any`, {
         params: {
             'name': orderName
         },
