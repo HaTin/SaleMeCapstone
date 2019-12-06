@@ -86,7 +86,7 @@ class ChatPanelWithRedux extends Component {
       </div>
 
       <CustomScrollbars ref={this.scrollComponent} className="chat-list-scroll scrollbar">
-        <Conversation conversationData={conversation}
+        <Conversation conversationData={JSON.parse(JSON.stringify(conversation))}
           selectedUser={selectedUser} />
       </CustomScrollbars>
 
