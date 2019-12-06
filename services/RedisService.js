@@ -29,6 +29,7 @@ const getItem = (key) => {
 }
 
 
+
 const updateItemInList = (key, updateItem) => {
     redisClient.get(key, (err, reply) => {
         if (reply) {
@@ -54,7 +55,18 @@ const removeItemInList = (key, id) => {
 
 const getKeys = async (key) => {
     const result = await getAsync(key)
-    return result
+    return JSON.parse(result)
+}
+
+const checkKeyExisted = async (key) => {
+    const result = await getAsync(key)
+    return result ? true : false
+}
+
+const removeKeys = async (key) => {
+    redisClient.del(key, (err, response) => {
+        console.log(response === 1 ? 'remove key successfully' : 'error remove key');
+    })
 }
 module.exports = {
     removeItemInList,
@@ -62,5 +74,7 @@ module.exports = {
     updateItemInList,
     getKeys,
     setItem,
-    getItem
+    getItem,
+    checkKeyExisted,
+    removeKeys
 }
