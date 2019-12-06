@@ -11,7 +11,7 @@ import {
   ON_SELECT_USER,
   SET_STATE,
   ON_TOGGLE_DRAWER,
-  SHOW_MESSAGE,
+  SHOW_CHAT_MESSAGE,
   SUBMIT_COMMENT,
   UPDATE_MESSAGE_VALUE,
   ON_SHOW_USER_LOADER,
@@ -27,6 +27,8 @@ const INIT_STATE = {
   loader: true,
   pageNumber: 1,
   userLoader: false,
+  alertMessage: '',
+  showMessage: false,
   userNotFound: 'Không tìm thấy cuộc trò chuyện',
   drawerState: false,
   selectedSectionId: '',
@@ -169,7 +171,7 @@ export default (state = INIT_STATE, action) => {
         scrollDown: true
       }
     }
-    case SHOW_MESSAGE: {
+    case SHOW_CHAT_MESSAGE: {
       return {
         ...state,
         alertMessage: action.payload,

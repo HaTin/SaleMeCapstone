@@ -7,6 +7,7 @@ import Button from '@material-ui/core/Button';
 import { NotificationContainer, NotificationManager } from 'react-notifications';
 import IntlMessages from 'util/IntlMessages';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import { ValidatorForm, TextValidator } from 'react-material-ui-form-validator';
 import {
   hideMessage,
   showAuthLoader,
@@ -23,15 +24,25 @@ class SignIn extends React.Component {
   }
 
   componentDidUpdate() {
-    if (this.props.showMessage) {
-      setTimeout(() => {
-        this.props.hideMessage();
-      }, 100);
-    }
+    // if (this.props.showMessage) {
+    //   this.notiContainer.current.setState((prevState) => ({
+    //     notifications: []
+    //   }))
+    //   console.log(this.refs.notiContainer)
+
+    // }
     if (this.props.authUser) {
+      this.props.hideMessage();
       this.props.history.push('/');
     }
   }
+
+  handleSubmit = () => {
+    const { email, password } = this.state
+    this.props.showAuthLoader();
+    this.props.userSignIn({ email, password });
+  }
+
 
   render() {
     const {
@@ -51,39 +62,39 @@ class SignIn extends React.Component {
           <div className="app-login-content">
             <div className="app-login-header mb-4">
               <h1 className="font-weight-bold">Đăng nhập</h1>
+              <p className="error">{showMessage && alertMessage}</p>
             </div>
 
             <div className="app-login-form">
-              <form>
-                <fieldset>
-                  <TextField
-                    label={<IntlMessages id="appModule.email" />}
-                    fullWidth
-                    onChange={(event) => this.setState({ email: event.target.value })}
-                    defaultValue={email}
-                    margin="normal"
-                    className="mt-1 my-sm-3"
-                  />
-                  <TextField
-                    type="password"
-                    label={<IntlMessages id="appModule.password" />}
-                    fullWidth
-                    onChange={(event) => this.setState({ password: event.target.value })}
-                    defaultValue={password}
-                    margin="normal"
-                    className="mt-1 my-sm-3"
-                  />
+              <ValidatorForm ref="form" onSubmit={this.handleSubmit} onError={errors => console.log(errors)}>
+                <TextValidator
+                  label={<IntlMessages id="appModule.email" />}
+                  fullWidth
+                  onChange={(event) => this.setState({ email: event.target.value })}
+                  value={email}
+                  validators={['required', 'isEmail']}
+                  errorMessages={['Vui lòng nhập email', 'Email không đúng định dạng']}
+                  margin="normal"
+                  className="mt-1 my-sm-3"
+                />
+                <TextValidator
+                  type="password"
+                  label={<IntlMessages id="appModule.password" />}
+                  fullWidth
+                  validators={['required']}
+                  errorMessages={['Vui lòng nhập mật khẩu']}
+                  onChange={(event) => this.setState({ password: event.target.value })}
+                  value={password}
+                  margin="normal"
+                  className="mt-1 my-sm-3"
+                />
 
-                  <div className="mb-3 d-flex align-items-center justify-content-between">
-                    <Button onClick={() => {
-                      this.props.showAuthLoader();
-                      this.props.userSignIn({ email, password });
-                    }} variant="contained" color="primary">
-                      <IntlMessages id="appModule.signIn" />
-                    </Button>
-                  </div>
-                </fieldset>
-              </form>
+                <div className="mb-3 d-flex align-items-center justify-content-between">
+                  <Button type="submit" variant="contained" color="primary">
+                    <IntlMessages id="appModule.signIn" />
+                  </Button>
+                </div>
+              </ValidatorForm>
             </div>
           </div>
 
@@ -94,8 +105,8 @@ class SignIn extends React.Component {
             <CircularProgress />
           </div>
         }
-        {showMessage && NotificationManager.error(alertMessage)}
-        <NotificationContainer />
+
+        {/* <NotificationContainer ref={this.notiContainer} /> */}
       </div>
     );
   }

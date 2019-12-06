@@ -1,4 +1,4 @@
-import { all, call, fork, put, takeEvery } from "redux-saga/effects";
+import { all, call, fork, put, takeEvery, takeLatest } from "redux-saga/effects";
 import {
     SIGNIN_USER,
     SIGNOUT_USER,
@@ -9,7 +9,6 @@ import { auth } from 'services/api'
 
 
 function* createUser({ payload }) {
-    console.log(payload)
     const { email, firstName, lastName, shop, password } = payload;
     try {
         const response = yield call(auth.signUp, { email, firstName, lastName, shop, password });
@@ -42,7 +41,8 @@ function* signInUserWithEmailPassword({ payload }) {
             yield put(userSignInSuccess(user));
         }
     } catch (error) {
-        yield put(showAuthMessage(error));
+        console.log(error)
+        yield put(showAuthMessage(error.response ? error.response.data : 'Có lỗi đã xảy ra'));
     }
 }
 
@@ -62,15 +62,15 @@ function* signOut() {
 }
 
 export function* createUserAccount() {
-    yield takeEvery(SIGNUP_USER, createUser);
+    yield takeLatest(SIGNUP_USER, createUser);
 }
 
 export function* signInUser() {
-    yield takeEvery(SIGNIN_USER, signInUserWithEmailPassword);
+    yield takeLatest(SIGNIN_USER, signInUserWithEmailPassword);
 }
 
 export function* signOutUser() {
-    yield takeEvery(SIGNOUT_USER, signOut);
+    yield takeLatest(SIGNOUT_USER, signOut);
 }
 
 export default function* rootSaga() {

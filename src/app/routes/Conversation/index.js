@@ -237,6 +237,13 @@ class ChatPanelWithRedux extends Component {
       }, 200)
       this.props.setState({ scrollDown: false })
     }
+    if (this.props.deleteSuccess) {
+      this.showAlert('deleted')
+    }
+    if (this.props.showMessage) {
+      this.showErrorMessage()
+      this.props.setState({ alertMessage: '', showMessage: false })
+    }
   }
 
   componentDidMount() {
@@ -288,22 +295,22 @@ class ChatPanelWithRedux extends Component {
       icon: 'error',
       title: this.props.alertMessage
     })
-    this.props.setState({ alertMessage: '', showMessage: false })
   }
 
   render() {
-    const { loader, userState, drawerState, match, chatUsers, showMessage } = this.props;
+    const { loader, userState, drawerState, match, chatUsers, showMessage, history } = this.props;
     const conversationId = match.params ? match.params.id : null
-    if (drawerState) {
+    if (drawerState && conversationId) {
       const user = chatUsers.find(user => user.id == conversationId)
       if (user) {
         this.onSelectUser(user)
+      } else {
+        history.push('/app/error')
       }
     }
     return (
       <div className="app-wrapper app-wrapper-module">
-        {this.props.deleteSuccess && this.showAlert('deleted')}
-        {this.props.showMessage && this.showErrorMessage()}
+
         <div className="app-module chat-module animated slideInUpTiny animation-duration-3">
           <div className="chat-module-box">
             <div className="chat-sidenav d-none d-xl-flex">

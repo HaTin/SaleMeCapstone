@@ -72,7 +72,10 @@
 }
 
 .app-login-header {
-  margin-bottom: 30px;
+  margin-bottom: 0px !important;
+}
+.error{
+  color: red;
 }
 
 .app-login-content .form-control {
