@@ -10,7 +10,7 @@ import {
 import { SketchPicker } from 'react-color'
 import axios from 'axios'
 import { bot } from '../../../services/api'
-import { Chat, HeroCard } from '@progress/kendo-react-conversational-ui';
+import { Chat } from '@progress/kendo-react-conversational-ui';
 import '@progress/kendo-theme-default/dist/all.css';
 import defaultTheme from './botDefaultStyle'
 import gradients from './gradientList'
