@@ -114,6 +114,7 @@
     "sweetalert2": "^9.4.0",
     "typeface-roboto": "^0.0.54",
     "@progress/kendo-react-intl": "^3.7.0",
+    "@progress/kendo-react-buttons": "^3.7.0",
     "@progress/kendo-theme-default": "^4.6.0",
     "@progress/kendo-theme-material": "^3.4.0",
     "url-search-params": "^1.1.0",
