@@ -32,11 +32,7 @@ class ChatPanelWithRedux extends Component {
   filterUsers = (userName) => {
     this.props.filterUsers(userName);
   };
-  _handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      this.submitComment();
-    }
-  };
+
 
   onSelectUser = (user) => {
     const { selectedUser } = this.props
@@ -89,29 +85,6 @@ class ChatPanelWithRedux extends Component {
         <Conversation conversationData={JSON.parse(JSON.stringify(conversation))}
           selectedUser={selectedUser} />
       </CustomScrollbars>
-
-      {/* <div className="chat-main-footer">
-        <div className="d-flex flex-row align-items-center" style={{ maxHeight: 51 }}>
-          <div className="col">
-            <div className="form-group">
-              <textarea
-                id="required" className="border-0 form-control chat-textarea"
-                onKeyUp={this._handleKeyPress.bind(this)}
-                onChange={this.updateMessageValue.bind(this)}
-                value={message}
-                placeholder="Type and hit enter to send message"
-              />
-            </div>
-          </div>
-          <div className="chat-sent">
-            <IconButton
-              onClick={this.submitComment.bind(this)}
-              aria-label="Send message">
-              <i className="zmdi  zmdi-mail-send" />
-            </IconButton>
-          </div>
-        </div>
-      </div> */}
     </div>
   };
 

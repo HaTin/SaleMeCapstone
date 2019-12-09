@@ -94,6 +94,7 @@
     "react-slick": "^0.24.0",
     "react-sortable-hoc": "^1.9.1",
     "react-star-rating-component": "^1.4.1",
+    "@progress/kendo-react-conversational-ui": "^3.7.0",
     "react-swipeable-views": "^0.13.3",
     "react-text-mask": "^5.4.3",
     "reactstrap": "^8.0.0",
