@@ -22,6 +22,15 @@ const reportMessage = async (choice, botResponse) => {
 }
 
 
+const getSuggestions = async (question, prevBotResponse) => {
+    const response = await axios.post(`${BOT_URL}/Message/Report`, prevBotResponse, {
+        params: {
+            question
+        }
+    })
+    return response
+}
+
 
 const checkUsuallyBuyWithProducts = async (products) => {
     const productIds = []
