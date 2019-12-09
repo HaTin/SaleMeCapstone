@@ -3,7 +3,7 @@ const util = require('../utilities/util')
 
 const saveKeyword = async (data) => {
     const {shopId, keyword} = data
-    const isExistKeyword = checkExist(shopId, keyword)
+    const isExistKeyword = await checkExist(shopId, keyword)
     let result = null
     if(isExistKeyword) {
         result = await knex('ShopKeyword').where({ shopId:shopId, keyword: keyword }).update({isActive: 1})

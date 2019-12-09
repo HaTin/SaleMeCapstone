@@ -36,6 +36,11 @@ class SignIn extends React.Component {
       this.props.history.push('/');
     }
   }
+  // _handleKeyPress = (e) => {
+  //   if (e.key === 'Enter') {
+  //     this.handleSubmit()
+  //   }
+  // };
 
   handleSubmit = () => {
     const { email, password } = this.state

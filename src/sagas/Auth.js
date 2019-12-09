@@ -29,7 +29,6 @@ function* createUser({ payload }) {
 
 function* signInUserWithEmailPassword({ payload }) {
     const { email, password } = payload;
-    console.log(payload)
     try {
         const response = yield call(auth.signIn, { email, password });
         const { user, token, message } = response.data
