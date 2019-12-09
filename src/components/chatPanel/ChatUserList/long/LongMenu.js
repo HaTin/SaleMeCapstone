@@ -5,7 +5,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 const options = [
-  'Delete'
+  'Xóa'
 ];
 
 
