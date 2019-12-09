@@ -1,7 +1,7 @@
 //add this to .env
 const redis = require('redis')
 // const client = redis.createClient("http://34.87.72.228:6379")
-const client = redis.createClient("http://cache.sales-bot.tech")
+const client = redis.createClient("http://cache.sales-bot.tech", { auth_pass: '1234567890' })
 // const client = redis.createClient(6379)
 client.on('connect', function () {
     // console.log("connected to redis")
