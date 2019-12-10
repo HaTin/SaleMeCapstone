@@ -3,6 +3,7 @@ const util = require('../utilities/util')
 const shopifyService = require('../services/ShopifyService')
 const redisService = require('../services/redisService')
 const axios = require('axios')
+const _ = require('lodash');
 // const redisController = require('./RedisController')
 const botService = require('./BotService')
 const mailService = require('./MailService')
@@ -57,7 +58,7 @@ const generateBotAnswer = async (botData, socket) => {
         let store = null
         console.log(botData)
         const { sessionId, shopId, timestamp, text, client, value } = botData
-        let { state, data } = client
+        let { state, data, botResponses, checkScenario } = client
         let conversation = await knex('conversation').where({ sessionId }).first('sessionId', 'shopId', 'id')
         store = await knex('shop').where({ id: shopId }).first('id', 'name', 'token')
         if (!conversation) {
@@ -294,6 +295,7 @@ const generateBotAnswer = async (botData, socket) => {
                             const response = await axios.post(BOT_URL, requestData)
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (type === "product") {
+                                botResponses.push(response.data)
                                 messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
                                 await showProducts(messages, products, store, data)
                                 state = null
@@ -330,7 +332,7 @@ const generateBotAnswer = async (botData, socket) => {
                     break;
             }
             await insertBotMessage(messages, conversation)
-            return { state, messages, data }
+            return { state, messages, data, botResponses }
         }
         const requestData = {
             "shop": store.name,
@@ -359,43 +361,68 @@ const generateBotAnswer = async (botData, socket) => {
                 break
             case 'product':
                 if (products.length > 0) {
-                    if (data.userId) {
-                        const requestData = {
-                            sentence: data.botResponse.question,
-                            customer: data.userId,
-                            shop: store.name
+                    const isScenario = checkMessageScenario(botResponses, response.data, checkScenario)
+                    if (isScenario) {
+                        const botSuggestionRequests = []
+                        const sliceBotReponses = _.takeRight(botResponses, 3);
+                        sliceBotReponses.map(res => {
+                            botSuggestionRequests.push(botService.getSuggestions(question, res))
+                        })
+                        const botSuggestionResponses = await Promise.all(botSuggestionRequests)
+                        if (botSuggestionResponses.length) {
+                            const results = botSuggestionResponses.map(res => res.data)
+                            results.push(text)
+                            const filterResults = _.uniq(results)
+                            const res = await botService.removeDuplicateSuggestions(filterResults)
+                            const suggestions = res.data
+                            if (suggestions.length) {
+                                const suggestedActions = suggestions.map(suggestion => {
+                                    const actions = { type: 'no-scenario', value: suggestion }
+                                    return actions
+                                })
+                                messages.push({ text: 'Ý của bạn là', suggestedActions, type: 'text' })
+                            }
                         }
-                        const response = await axios.post(BOT_URL, requestData)
-                        data.botResponse = response.data
-                        const { products, report } = response.data
-                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
-                        await showProducts(messages, products, store, data)
-                    } else if (data.noEmailRequire) {
-                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
-                        await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
-                        state = null
-                        break;
                     }
                     else {
-                        let suggestedActions = [
-                            {
-                                type: 'input-email-for-product-suggestion',
-                                value: 'Nhập email'
-                            },
-                            {
-                                type: 'show-product',
-                                value: 'Tôi không muốn'
-                            },
-                            {
-                                type: 'ignore-email',
-                                value: 'Bỏ qua việc nhập email'
+                        if (data.userId) {
+                            const requestData = {
+                                sentence: data.botResponse.question,
+                                customer: data.userId,
+                                shop: store.name
                             }
-                        ]
-                        messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
+                            const response = await axios.post(BOT_URL, requestData)
+                            data.botResponse = response.data
+                            const { products, report } = response.data
+                            messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
+                            await showProducts(messages, products, store, data)
+                        } else if (data.noEmailRequire) {
+                            messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
+                            await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
+                            state = null
+                        }
+                        else {
+                            let suggestedActions = [
+                                {
+                                    type: 'input-email-for-product-suggestion',
+                                    value: 'Nhập email'
+                                },
+                                {
+                                    type: 'show-product',
+                                    value: 'Tôi không muốn'
+                                },
+                                {
+                                    type: 'ignore-email',
+                                    value: 'Bỏ qua việc nhập email'
+                                }
+                            ]
+                            messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
+                        }
                     }
                 } else {
                     messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text', report })
                 }
+                botResponses.push(response.data)
                 break
             case 'collection':
                 if (collections.length > 0) {
@@ -456,7 +483,7 @@ const generateBotAnswer = async (botData, socket) => {
                 messages.push({ text: 'Hệ thống không hiểu câu hỏi của bạn', suggestedActions, type: 'text' })
         }
         await insertBotMessage(messages, conversation)
-        return { messages, state, data }
+        return { messages, state, data, botResponses }
     } catch (error) {
         console.log(error)
         socket.emit('response', [{ text: 'Đã xảy ra lỗi, vui lòng thử lại', type: 'text' }])
@@ -737,6 +764,16 @@ const deleteConversation = async (id) => {
     }
 }
 
+const checkMessageScenario = (botResponses, response, checkScenario) => {
+    if (botResponses.length && checkScenario) {
+        // if (botResponses.some(res => res.question === response.question)) return false
+        const lastResponse = botResponses[botResponses.length - 1]
+        const isChild = util.isChildArray(lastResponse.products, response.products)
+        console.log(!isChild)
+        return !isChild
+    }
+    return false
+}
 
 module.exports = {
     findConversation,
