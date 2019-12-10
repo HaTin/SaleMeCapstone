@@ -31,8 +31,12 @@ const getSuggestions = async (question, prevBotResponse) => {
     return response
 }
 
-const removeDuplicateSuggestions = async (suggestions) => {
-    const response = await axios.post(`${BOT_URL}/Message/DuplicateMessage`, suggestions)
+const removeDuplicateSuggestions = async (suggestions, shop) => {
+    const response = await axios.post(`${BOT_URL}/Message/DuplicateMessage`, suggestions, {
+        params: {
+            shop
+        }
+    })
     return response
 }
 
