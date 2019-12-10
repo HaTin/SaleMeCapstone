@@ -373,9 +373,9 @@ const generateBotAnswer = async (botData, socket) => {
                             const results = botSuggestionResponses.map(res => res.data)
                             results.push(text)
                             const filterResults = _.uniq(results)
-                            const res = await botService.removeDuplicateSuggestions(filterResults)
+                            const res = await botService.removeDuplicateSuggestions(filterResults, store.name)
                             const suggestions = res.data
-                            if (suggestions.length) {
+                            if (suggestions.length) {                                
                                 const suggestedActions = suggestions.map(suggestion => {
                                     const actions = { type: 'no-scenario', value: suggestion }
                                     return actions
@@ -406,10 +406,6 @@ const generateBotAnswer = async (botData, socket) => {
                                 {
                                     type: 'input-email-for-product-suggestion',
                                     value: 'Nhập email'
-                                },
-                                {
-                                    type: 'show-product',
-                                    value: 'Tôi không muốn'
                                 },
                                 {
                                     type: 'ignore-email',
