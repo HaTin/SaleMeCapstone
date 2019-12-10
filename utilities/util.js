@@ -63,8 +63,22 @@ const capitalize = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+
+const isChildArray = (products1, products2) => {
+    const arr1 = products1.map(p => parseInt(p.id))
+    const arr2 = products2.map(p => parseInt(p.id))
+    if (arr2.length > arr1.length) return false
+    const isChild = arr2.every(elem => arr1.includes(elem));
+    console.log(isChild)
+    return isChild
+}
+
+const checkScenarioType = () => {
+    
+}
 module.exports = {
     getCurrentDatetime,
+    isChildArray,
     createObj,
     createList,
     convertDatetime,

@@ -50,32 +50,30 @@ if (process.env.NODE_ENV === 'production') {
         return res.redirect(`http://localhost:3000/?token=${token}`)
     });
 }
-// let connections = []
-global.connections = {}
+// global.connections = {}
 try {
     io.on("connection", (socket) => {
         console.log(socket)
         // global.connections[socket.id] = { state: '', data: {} }
-        redisService.setItem(socket.id, { state: '', data: {}, messages: [] })
+        redisService.setItem(socket.id, { state: '', data: {}, botResponses: [], checkScenario: true })
         socket.on("message", async data => {
             // show loading message
             const client = await redisService.getKeys(socket.id)
             socket.emit('response', [{ text: '', typing: true, type: 'text' }])
             // const client = global.connections[socket.id]
+            client.checkScenario = true
+            if (data.type === 'no-scenario') {
+                client.checkScenario = false
+                data.type = null
+            }
             console.log(data)
-            client.messages.push(data)
             client.state = data.type || client.state
             const response = await chatService.generateBotAnswer({ ...data, sessionId: socket.id, client }, socket)
             const newState = {
                 state: response.state ? response.state : '',
                 data: response.data ? response.data : {},
-                messages: [...client.messages, ...response.messages]
+                botResponses: [...client.botResponses],
             }
-            // const globalState = {
-            //     state: newState.state,
-            //     data: newState.data
-            // }
-            // global.connections[socket.id] = globalState
             await redisService.setItem(socket.id, newState)
             socket.emit('response', response.messages)
         });

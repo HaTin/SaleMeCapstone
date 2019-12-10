@@ -23,13 +23,19 @@ const reportMessage = async (choice, botResponse) => {
 
 
 const getSuggestions = async (question, prevBotResponse) => {
-    const response = await axios.post(`${BOT_URL}/Message/Report`, prevBotResponse, {
+    const response = await axios.post(`${BOT_URL}/Message/GetSuggestion`, prevBotResponse, {
         params: {
             question
         }
     })
     return response
 }
+
+const removeDuplicateSuggestions = async (suggestions) => {
+    const response = await axios.post(`${BOT_URL}/Message/DuplicateMessage`, suggestions)
+    return response
+}
+
 
 
 const checkUsuallyBuyWithProducts = async (products) => {
@@ -40,6 +46,8 @@ const checkUsuallyBuyWithProducts = async (products) => {
 }
 module.exports = {
     getUsuallyBuyWithProducts,
+    getSuggestions,
     checkUsuallyBuyWithProducts,
+    removeDuplicateSuggestions,
     reportMessage
 }
