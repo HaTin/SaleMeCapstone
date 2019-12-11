@@ -16,8 +16,8 @@ const removeKey = async (key) => {
 }
 
 const setItem = async (key, item, expire) => {
-    return redisClient.set(key, JSON.stringify(item))
-    // redisClient.expire(key, expire || 3600)
+    redisClient.set(key, JSON.stringify(item))
+    return redisClient.expire(key, 3600)
 }
 
 const getItem = (key) => {
