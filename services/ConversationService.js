@@ -375,47 +375,48 @@ const generateBotAnswer = async (botData, socket) => {
                             const filterResults = _.uniq(results)
                             const res = await botService.removeDuplicateSuggestions(filterResults, store.name)
                             const suggestions = res.data
-                            if (suggestions.length) {                                
+                            if (suggestions.length && suggestions.length > 1) {
                                 const suggestedActions = suggestions.map(suggestion => {
                                     const actions = { type: 'no-scenario', value: suggestion }
                                     return actions
                                 })
                                 messages.push({ text: 'Ý của bạn là', suggestedActions, type: 'text' })
+                                // botResponses.push(response.data)
+                                break;
                             }
                         }
+                    }
+                    if (data.userId) {
+                        const requestData = {
+                            sentence: data.botResponse.question,
+                            customer: data.userId,
+                            shop: store.name
+                        }
+                        const response = await axios.post(BOT_URL, requestData)
+                        data.botResponse = response.data
+                        const { products, report } = response.data
+                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
+                        await showProducts(messages, products, store, data)
+                    } else if (data.noEmailRequire) {
+                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
+                        await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
+                        state = null
                     }
                     else {
-                        if (data.userId) {
-                            const requestData = {
-                                sentence: data.botResponse.question,
-                                customer: data.userId,
-                                shop: store.name
+                        let suggestedActions = [
+                            {
+                                type: 'input-email-for-product-suggestion',
+                                value: 'Nhập email'
+                            },
+                            {
+                                type: 'ignore-email',
+                                value: 'Bỏ qua việc nhập email'
                             }
-                            const response = await axios.post(BOT_URL, requestData)
-                            data.botResponse = response.data
-                            const { products, report } = response.data
-                            messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
-                            await showProducts(messages, products, store, data)
-                        } else if (data.noEmailRequire) {
-                            messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
-                            await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
-                            state = null
-                        }
-                        else {
-                            let suggestedActions = [
-                                {
-                                    type: 'input-email-for-product-suggestion',
-                                    value: 'Nhập email'
-                                },
-                                {
-                                    type: 'ignore-email',
-                                    value: 'Bỏ qua việc nhập email'
-                                }
-                            ]
-                            messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
-                        }
+                        ]
+                        messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
                     }
-                } else {
+                }
+                else {
                     messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text', report })
                 }
                 botResponses.push(response.data)
@@ -593,6 +594,7 @@ const showProducts = async (messages, products, store, data) => {
         let isOutOfStock = false
         let attachments = []
         let ids = ''
+        products = _.take(products, 10)
         products.map(p => { ids += p.id + "," })
         ids = ids.substring(0, ids.length - 1)
         //get all product with return ids
