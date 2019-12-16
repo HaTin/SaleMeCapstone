@@ -82,11 +82,11 @@ const generateBotAnswer = async (botData, socket) => {
             switch (state) {
                 case 'ask-order-number':
                     state = 'input-order-number'
-                    messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
+                    messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text', timestamp: new Date() })
                     break;
                 case 'ask-order-email':
                     state = 'input-order-email'
-                    messages.push({ text: 'Vui lòng nhập email', type: 'text' })
+                    messages.push({ text: 'Vui lòng nhập email', type: 'text', timestamp: new Date() })
                     break;
                 case 'find-order-with-existed-email':
                     const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
@@ -109,14 +109,14 @@ const generateBotAnswer = async (botData, socket) => {
                         const response = await axios.post(BOT_URL, requestData)
                         const { question, type, products, orders, collections, message, report } = response.data
                         if (message === 'nullCustomer') {
-                            messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text' })
+                            messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
                             state = null
                         }
                         else if (!message && !orders.length) {
                             state = 'input-order-number'
                             data.customerId = customer.id
                             // data.email = email
-                            messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
+                            messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text', timestamp: new Date() })
                         }
                         else if (type === 'order' && orders && orders.length > 0) {
                             const orderId = orders[0]
@@ -127,12 +127,12 @@ const generateBotAnswer = async (botData, socket) => {
                                 }
                             })
                             const order = orderResponse.data.order
-                            messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
-                            messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
+                            messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text', timestamp: new Date() })
+                            messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link', timestamp: new Date() })
                             state = null
                         }
                         else {
-                            messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text' })
+                            messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
                             state = null
                         }
                     } else {
@@ -140,7 +140,7 @@ const generateBotAnswer = async (botData, socket) => {
                             type: 'ask-order-email',
                             value: 'Nhập lại email'
                         }]
-                        messages.push({ text: 'Không tìm thấy khách hàng, vui lòng thử lại', type: 'text' })
+                        messages.push({ text: 'Không tìm thấy khách hàng, vui lòng thử lại', type: 'text', timestamp: new Date() })
                         state = null
                     }
                     break;
@@ -148,23 +148,23 @@ const generateBotAnswer = async (botData, socket) => {
                     data.orderName = text
                     const order = await shopifyService.getOrderByName(store, data.orderName)
                     if (order && order.email === data.email) {
-                        messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
-                        messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
+                        messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text', timestamp: new Date() })
+                        messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link', timestamp: new Date() })
                         state = null
                     } else {
-                        messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text' })
+                        messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
                         state = null
                     }
                     break;
                 case 'wrong-answer':
-                    messages.push({ text: 'Chúng tôi rất tiếc vì không trả lời câu hỏi của bạn, hãy cho chúng tôi biết mong muốn của bạn', suggestedActions, type: 'text' })
+                    messages.push({ text: 'Chúng tôi rất tiếc vì không trả lời câu hỏi của bạn, hãy cho chúng tôi biết mong muốn của bạn', suggestedActions, type: 'text', timestamp: new Date() })
                     const report = data.botResponse.report
                     report.map(r => suggestedActions.push({ type: 'report', value: r }))
                     state = null
                     break;
                 case 'report':
                     botService.reportMessage(text, data.botResponse)
-                    messages.push({ text: 'Cảm ơn bạn đã đóng góp để cải thiện hệ thống của chúng tôi', type: 'text' })
+                    messages.push({ text: 'Cảm ơn bạn đã đóng góp để cải thiện hệ thống của chúng tôi', type: 'text', timestamp: new Date() })
                     state = null
                     break;
                 case 'input-order-email':
@@ -176,7 +176,7 @@ const generateBotAnswer = async (botData, socket) => {
                                 value: 'Hủy'
                             }
                         ]
-                        messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
+                        messages.push({ timestamp: new Date(), text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     }
                     else {
                         const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
@@ -199,14 +199,14 @@ const generateBotAnswer = async (botData, socket) => {
                             const response = await axios.post(BOT_URL, requestData)
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (message === 'nullCustomer') {
-                                messages.push({ text: `Không tìm thấy đơn hàng nào với email ${email}. Xin hãy thử lại`, type: 'text' })
+                                messages.push({ timestamp: new Date(), text: `Không tìm thấy đơn hàng nào với email ${email}. Xin hãy thử lại`, type: 'text' })
                                 state = null
                             }
                             else if (!message && !orders.length) {
                                 state = 'input-order-number'
                                 data.customerId = customer.id
                                 data.email = email
-                                messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
+                                messages.push({ timestamp: new Date(), text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
                             }
                             else if (type === 'order' && orders && orders.length > 0) {
                                 const orderId = orders[0]
@@ -217,12 +217,12 @@ const generateBotAnswer = async (botData, socket) => {
                                     }
                                 })
                                 const order = orderResponse.data.order
-                                messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
-                                messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
+                                messages.push({ timestamp: new Date(), text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
+                                messages.push({ timestamp: new Date(), text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
                                 state = null
                             }
                             else {
-                                messages.push({ text: `Không tìm thấy đơn hàng nào với email ${email}. Xin hãy thử lại`, type: 'text' })
+                                messages.push({ timestamp: new Date(), text: `Không tìm thấy đơn hàng nào với email ${email}. Xin hãy thử lại`, type: 'text' })
                                 state = null
                             }
                         } else {
@@ -230,13 +230,13 @@ const generateBotAnswer = async (botData, socket) => {
                                 type: 'ask-order-email',
                                 value: 'Nhập lại email'
                             }]
-                            messages.push({ text: 'Không tìm thấy khách hàng, vui lòng thử lại', suggestedActions, type: 'text' })
+                            messages.push({ timestamp: new Date(), text: 'Không tìm thấy khách hàng, vui lòng thử lại', suggestedActions, type: 'text' })
                             state = null
                         }
                     }
                     break;
                 case 'send-email':
-                    messages.push({ text: 'Vui lòng nhập email của bạn', type: 'text' })
+                    messages.push({ timestamp: new Date(), text: 'Vui lòng nhập email của bạn', type: 'text' })
                     state = 'input-email'
                     break;
                 case 'input-existed-email':
@@ -246,7 +246,7 @@ const generateBotAnswer = async (botData, socket) => {
                         const question = data.question || ''
                         const redirectURL = `${process.env.DOMAIN}/app/conversation/${conversation.id}`
                         mailService.sendMail({ receiver: user.email, customerEmail: data.email, redirectURL, question })
-                        messages.push({ text: 'Cảm ơn bạn, chúng tôi sẽ gửi câu trả lời cho bạn thông qua email sớm nhất có thể', type: 'text' })
+                        messages.push({ timestamp: new Date(), text: 'Cảm ơn bạn, chúng tôi sẽ gửi câu trả lời cho bạn thông qua email sớm nhất có thể', type: 'text' })
                         state = null;
                     } else {
                         throw new Error()
@@ -261,7 +261,7 @@ const generateBotAnswer = async (botData, socket) => {
                                 value: 'Hủy'
                             }
                         ]
-                        messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
+                        messages.push({ timestamp: new Date(), text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     } else {
                         const user = await knex('User').where({ shopId }).first('email')
                         if (user) {
@@ -269,7 +269,7 @@ const generateBotAnswer = async (botData, socket) => {
                             const question = data.question || ''
                             const redirectURL = `${process.env.DOMAIN}/app/conversation/${conversation.id}`
                             mailService.sendMail({ receiver: user.email, customerEmail, redirectURL, question })
-                            messages.push({ text: 'Cảm ơn bạn, chúng tôi sẽ gửi câu trả lời cho bạn thông qua email sớm nhất có thể', type: 'text' })
+                            messages.push({ timestamp: new Date(), text: 'Cảm ơn bạn, chúng tôi sẽ gửi câu trả lời cho bạn thông qua email sớm nhất có thể', type: 'text' })
                             state = null;
                         } else {
                             throw new Error()
@@ -277,7 +277,7 @@ const generateBotAnswer = async (botData, socket) => {
                     }
                     break;
                 case 'cancel':
-                    messages.push({ text: 'Nếu bạn có bất kỳ câu hỏi nào, hãy hỏi tôi nhé!', type: 'text' })
+                    messages.push({ timestamp: new Date(), text: 'Nếu bạn có bất kỳ câu hỏi nào, hãy hỏi tôi nhé!', type: 'text' })
                     state = null
                     break;
                 case 'product-out-of-stock':
@@ -296,11 +296,11 @@ const generateBotAnswer = async (botData, socket) => {
                     // console.log(response.data)
                     const ids = res.data
                     if (ids.length === 0) {
-                        messages.push({ text: 'Shop hiện tại không có những sản phẩm tương tự', type: 'text' })
-                        messages.push({ text: 'Bạn có muốn tìm sản phẩm tương tự bên amazon không', suggestedActions, type: 'text' })
+                        messages.push({ timestamp: new Date(), text: 'Shop hiện tại không có những sản phẩm tương tự', type: 'text' })
+                        messages.push({ timestamp: new Date(), text: 'Bạn có muốn tìm sản phẩm tương tự bên amazon không', suggestedActions, type: 'text' })
                     } else {
                         let p = ids.map(i => ({ id: i }))
-                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
+                        messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
                         await showProducts(messages, p, store, data)
                     }
                     state = null
@@ -308,7 +308,7 @@ const generateBotAnswer = async (botData, socket) => {
                 case 'find-buy-with-products':
                     const productIds = await botService.getUsuallyBuyWithProducts({ productId: value })
                     store = await knex('shop').where({ id: shopId }).first('id', 'name', 'token')
-                    messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text' })
+                    messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text' })
                     state = null
                     await showProducts(messages, productIds, store)
                     break
@@ -320,7 +320,7 @@ const generateBotAnswer = async (botData, socket) => {
                     try {
                         let amazonProducts = await amazonCrawler.crawlData(translatedTitle.text)
                         if (amazonProducts.length == 0) {
-                            messages.push({ text: 'Không tìm thấy sản phẩm tương tự bên Amazon', type: 'text' })
+                            messages.push({ timestamp: new Date(), text: 'Không tìm thấy sản phẩm tương tự bên Amazon', type: 'text' })
                         } else {
                             let attachments = []
                             for (var i = 0; i < amazonProducts.length; i++) {
@@ -333,10 +333,10 @@ const generateBotAnswer = async (botData, socket) => {
                                 ]
                                 attachments.push(attachment)
                             }
-                            messages.push({ text: '', attachments, type: 'text' })
+                            messages.push({ timestamp: new Date(), text: '', attachments, type: 'text' })
                         }
                     } catch (err) {
-                        messages.push({ text: 'Đi đến trang', link: link, type: 'link' })
+                        messages.push({ timestamp: new Date(), text: 'Đi đến trang', link: link, type: 'link' })
                         console.log(err)
                     }
                     state = null
@@ -351,7 +351,7 @@ const generateBotAnswer = async (botData, socket) => {
                                 value: 'Hủy'
                             }
                         ]
-                        messages.push({ text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
+                        messages.push({ timestamp: new Date(), text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     }
                     else {
                         const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
@@ -376,7 +376,7 @@ const generateBotAnswer = async (botData, socket) => {
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (type === "product") {
                                 botResponses.push(response.data)
-                                messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
+                                messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report })
                                 await showProducts(messages, products, store, data)
                                 state = null
                             }
@@ -391,17 +391,17 @@ const generateBotAnswer = async (botData, socket) => {
                                     value: 'Không nhập email nữa'
                                 }
                             ]
-                            messages.push({ text: 'Không tìm thấy khách hàng', suggestedActions, type: 'text' })
+                            messages.push({ timestamp: new Date(), text: 'Không tìm thấy khách hàng', suggestedActions, type: 'text' })
                         }
                     }
                     break;
                 case 'input-email-for-product-suggestion':
                     state = 'get-email-for-product-suggestion'
-                    messages.push({ text: 'Vui lòng nhập email', type: 'text' })
+                    messages.push({ timestamp: new Date(), text: 'Vui lòng nhập email', type: 'text' })
                     break
                 case 'ignore-email':
                     data.noEmailRequire = true
-                    messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
+                    messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
                     await showProducts(messages, data.botResponse.products, store, data)
                     state = null
                     break;
@@ -437,10 +437,10 @@ const generateBotAnswer = async (botData, socket) => {
                                 value: 'Nhập email khác'
                             }
                         ]
-                        messages.push({ text: `Hệ thống sẽ kiểm tra đơn hàng với email ${data.email}`, type: 'text', suggestedActions, report })
+                        messages.push({ timestamp: new Date(), text: `Hệ thống sẽ kiểm tra đơn hàng với email ${data.email}`, type: 'text', suggestedActions, report })
                     } else {
                         state = 'input-order-email'
-                        messages.push({ text: 'Vui lòng nhập email', type: 'text', report })
+                        messages.push({ timestamp: new Date(), text: 'Vui lòng nhập email', type: 'text', report })
                     }
                 }
                 break
@@ -450,7 +450,7 @@ const generateBotAnswer = async (botData, socket) => {
                     if (info.name = 'order_id') {
                         state = 'input-order-email'
                         data.orderId = info.value
-                    } else messages.push({ text: negative, type: 'link' })
+                    } else messages.push({ timestamp: new Date(), text: negative, type: 'link' })
                 }
                 break
             case 'product':
@@ -474,7 +474,7 @@ const generateBotAnswer = async (botData, socket) => {
                                     const actions = { type: 'no-scenario', value: suggestion }
                                     return actions
                                 })
-                                messages.push({ text: 'Ý của bạn là', suggestedActions, type: 'text' })
+                                messages.push({ timestamp: new Date(), text: 'Ý của bạn là', suggestedActions, type: 'text' })
                                 // botResponses.push(response.data)
                                 break;
                             }
@@ -489,10 +489,10 @@ const generateBotAnswer = async (botData, socket) => {
                         const response = await axios.post(BOT_URL, requestData)
                         data.botResponse = response.data
                         const { products, report } = response.data
-                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report })
+                        messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report })
                         await showProducts(messages, products, store, data)
                     } else if (data.noEmailRequire) {
-                        messages.push({ text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
+                        messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
                         await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
                         state = null
                     }
@@ -507,11 +507,11 @@ const generateBotAnswer = async (botData, socket) => {
                                 value: 'Bỏ qua việc nhập email'
                             }
                         ]
-                        messages.push({ text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
+                        messages.push({ timestamp: new Date(), text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
                     }
                 }
                 else {
-                    messages.push({ text: 'Không tìm thấy sản phẩm nào', type: 'text', report })
+                    messages.push({ timestamp: new Date(), text: 'Không tìm thấy sản phẩm nào', type: 'text', report })
                 }
                 botResponses.push(response.data)
                 break
@@ -537,14 +537,14 @@ const generateBotAnswer = async (botData, socket) => {
                         attachment.buttons = [{ title: 'Xem', type: 'open-url', value: `${store.name}/collections/${s.handle}` }]
                         attachments.push(attachment)
                     })
-                    messages.push({ text: 'Hãy chọn 1 bộ sưu tập', type: "text", report })
-                    messages.push({ text: '', attachments, type: 'text' })
+                    messages.push({ timestamp: new Date(), text: 'Hãy chọn 1 bộ sưu tập', type: "text", report })
+                    messages.push({ timestamp: new Date(), text: '', attachments, type: 'text' })
                 } else {
-                    messages.push({ text: 'Không tìm thấy bộ sưu tập nào', type: "text" })
+                    messages.push({ timestamp: new Date(), text: 'Không tìm thấy bộ sưu tập nào', type: "text" })
                 }
                 break
             case 'other':
-                messages.push({ text: message, type: "text", report })
+                messages.push({ timestamp: new Date(), text: message, type: "text", report })
                 const { isOutOfStock, _products } = await showProducts(messages, products, store)
                 if (!isOutOfStock && _products.length === 1) {
                     const product = _products[0]
@@ -560,7 +560,7 @@ const generateBotAnswer = async (botData, socket) => {
                         }
                         return action
                     })
-                    messages.push({ text: checkStockMessage, type: "text", suggestedActions })
+                    messages.push({ timestamp: new Date(), text: checkStockMessage, type: "text", suggestedActions })
                 }
                 break
             default:
@@ -576,7 +576,7 @@ const generateBotAnswer = async (botData, socket) => {
                             value: 'Nhập email khác'
                         }
                     ]
-                    messages.push({ text: `Hệ thống không hiểu câu hỏi của bạn, bạn có muốn nhận câu trả lời qua email ${data.email}`, suggestedActions, type: 'text' })
+                    messages.push({ timestamp: new Date(), text: `Hệ thống không hiểu câu hỏi của bạn, bạn có muốn nhận câu trả lời qua email ${data.email}`, suggestedActions, type: 'text' })
                 } else {
                     const suggestedActions = [
                         {
@@ -584,7 +584,7 @@ const generateBotAnswer = async (botData, socket) => {
                             value: 'Nhận câu trả lời qua email'
                         }
                     ]
-                    messages.push({ text: 'Hệ thống không hiểu câu hỏi của bạn', suggestedActions, type: 'text' })
+                    messages.push({ timestamp: new Date(), text: 'Hệ thống không hiểu câu hỏi của bạn', suggestedActions, type: 'text' })
                 }
         }
         await insertBotMessage(messages, conversation)
@@ -761,7 +761,7 @@ const showProducts = async (messages, products, store, data) => {
         if (outOfStockCounter === attachments.length) {
             isOutOfStock = true
             data.products = attachments
-            messages.push({ text: '', attachments, type: 'text' })
+            messages.push({ timestamp: new Date(), text: '', attachments, type: 'text' })
             const suggestedActions = [
                 {
                     type: 'cancel',
@@ -772,12 +772,12 @@ const showProducts = async (messages, products, store, data) => {
                     value: "Có"
                 }
             ]
-            messages.push({ text: "Bạn có muốn xem những sản phẩm tương tự không", suggestedActions, type: 'text' })
+            messages.push({ timestamp: new Date(), text: "Bạn có muốn xem những sản phẩm tương tự không", suggestedActions, type: 'text' })
         } else {
             attachments = attachments.filter(attachment => {
                 return !attachment.buttons.map(b => b.title).includes("Hết hàng")
             })
-            messages.push({ text: '', attachments, type: 'text' })
+            messages.push({ timestamp: new Date(), text: '', attachments, type: 'text' })
         }
         return { isOutOfStock, _products }
     }
