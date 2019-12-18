@@ -728,7 +728,10 @@ const showProducts = async (messages, products, store, data) => {
             const bestMatchVariant = findBestMatchVariant(product.variants, _product)
             const variantParams = bestMatchVariant ? `?variant=${bestMatchVariant.id}` : ''
             attachment.price = bestMatchVariant ? bestMatchVariant.price : product.variants[0].price
-            
+            if (bestMatchVariant && bestMatchVariant.image_id) {
+                const image = _.find(product.images, { id: bestMatchVariant.image_id })
+                attachment.image = image.src
+            }
             //checking stock
             var totalStock = 0
             if (bestMatchVariant) {
