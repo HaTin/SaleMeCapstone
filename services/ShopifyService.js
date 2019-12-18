@@ -65,7 +65,7 @@ const getProductById = async (store, productId) => {
     return response.data.product
 }
 const getProductsById = async (store, productIds) => {
-    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products.json?fields=id,options,title,product_type,handle,image,variants&ids=${productIds}`, {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products.json?fields=id,options,title,product_type,handle,image,images,variants&ids=${productIds}`, {
         headers: {
             'X-Shopify-Access-Token': store.token,
             'X-Shopify-Api-Features': 'include-presentment-prices'
