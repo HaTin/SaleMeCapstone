@@ -3,9 +3,11 @@ const domain = "https://www.amazon.com";
 const crawlData = async (keyword) => {
 
     // wrapper to catch errors
+
     try {
         const chromeOptions = {
             defaultViewport: { width: 1280, height: 1080 },
+            devtools: true
         };
         // create a new browser instance
         const browser = await puppeteer.launch(chromeOptions);
@@ -39,7 +41,7 @@ const crawlData = async (keyword) => {
                 return p
             })
         });
-        console.log(products)
+        // console.log(products)
         await browser.close();
         return products
     } catch (error) {
