@@ -5,6 +5,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import IconButton from '@material-ui/core/IconButton'
 import ChatUserList from 'components/chatPanel/ChatUserList/index';
 import Conversation from 'components/chatPanel/Conversation/index';
+import SearchBar from 'material-ui-search-bar'
 import SearchBox from 'components/SearchBox';
 import IntlMessages from 'util/IntlMessages';
 import Swal from 'sweetalert2'
@@ -107,9 +108,21 @@ class ChatPanelWithRedux extends Component {
           </div>
         </div>
         <div className="search-wrapper">
+          <SearchBar
+            onChange={this.updateSearchChatUser.bind(this)}
+            hintText="Tìm cuộc trò chuyện"
+            onCancelSearch={this.updateSearchChatUser.bind(this, '')}
+            style={{
+              margin: '0 auto',
+              maxWidth: 800
+            }}
+            placeholder="Tìm cuộc trò chuyện"
+            value={this.props.searchChatUser}
+          />
+          {/*           
           <SearchBox placeholder="Tìm cuộc trò chuyện"
             onChange={this.updateSearchChatUser.bind(this)}
-            value={this.state.search} />
+            value={this.state.search} /> */}
         </div>
       </div>
 
@@ -168,7 +181,7 @@ class ChatPanelWithRedux extends Component {
     // t will be greater than 1 if we are about to reach the bottom
     const t = ((scrollTop + pad) / (scrollHeight - clientHeight));
     if (t > 1 && !end && t !== Infinity && !isSearching) {
-      // this.props.fetchMoreChatUser({ shopId, pageNumber })
+      this.props.fetchMoreChatUser({ shopId, pageNumber })
     }
   }
 
@@ -229,12 +242,15 @@ class ChatPanelWithRedux extends Component {
     // this.props.fetchChatUserConversation()
   }
 
-  updateSearchChatUser(evt) {
-    const search = evt.target.value
+  updateSearchChatUser(search) {
+    // const search = evt.target.value
     const shopId = this.props.authUser.shopId
-    this.setState((state) => ({
-      search
-    }));
+    // this.setState((state) => ({
+    //   search
+    // }));
+    this.props.setState({
+      searchChatUser: search,
+    })
     if (this.state.timeout) clearTimeout(this.state.timeout)
     this.state.timeout = setTimeout(() => {
       this.props.searchMessage({ search, shopId });
@@ -253,7 +269,7 @@ class ChatPanelWithRedux extends Component {
       })
       this.props.setState({ deleteSuccess: false })
       if (this.props.isSearching) {
-        this.props.searchMessage({ search: this.state.search, shopId: this.props.authUser.shopId })
+        this.props.searchMessage({ search: this.props.searchChatUser, shopId: this.props.authUser.shopId })
       }
       if (this.props.selectedUser && this.props.deleteUserId === this.props.selectedUser.id) {
         this.props.setState({

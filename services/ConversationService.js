@@ -615,18 +615,19 @@ const insertBotMessage = async (messages, conversation) => {
         return field
     })
     await knex('Message').insert(insertFields)
-    await knex('Conversation').where({ id: conversation.id }).update({ lastMessage })
+    await knex('Conversation').where({ id: conversation.id }).update({ lastMessage, lastMessageTime: util.convertDatetime(messages[messages.length - 1].timestamp) })
 }
 
 const getConversations = async (shopId, pageNumber, rowPage) => {
     const offset = (pageNumber - 1) * rowPage
     const limit = rowPage
-    // const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime', 'lastMessage')
-    const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').select('id', 'userName', 'lastMessageTime', 'lastMessage')
+    const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime', 'lastMessage')
+    console.log(result)
+    // const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').select('id', 'userName', 'lastMessageTime', 'lastMessage')
     const response = util.createList(result, 'conversations')
     if (result.length) {
         response.pageNumber = pageNumber + 1
-        response.end = true
+        // response.end = true
     }
     else {
         response.end = true
@@ -727,7 +728,7 @@ const showProducts = async (messages, products, store, data) => {
             const bestMatchVariant = findBestMatchVariant(product.variants, _product)
             const variantParams = bestMatchVariant ? `?variant=${bestMatchVariant.id}` : ''
             attachment.price = bestMatchVariant ? bestMatchVariant.price : product.variants[0].price
-
+            
             //checking stock
             var totalStock = 0
             if (bestMatchVariant) {
