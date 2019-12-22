@@ -310,7 +310,7 @@ const generateBotAnswer = async (botData, socket) => {
                     store = await knex('shop').where({ id: shopId }).first('id', 'name', 'token')
                     messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text' })
                     state = null
-                    await showProducts(messages, productIds, store)
+                    await showProducts(messages, productIds, store, data)
                     break
                 case 'check-Amazon':
                     const products = data.products
@@ -545,7 +545,7 @@ const generateBotAnswer = async (botData, socket) => {
                 break
             case 'other':
                 messages.push({ timestamp: new Date(), text: message, type: "text", report })
-                const { isOutOfStock, _products } = await showProducts(messages, products, store)
+                const { isOutOfStock, _products } = await showProducts(messages, products, store, data)
                 if (!isOutOfStock && _products.length === 1) {
                     const product = _products[0]
                     const { variantName, variants } = util.getVariantsFromMessage(message)

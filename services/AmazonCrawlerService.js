@@ -6,7 +6,6 @@ const crawlData = async (keyword) => {
     try {
         const chromeOptions = {
             defaultViewport: { width: 1280, height: 1080 },
-            devtools: true
         };
         // create a new browser instance
         const browser = await puppeteer.launch(chromeOptions);
