@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const domain = "https://www.amazon.com";
+const UserAgent = require('user-agents')
 const crawlData = async (keyword) => {
-
     // wrapper to catch errors
     try {
         const chromeOptions = {
@@ -11,7 +11,10 @@ const crawlData = async (keyword) => {
         const browser = await puppeteer.launch(chromeOptions);
         // create a page inside the browser;
         const page = await browser.newPage();
-        // await page.setUserAgent(randomUseragent.getRandom())
+        const user = new UserAgent()
+        await page.setUserAgent(String(user.data.userAgent))
+        // const currentAgent = await page.evaluate('navigator.userAgent');
+        // console.log(currentAgent);
         // navigate to a website and set the viewport
         await page.goto(domain);
         // search and wait the product list
@@ -39,7 +42,7 @@ const crawlData = async (keyword) => {
                 return p
             })
         });
-        console.log(products)
+        // console.log(products)
         await browser.close();
         return products
     } catch (error) {
