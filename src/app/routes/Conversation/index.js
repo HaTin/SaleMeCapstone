@@ -6,7 +6,6 @@ import IconButton from '@material-ui/core/IconButton'
 import ChatUserList from 'components/chatPanel/ChatUserList/index';
 import Conversation from 'components/chatPanel/Conversation/index';
 import SearchBar from 'material-ui-search-bar'
-import SearchBox from 'components/SearchBox';
 import IntlMessages from 'util/IntlMessages';
 import Swal from 'sweetalert2'
 import {
@@ -119,11 +118,13 @@ class ChatPanelWithRedux extends Component {
             placeholder="Tìm cuộc trò chuyện"
             value={this.props.searchChatUser}
           />
+
           {/*           
           <SearchBox placeholder="Tìm cuộc trò chuyện"
             onChange={this.updateSearchChatUser.bind(this)}
             value={this.state.search} /> */}
         </div>
+        {/* {this.props.total ? <p className="count">Đang hiển thị {this.props.chatUsers.length} trên {this.props.total}</p> : null} */}
       </div>
 
       <div className="chat-sidenav-content">
@@ -174,14 +175,14 @@ class ChatPanelWithRedux extends Component {
   }
 
   handleUpdate(values) {
-    const { pageNumber, authUser, end, isSearching } = this.props
+    const { pageNumber, authUser, end, isSearching, deletedCount } = this.props
     const { shopId } = authUser
     const { scrollTop, scrollHeight, clientHeight } = values;
     const pad = 0.5;
     // t will be greater than 1 if we are about to reach the bottom
     const t = ((scrollTop + pad) / (scrollHeight - clientHeight));
     if (t > 1 && !end && t !== Infinity && !isSearching) {
-      this.props.fetchMoreChatUser({ shopId, pageNumber })
+      this.props.fetchMoreChatUser({ shopId, pageNumber, deletedCount })
     }
   }
 
@@ -267,7 +268,7 @@ class ChatPanelWithRedux extends Component {
         icon: 'success',
         title: `Xóa thành công`,
       })
-      this.props.setState({ deleteSuccess: false })
+      this.props.setState({ deleteSuccess: false, deletedCount: this.props.deletedCount + 1, total: this.props.total - 1 })
       if (this.props.isSearching) {
         this.props.searchMessage({ search: this.props.searchChatUser, shopId: this.props.authUser.shopId })
       }
@@ -335,9 +336,11 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     pageNumber,
     alertMessage,
     message,
+    deletedCount,
     chatUsers,
     end,
     searchResults,
+    total,
     isSearching,
     deleteSuccess,
     scrollDown,
@@ -349,6 +352,7 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
   return {
     width,
     pageNumber,
+    deletedCount,
     loader,
     authUser,
     deleteUserId,
@@ -359,6 +363,7 @@ const mapStateToProps = ({ chatData, settings, auth }) => {
     drawerState,
     selectedSectionId,
     userState,
+    total,
     end,
     searchChatUser,
     contactList,

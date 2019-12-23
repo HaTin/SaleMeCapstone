@@ -454,7 +454,9 @@ const generateBotAnswer = async (botData, socket) => {
                 }
                 break
             case 'product':
-                if (products.length > 0) {
+                const availableProducts = await shopifyService.getAvailableProducts(store, products)
+                // console.log(availableProducts)
+                if (availableProducts.length > 0) {
                     const isScenario = checkMessageScenario(botResponses, response.data, checkScenario)
                     if (isScenario) {
                         const botSuggestionRequests = []
@@ -491,6 +493,7 @@ const generateBotAnswer = async (botData, socket) => {
                         const { products, report } = response.data
                         messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report })
                         await showProducts(messages, products, store, data)
+                        
                     } else if (data.noEmailRequire) {
                         messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
                         await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
@@ -618,13 +621,17 @@ const insertBotMessage = async (messages, conversation) => {
     await knex('Conversation').where({ id: conversation.id }).update({ lastMessage, lastMessageTime: util.convertDatetime(messages[messages.length - 1].timestamp) })
 }
 
-const getConversations = async (shopId, pageNumber, rowPage) => {
-    const offset = (pageNumber - 1) * rowPage
+
+
+const getConversations = async (shopId, pageNumber, rowPage, deletedCount) => {
+    const offset = ((pageNumber - 1) * rowPage) - deletedCount
     const limit = rowPage
     const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime', 'lastMessage')
-    console.log(result)
+    const countResult = await knex('conversation').count('id', { as: 'count' }).where({ shopId, isDeleted: false })
+    const total = countResult[0].count
     // const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').select('id', 'userName', 'lastMessageTime', 'lastMessage')
     const response = util.createList(result, 'conversations')
+    response.total = total
     if (result.length) {
         response.pageNumber = pageNumber + 1
         // response.end = true

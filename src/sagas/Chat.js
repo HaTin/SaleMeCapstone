@@ -19,8 +19,8 @@ function* fetchChatUserRequest({ payload }) {
   try {
     const { shopId, pageNumber } = payload
     const response = yield call(chat.getConversations, { shopId, pageNumber, rowPage });
-    const { conversations } = response.data
-    yield put(fetchChatUserSuccess({ conversations, pageNumber: response.data.pageNumber }));
+    const { conversations, total } = response.data
+    yield put(fetchChatUserSuccess({ conversations, pageNumber: response.data.pageNumber, total }));
   } catch (error) {
     yield put(showChatMessage(defaultErrorMessage));
   }
@@ -39,10 +39,10 @@ function* removeChatUserRequest({ payload }) {
 function* fetchMoreChatUserRequest({ payload }) {
   try {
     yield put(showUserLoader())
-    const { shopId, pageNumber } = payload
-    const response = yield call(chat.getConversations, { shopId, pageNumber, rowPage });
-    const { conversations, end } = response.data
-    yield put(fetchMoreChatUserSuccess({ conversations, pageNumber: response.data.pageNumber, end }));
+    const { shopId, pageNumber, deletedCount } = payload
+    const response = yield call(chat.getConversations, { shopId, pageNumber, rowPage, deletedCount });
+    const { conversations, end, total } = response.data
+    yield put(fetchMoreChatUserSuccess({ conversations, pageNumber: response.data.pageNumber, end, total }));
   } catch (error) {
     yield put(showChatMessage(defaultErrorMessage));
   }

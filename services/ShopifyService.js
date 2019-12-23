@@ -56,7 +56,7 @@ const getProductInCollection = async (store, collectionId) => {
 }
 
 const getProductById = async (store, productId) => {
-    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products/${productId}.json?fields=id,options,title,product_type,handle,image,variants`, {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products/${productId}.json?fields=id,options,title,product_type,handle,image,variants&published_status=published`, {
         headers: {
             'X-Shopify-Access-Token': store.token,
             'X-Shopify-Api-Features': 'include-presentment-prices'
@@ -65,10 +65,22 @@ const getProductById = async (store, productId) => {
     return response.data.product
 }
 const getProductsById = async (store, productIds) => {
-    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products.json?fields=id,options,title,product_type,handle,image,images,variants&ids=${productIds}`, {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products.json?fields=id,options,title,product_type,handle,image,images,variants&ids=${productIds}&published_status=published`, {
         headers: {
             'X-Shopify-Access-Token': store.token,
             'X-Shopify-Api-Features': 'include-presentment-prices'
+        }
+    })
+    return response.data.products
+}
+
+const getAvailableProducts = async (store, products) => {
+    if (!products.length) return []
+    let productIds = ''
+    products.map(p => { productIds += p.id + "," })
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/products.json?fields=id&ids=${productIds}&published_status=published`, {
+        headers: {
+            'X-Shopify-Access-Token': store.token,
         }
     })
     return response.data.products
@@ -103,5 +115,6 @@ module.exports = {
     getCustomCollectionInfoByIds,
     getSmartCollectionInfoByIds,
     getOrderById,
-    getOrderByName
+    getOrderByName,
+    getAvailableProducts
 }
