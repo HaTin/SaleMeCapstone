@@ -34,9 +34,11 @@ const INIT_STATE = {
   selectedSectionId: '',
   userState: 1,
   searchChatUser: '',
+  deletedCount: 0,
   selectedUser: null,
   message: '',
   end: false,
+  total: 0,
   chatUsers: [],
   searchResults: [],
   conversationList: [], //ony for prod
@@ -148,8 +150,14 @@ export default (state = INIT_STATE, action) => {
         ...state,
         chatUsers: action.payload.conversations,
         pageNumber: action.payload.pageNumber,
+        deletedCount: 0,
+        selectedSectionId: null,
+        isSearching: false,
+        searchChatUser: '',
+        selectedUser: null,
         loader: false,
         drawerState: true,
+        total: action.payload.total,
         end: false
       }
     }
@@ -160,6 +168,7 @@ export default (state = INIT_STATE, action) => {
         pageNumber: action.payload.pageNumber,
         end: action.payload.end,
         loader: false,
+        total: action.payload.total,
         userLoader: false
       }
     }

@@ -37,8 +37,8 @@ const crawlData = async (keyword) => {
                     link: product.querySelector('.a-link-normal.a-text-normal') ? product.querySelector('.a-link-normal.a-text-normal').href : null,
                     image: product.querySelector('.s-image').src,
                 }
-                const price = product.querySelector(".a-price-whole")
-                p.price = price ? parseFloat(`${price.textContent}${product.querySelector('.a-price-fraction').innerText}`) : null
+                // const price = product.querySelector(".a-price-whole")
+                // p.price = price ? parseFloat(`${price.textContent}${product.querySelector('.a-price-fraction').innerText}`) : null
                 return p
             })
         });
