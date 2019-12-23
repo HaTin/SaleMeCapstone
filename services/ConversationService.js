@@ -147,7 +147,7 @@ const generateBotAnswer = async (botData, socket) => {
                 case 'input-order-number':
                     data.orderName = text
                     const order = await shopifyService.getOrderByName(store, data.orderName)
-                    if (order && order.email === data.email) {                        
+                    if (order && order.email === data.email) {
                         messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text', timestamp: new Date() })
                         messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link', timestamp: new Date() })
                         state = null
@@ -497,7 +497,7 @@ const generateBotAnswer = async (botData, socket) => {
 
                     } else if (data.noEmailRequire) {
                         messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
-                        await showProducts(messages, data.botResponse.products, store, data.botResponse.report, data)
+                        await showProducts(messages, data.botResponse.products, store, data)
                         state = null
                     }
                     else {
