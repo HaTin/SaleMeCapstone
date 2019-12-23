@@ -8,6 +8,7 @@ router.post('/products/update', async (req, res) => {
         console.log('product is updated '+today.toLocaleDateString()+" "+today.toLocaleTimeString())
         var shopName = req.headers['x-shopify-shop-domain']
         var updateProduct = req.body
+        console.log(updateProduct)
         webhookService.updateProduct(updateProduct, shopName)
         res.sendStatus(200)
     } catch(err) {
