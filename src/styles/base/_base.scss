@@ -819,6 +819,7 @@ a.btn-outline-geekblue {
   border: 1px solid rgb(221, 221, 221);
   overflow: hidden;
   display: inline-block;
+  position: relative;
   background: #fff;
   border-radius: 0.25em;;
 }
@@ -920,6 +921,13 @@ a.btn-outline-geekblue {
 .count{
   text-align: right;
   margin-bottom: 10px;
+}
+.product-note{
+  position: absolute;
+  right: 5px;
+  font-size: 12px;
+  top: 2px;
+  font-weight: bold;
 }
 // .validator-form {
 //   padding: 16px;

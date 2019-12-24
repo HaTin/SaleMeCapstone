@@ -64,6 +64,7 @@ class ProductList extends Component {
                         {attachment.map(product =>
                             <div className="product-wrapper">
                                 <div className="mutiple">
+                                    {product.note ? <div className="product-note">{product.note}</div> : null}
                                     <a target="_blank" href={product.buttons[0].type === 'open-url' ? 'https://' + product.buttons[0].value : '#'} >
                                         <div className="image-container">
                                             <img className="product-image" src={product.image}></img>
