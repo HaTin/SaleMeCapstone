@@ -120,14 +120,14 @@ const generateBotAnswer = async (botData, socket) => {
                         }
                         else if (type === 'order' && orders && orders.length > 0) {
                             const orderId = orders[0]
-                            const orderResponse = await axios.get(`https://${store.name}/admin/api/2019-10/orders/${orderId}.json?fields=order_number,order_status_url&fulfillment_status=any&status=any`, {
+                            const orderResponse = await axios.get(`https://${store.name}/admin/api/2019-10/orders/${orderId}.json?fields=order_number,name,order_status_url&fulfillment_status=any&status=any`, {
                                 params: {},
                                 headers: {
                                     'X-Shopify-Access-Token': store.token
                                 }
                             })
                             const order = orderResponse.data.order
-                            messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text', timestamp: new Date() })
+                            messages.push({ text: `Thông tin của đơn hàng ${order.name}`, type: 'text', timestamp: new Date() })
                             messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link', timestamp: new Date() })
                             state = null
                         }
@@ -148,7 +148,7 @@ const generateBotAnswer = async (botData, socket) => {
                     data.orderName = text
                     const order = await shopifyService.getOrderByName(store, data.orderName)
                     if (order && order.email === data.email) {
-                        messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text', timestamp: new Date() })
+                        messages.push({ text: `Thông tin của đơn hàng ${order.name}`, type: 'text', timestamp: new Date() })
                         messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link', timestamp: new Date() })
                         state = null
                     } else {
@@ -157,7 +157,7 @@ const generateBotAnswer = async (botData, socket) => {
                     }
                     break;
                 case 'wrong-answer':
-                    messages.push({ text: 'Chúng tôi rất tiếc vì không trả lời câu hỏi của bạn, hãy cho chúng tôi biết mong muốn của bạn', suggestedActions, type: 'text', timestamp: new Date() })
+                    messages.push({ text: 'Chúng tôi rất tiếc vì không thể trả lời câu hỏi của bạn, hãy cho chúng tôi biết mong muốn của bạn', suggestedActions, type: 'text', timestamp: new Date() })
                     const report = data.botResponse.report
                     report.map(r => suggestedActions.push({ type: 'report', value: r }))
                     state = null
@@ -179,7 +179,6 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ timestamp: new Date(), text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     }
                     else {
-
                         const customer = await shopifyService.getCustomer(store, email)
                         if (customer && customer.orders_count) {
                             const requestData = {
@@ -201,7 +200,7 @@ const generateBotAnswer = async (botData, socket) => {
                             }
                             else if (type === 'order' && orders && orders.length > 0) {
                                 const orderId = orders[0]
-                                const orderResponse = await axios.get(`https://${store.name}/admin/api/2019-10/orders/${orderId}.json?fields=order_number,order_status_url&fulfillment_status=any&status=any`, {
+                                const orderResponse = await axios.get(`https://${store.name}/admin/api/2019-10/orders/${orderId}.json?fields=order_number,name,order_status_url&fulfillment_status=any&status=any`, {
                                     params: {},
                                     headers: {
                                         'X-Shopify-Access-Token': store.token
@@ -209,7 +208,7 @@ const generateBotAnswer = async (botData, socket) => {
                                 })
                                 const order = orderResponse.data.order
                                 data.email = email
-                                messages.push({ timestamp: new Date(), text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text' })
+                                messages.push({ timestamp: new Date(), text: `Thông tin của đơn hàng ${order.name}`, type: 'text' })
                                 messages.push({ timestamp: new Date(), text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
                                 state = null
                             }
@@ -364,12 +363,20 @@ const generateBotAnswer = async (botData, socket) => {
                                 customer: customer.id + '',
                                 shop: store.name
                             }
+
                             const response = await axios.post(BOT_URL, requestData)
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (type === "product") {
+                                const customerOrders = await shopifyService.getOrderByCustomerId(store, customer.id)
+                                const customerProducts = []
+                                customerOrders.map(o => {
+                                    o.line_items.map(item => {
+                                        customerProducts.push({ productId: item.product_id, variantId: item.variant_id })
+                                    })
+                                })
                                 botResponses.push(response.data)
                                 messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report })
-                                await showProducts(messages, products, store, data)
+                                await showProducts(messages, products, store, data, customerProducts)
                                 state = null
                             }
                         }
@@ -414,7 +421,6 @@ const generateBotAnswer = async (botData, socket) => {
         response = await axios.post(BOT_URL, requestData)
         const { question, type, products, orders, collections, message, report } = response.data
         data.botResponse = response.data
-
         switch (type) {
             case 'order':
                 if (message === 'nullCustomer') {
@@ -424,8 +430,10 @@ const generateBotAnswer = async (botData, socket) => {
                         if (customer && customer.orders_count > 0) {
                             const { status, orderId } = await botService.getOrderId(question, customer.id, store)
                             if (status === 'has-order') {
+                                data.userId = customer.id
+                                data.email = checkEmail
                                 const order = await shopifyService.getOrderById(store, orderId)
-                                messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text', timestamp: new Date() })
+                                messages.push({ text: `Thông tin của đơn hàng ${order.name}`, type: 'text', timestamp: new Date() })
                                 messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link', timestamp: new Date() })
                             } else if (status === 'no-order-number') {
                                 state = 'input-order-number'
@@ -507,12 +515,20 @@ const generateBotAnswer = async (botData, socket) => {
                             customer: data.userId,
                             shop: store.name
                         }
+
                         const response = await axios.post(BOT_URL, requestData)
                         data.botResponse = response.data
                         const { products, report } = response.data
-                        messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report })
-                        await showProducts(messages, products, store, data)
 
+                        messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report })
+                        const customerOrders = await shopifyService.getOrderByCustomerId(store, data.userId)
+                        const customerProducts = []
+                        customerOrders.map(o => {
+                            o.line_items.map(item => {
+                                customerProducts.push({ productId: item.product_id, variantId: item.variant_id })
+                            })
+                        })
+                        await showProducts(messages, products, store, data, customerProducts)
                     } else if (data.noEmailRequire) {
                         messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
                         await showProducts(messages, data.botResponse.products, store, data)
@@ -545,24 +561,34 @@ const generateBotAnswer = async (botData, socket) => {
                     let attachments = []
                     let customCollections = await shopifyService.getCustomCollectionInfoByIds(store, ids)
                     let smartCollections = await shopifyService.getSmartCollectionInfoByIds(store, ids)
-                    customCollections.forEach(c => {
-                        const attachment = { contentType: 'collection', content: null }
-                        attachment.title = c.title
-                        attachment.image = c.image ? c.image.src : 'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
-                        attachment.buttons = [{ title: "Xem", type: 'open-url', value: `${store.name}/collections/${c.handle}` }]
-                        attachments.push(attachment)
-                    })
-                    smartCollections.forEach(s => {
-                        const attachment = { contentType: 'collection', content: null }
-                        attachment.title = s.title
-                        attachment.image = s.image ? s.image.src : 'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
-                        attachment.buttons = [{ title: 'Xem', type: 'open-url', value: `${store.name}/collections/${s.handle}` }]
-                        attachments.push(attachment)
-                    })
-                    messages.push({ timestamp: new Date(), text: 'Hãy chọn 1 bộ sưu tập', type: "text", report })
-                    messages.push({ timestamp: new Date(), text: '', attachments, type: 'text' })
+                    const groupCollections = [...customCollections, ...smartCollections]
+                    if (groupCollections.length) {
+                        groupCollections.sort((a, b) => {
+                            var nameA = a.title
+                            var nameB = b.title
+                            return nameA.localeCompare(nameB)
+                        })
+                        groupCollections.forEach(c => {
+                            const attachment = { contentType: 'collection', content: null }
+                            attachment.title = c.title
+                            attachment.image = c.image ? c.image.src : 'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
+                            attachment.buttons = [{ title: "Xem", type: 'open-url', value: `${store.name}/collections/${c.handle}` }]
+                            attachments.push(attachment)
+                        })
+                        // smartCollections.forEach(s => {
+                        //     const attachment = { contentType: 'collection', content: null }
+                        //     attachment.title = s.title
+                        //     attachment.image = s.image ? s.image.src : 'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
+                        //     attachment.buttons = [{ title: 'Xem', type: 'open-url', value: `${store.name}/collections/${s.handle}` }]
+                        //     attachments.push(attachment)
+                        // })
+                        messages.push({ timestamp: new Date(), text: 'Hãy chọn 1 bộ sưu tập', type: "text", report })
+                        messages.push({ timestamp: new Date(), text: '', attachments, type: 'text' })
+                    } else {
+                        messages.push({ timestamp: new Date(), text: 'Không tìm thấy bộ sưu tập nào', type: "text", report })
+                    }
                 } else {
-                    messages.push({ timestamp: new Date(), text: 'Không tìm thấy bộ sưu tập nào', type: "text" })
+                    messages.push({ timestamp: new Date(), text: 'Không tìm thấy bộ sưu tập nào', type: "text", report })
                 }
                 break
             case 'other':
@@ -724,7 +750,7 @@ const updateConversation = async ({ conversation, message }) => {
 
 
 
-const showProducts = async (messages, products, store, data) => {
+const showProducts = async (messages, products, store, data, customerProducts) => {
     if (products.length > 0) {
         let isOutOfStock = false
         let attachments = []
@@ -747,6 +773,7 @@ const showProducts = async (messages, products, store, data) => {
                     _product = p
                 }
             })
+
             attachment.title = product.title
             attachment.image = product.image ? product.image.src : 'https://icon-library.net/images/placeholder-image-icon/placeholder-image-icon-14.jpg'
             // attachment.variants = product.variants            
@@ -757,6 +784,16 @@ const showProducts = async (messages, products, store, data) => {
             if (bestMatchVariant && bestMatchVariant.image_id) {
                 const image = _.find(product.images, { id: bestMatchVariant.image_id })
                 attachment.image = image.src
+            }
+            if (customerProducts && customerProducts.length) {
+                const matchProduct = customerProducts.find(c => c.productId == product.id)
+                if (matchProduct) {
+                    if (bestMatchVariant) {
+                        if (matchProduct.variantId === bestMatchVariant.id) attachment.note = 'Đã mua'
+                    } else {
+                        attachment.note = 'Đã mua'
+                    }
+                }
             }
             //checking stock
             var totalStock = 0
