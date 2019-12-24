@@ -73,12 +73,17 @@ const isChildArray = (products1, products2) => {
     return isChild
 }
 
-const checkScenarioType = () => {
-    
+
+const extractEmail = (text) => {
+    const emails = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
+    if (emails && emails.length) return emails[0]
+    return null
 }
+
 module.exports = {
     getCurrentDatetime,
     isChildArray,
+    extractEmail,
     createObj,
     createList,
     convertDatetime,

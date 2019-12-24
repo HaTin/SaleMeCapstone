@@ -24,13 +24,18 @@ const getProductOption = async (store) => {
 
 
 const getOrderById = async (store, orderId) => {
-    const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders/${orderId}.json`, {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders/${orderId}.json?fields=order_number,order_status_url&fulfillment_status=any&status=any`, {
         headers: {
             'X-Shopify-Access-Token': store.token,
         }
     })
     return response.data.order
 }
+
+
+
+
+
 
 const getOrderByName = async (store, orderName) => {
     const response = await axios.get(`https://${store.name}/admin/api/2019-10/orders.json?fields=order_number,email,order_status_url&fulfillment_status=any&status=any`, {
@@ -106,8 +111,24 @@ const getSmartCollectionInfoByIds = async (store, ids) => {
     return response.data.smart_collections
 }
 
+
+const getCustomer = async (store, email) => {
+    const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
+        params: {
+            email,
+            fields: 'id,orders_count'
+        },
+        headers: {
+            'X-Shopify-Access-Token': store.token
+        }
+    })
+    const customers = response.data.customers
+    return customers.length > 0 ? customers[0] : null
+}
+
 module.exports = {
     getProductByTitle,
+    getCustomer,
     getProductOption,
     getProductInCollection,
     getProductById,

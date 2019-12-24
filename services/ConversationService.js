@@ -109,12 +109,12 @@ const generateBotAnswer = async (botData, socket) => {
                         const response = await axios.post(BOT_URL, requestData)
                         const { question, type, products, orders, collections, message, report } = response.data
                         if (message === 'nullCustomer') {
-                            messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
+                            messages.push({ text: `Không tìm thấy đơn hàng. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
                             state = null
                         }
                         else if (!message && !orders.length) {
                             state = 'input-order-number'
-                            data.customerId = customer.id
+                            data.userId = customer.id
                             // data.email = email
                             messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text', timestamp: new Date() })
                         }
@@ -132,7 +132,7 @@ const generateBotAnswer = async (botData, socket) => {
                             state = null
                         }
                         else {
-                            messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
+                            messages.push({ text: `Không tìm thấy đơn hàng. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
                             state = null
                         }
                     } else {
@@ -152,7 +152,7 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link', timestamp: new Date() })
                         state = null
                     } else {
-                        messages.push({ text: `Không tìm thấy đơn hàng nào với email ${data.email}. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
+                        messages.push({ text: `Không tìm thấy đơn hàng. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
                         state = null
                     }
                     break;
@@ -179,18 +179,9 @@ const generateBotAnswer = async (botData, socket) => {
                         messages.push({ timestamp: new Date(), text: `Vui lòng nhập đúng định dạng email`, suggestedActions, type: 'text' })
                     }
                     else {
-                        const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
-                            params: {
-                                email: email,
-                                fields: 'id'
-                            },
-                            headers: {
-                                'X-Shopify-Access-Token': store.token
-                            }
-                        })
-                        const customers =   response.data.customers
-                        if (customers.length) {
-                            const customer = customers[0]
+
+                        const customer = await shopifyService.getCustomer(store, email)
+                        if (customer && customer.orders_count) {
                             const requestData = {
                                 sentence: data.botResponse.question,
                                 customer: customer.id + '',
@@ -199,12 +190,12 @@ const generateBotAnswer = async (botData, socket) => {
                             const response = await axios.post(BOT_URL, requestData)
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (message === 'nullCustomer') {
-                                messages.push({ timestamp: new Date(), text: `Không tìm thấy đơn hàng nào với email ${email}. Xin hãy thử lại`, type: 'text' })
+                                messages.push({ timestamp: new Date(), text: `Không tìm thấy đơn hàng. Xin hãy thử lại`, type: 'text' })
                                 state = null
                             }
                             else if (!message && !orders.length) {
                                 state = 'input-order-number'
-                                data.customerId = customer.id
+                                data.userId = customer.id
                                 data.email = email
                                 messages.push({ timestamp: new Date(), text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
                             }
@@ -223,7 +214,7 @@ const generateBotAnswer = async (botData, socket) => {
                                 state = null
                             }
                             else {
-                                messages.push({ timestamp: new Date(), text: `Không tìm thấy đơn hàng nào với email ${email}. Xin hãy thử lại`, type: 'text' })
+                                messages.push({ timestamp: new Date(), text: `Không tìm thấy đơn hàng. Xin hãy thử lại`, type: 'text' })
                                 state = null
                             }
                         } else {
@@ -427,7 +418,34 @@ const generateBotAnswer = async (botData, socket) => {
         switch (type) {
             case 'order':
                 if (message === 'nullCustomer') {
-                    if (data.email) {
+                    const checkEmail = util.extractEmail(question)
+                    if (checkEmail) {
+                        const customer = await shopifyService.getCustomer(store, checkEmail)
+                        if (customer && customer.orders_count > 0) {
+                            const { status, orderId } = await botService.getOrderId(question, customer.id, store)
+                            if (status === 'has-order') {
+                                const order = await shopifyService.getOrderById(store, orderId)
+                                messages.push({ text: `Thông tin của đơn hàng #${order.order_number}`, type: 'text', timestamp: new Date() })
+                                messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link', timestamp: new Date() })
+                            } else if (status === 'no-order-number') {
+                                state = 'input-order-number'
+                                data.userId = customer.id
+                                data.email = checkEmail
+                                messages.push({ timestamp: new Date(), text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
+                            }
+                            else {
+                                messages.push({ text: `Không tìm thấy đơn hàng. Xin hãy thử lại`, type: 'text', timestamp: new Date() })
+                            }
+                        } else {
+                            suggestedActions = [{
+                                type: 'ask-order-email',
+                                value: 'Nhập lại email'
+                            }]
+                            messages.push({ timestamp: new Date(), text: 'Không tìm thấy khách hàng, vui lòng thử lại', suggestedActions, type: 'text' })
+                            state = null
+                        }
+                    }
+                    else if (data.email) {
                         const suggestedActions = [
                             {
                                 type: 'find-order-with-existed-email',
@@ -595,7 +613,7 @@ const generateBotAnswer = async (botData, socket) => {
         return { messages, state, data, botResponses }
     } catch (error) {
         console.log(error)
-        socket.emit('response', [{ text: 'Đã xảy ra lỗi, vui lòng thử lại', type: 'text' }])
+        socket.emit('response', [{ text: 'Đã xảy ra lỗi, vui lòng thử lại', type: 'text', timestamp: new Date() }])
         return { state: null, data: null }
     }
 }
