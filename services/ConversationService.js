@@ -115,7 +115,7 @@ const generateBotAnswer = async (botData, socket) => {
                         else if (!message && !orders.length) {
                             state = 'input-order-number'
                             data.customerId = customer.id
-                            data.email = email
+                            // data.email = email
                             messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text', timestamp: new Date() })
                         }
                         else if (type === 'order' && orders && orders.length > 0) {
