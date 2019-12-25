@@ -338,7 +338,7 @@ const generateBotAnswer = async (botData, socket) => {
                     if (!util.validateEmail(userEmail)) {
                         suggestedActions = [
                             {
-                                type: 'show-product',
+                                type: 'ignore-email',
                                 value: 'Hủy'
                             }
                         ]
@@ -383,14 +383,11 @@ const generateBotAnswer = async (botData, socket) => {
                         else {
                             const suggestedActions = [
                                 {
-                                    type: 'input-email-for-product-suggestion',
-                                    value: 'Nhập lại email'
-                                }, {
                                     type: 'ignore-email',
                                     value: 'Không nhập email nữa'
                                 }
                             ]
-                            messages.push({ timestamp: new Date(), text: 'Không tìm thấy khách hàng', suggestedActions, type: 'text' })
+                            messages.push({ timestamp: new Date(), text: 'Không tìm thấy khách hàng, vui lòng nhập lại email', suggestedActions, type: 'text' })
                         }
                     }
                     break;
