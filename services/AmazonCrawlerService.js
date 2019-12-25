@@ -4,7 +4,7 @@ const puppeteer = require('puppeteer');
 const domain = "https://www.amazon.com";
 const UserAgent = require('user-agents')
 const crawlData = async (keyword) => {
-    const newProxyUrl = '207.148.127.51:3128'
+    const newProxyUrl = '157.245.48.21:8080'
     let browser = null
     try {
         const chromeOptions = {
@@ -13,6 +13,7 @@ const crawlData = async (keyword) => {
         };
         // create a new browser instance
         browser = await puppeteer.launch(chromeOptions);
+
         // create a page inside the browser;
         const page = await browser.newPage();
         const user = new UserAgent()
