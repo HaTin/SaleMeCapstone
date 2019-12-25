@@ -1,19 +1,20 @@
-const puppeteer = require('puppeteer');
-// const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-// puppeteer.use(StealthPlugin())
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+puppeteer.use(StealthPlugin())
 const domain = "https://www.amazon.com";
 const UserAgent = require('user-agents')
 const crawlData = async (keyword) => {
-    const newProxyUrl = '157.245.48.21:8080'
+    // const newProxyUrl = '172.104.35.250:3128'
+    const proxyURLs = ['172.104.35.250:3128', '139.162.38.253:1028', '172.104.59.178:1028']
+    const url = proxyURLs[Math.floor(Math.random() * proxyURLs.length)];
+    console.log(url)
     let browser = null
     try {
         const chromeOptions = {
-            headless: false,
-            args: [`--proxy-server=${newProxyUrl}`],
+            args: [`--proxy-server=${url}`],
         };
         // create a new browser instance
         browser = await puppeteer.launch(chromeOptions);
-
         // create a page inside the browser;
         const page = await browser.newPage();
         const user = new UserAgent()
