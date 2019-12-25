@@ -39,8 +39,8 @@ function* removeChatUserRequest({ payload }) {
 function* fetchMoreChatUserRequest({ payload }) {
   try {
     yield put(showUserLoader())
-    const { shopId, pageNumber, deletedCount } = payload
-    const response = yield call(chat.getConversations, { shopId, pageNumber, rowPage, deletedCount });
+    const { shopId, pageNumber, deletedCount, currentTotalCount } = payload
+    const response = yield call(chat.getConversations, { shopId, pageNumber, rowPage, deletedCount, currentTotalCount });
     const { conversations, end, total } = response.data
     yield put(fetchMoreChatUserSuccess({ conversations, pageNumber: response.data.pageNumber, end, total }));
   } catch (error) {

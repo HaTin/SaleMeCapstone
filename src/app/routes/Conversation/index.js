@@ -124,7 +124,7 @@ class ChatPanelWithRedux extends Component {
             onChange={this.updateSearchChatUser.bind(this)}
             value={this.state.search} /> */}
         </div>
-        {/* {this.props.total ? <p className="count">Đang hiển thị {this.props.chatUsers.length} trên {this.props.total}</p> : null} */}
+        {/* {this.props.total ? <p className="count">Đang hiển thị {this.props.chatUsers.length} trên {this.props.total - this.props.deletedCount}</p> : null} */}
       </div>
 
       <div className="chat-sidenav-content">
@@ -175,14 +175,14 @@ class ChatPanelWithRedux extends Component {
   }
 
   handleUpdate(values) {
-    const { pageNumber, authUser, end, isSearching, deletedCount } = this.props
+    const { pageNumber, authUser, end, isSearching, deletedCount, total } = this.props
     const { shopId } = authUser
     const { scrollTop, scrollHeight, clientHeight } = values;
     const pad = 0.5;
     // t will be greater than 1 if we are about to reach the bottom
     const t = ((scrollTop + pad) / (scrollHeight - clientHeight));
     if (t > 1 && !end && t !== Infinity && !isSearching) {
-      this.props.fetchMoreChatUser({ shopId, pageNumber, deletedCount })
+      this.props.fetchMoreChatUser({ shopId, pageNumber, deletedCount, currentTotalCount: total })
     }
   }
 
@@ -268,7 +268,7 @@ class ChatPanelWithRedux extends Component {
         icon: 'success',
         title: `Xóa thành công`,
       })
-      this.props.setState({ deleteSuccess: false, deletedCount: this.props.deletedCount + 1, total: this.props.total - 1 })
+      this.props.setState({ deleteSuccess: false, deletedCount: this.props.deletedCount + 1 })
       if (this.props.isSearching) {
         this.props.searchMessage({ search: this.props.searchChatUser, shopId: this.props.authUser.shopId })
       }

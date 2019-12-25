@@ -16,7 +16,10 @@ const crawlData = async (keyword) => {
         // create a new browser instance
         browser = await puppeteer.launch(chromeOptions);
         // create a page inside the browser;
-
+        // await page.authenticate({
+        //     username: 'admin',
+        //     password: 'tindeptrai12',
+        // });
         const page = await browser.newPage();
         const user = new UserAgent({ deviceCategory: 'desktop' })
         await page.setUserAgent(String(user.data.userAgent))
