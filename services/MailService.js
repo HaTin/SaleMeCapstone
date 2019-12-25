@@ -25,7 +25,7 @@ const sendMail = ({ receiver, customerEmail, redirectURL, question }) => {
             <br><br><br><br>`
             data = data.replace(/CONTENT_HTML/g, content)
             var mainOptions = {
-                from: 'SaleMe',
+                from: 'SaleMe <noreply1242@gmail.com>',
                 to: receiver,
                 subject: 'Câu hỏi của khách hàng',
                 text: '',
