@@ -16,8 +16,9 @@ const crawlData = async (keyword) => {
         // create a new browser instance
         browser = await puppeteer.launch(chromeOptions);
         // create a page inside the browser;
+
         const page = await browser.newPage();
-        const user = new UserAgent()
+        const user = new UserAgent({ deviceCategory: 'desktop' })
         await page.setUserAgent(String(user.data.userAgent))
         // const currentAgent = await page.evaluate('navigator.userAgent');
         // console.log(currentAgent);
