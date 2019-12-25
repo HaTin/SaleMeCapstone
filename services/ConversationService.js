@@ -334,7 +334,7 @@ const generateBotAnswer = async (botData, socket) => {
                     break;
                 case 'get-email-for-product-suggestion':
                     let userEmail = text
-                    data.email = userEmail
+
                     if (!util.validateEmail(userEmail)) {
                         suggestedActions = [
                             {
@@ -357,13 +357,13 @@ const generateBotAnswer = async (botData, socket) => {
                         const customers = response.data.customers
                         if (customers.length) {
                             const customer = customers[0]
+                            data.email = userEmail
                             data.userId = customer.id
                             const requestData = {
                                 sentence: data.botResponse.question,
                                 customer: customer.id + '',
                                 shop: store.name
                             }
-
                             const response = await axios.post(BOT_URL, requestData)
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (type === "product") {
