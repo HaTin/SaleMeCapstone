@@ -536,6 +536,7 @@ const generateBotAnswer = async (botData, socket) => {
                             }
                         ]
                         messages.push({ timestamp: new Date(), text: 'Hãy nhập email để hệ thống có thể gợi ý những sản phẩm phù hợp với bạn', suggestedActions, type: 'text' })
+                        break;
                     }
                 }
                 else {
