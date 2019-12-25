@@ -89,21 +89,10 @@ const generateBotAnswer = async (botData, socket) => {
                     messages.push({ text: 'Vui lòng nhập email', type: 'text', timestamp: new Date() })
                     break;
                 case 'find-order-with-existed-email':
-                    const response = await axios.get(`https://${store.name}/admin/api/2019-10/customers/search.json`, {
-                        params: {
-                            email: data.email,
-                            fields: 'id'
-                        },
-                        headers: {
-                            'X-Shopify-Access-Token': store.token
-                        }
-                    })
-                    const customers = response.data.customers
-                    if (customers.length) {
-                        const customer = customers[0]
+                    if (data.userId) {
                         const requestData = {
                             sentence: data.botResponse.question,
-                            customer: customer.id + '',
+                            customer: data.userId + '',
                             shop: store.name
                         }
                         const response = await axios.post(BOT_URL, requestData)
@@ -114,8 +103,6 @@ const generateBotAnswer = async (botData, socket) => {
                         }
                         else if (!message && !orders.length) {
                             state = 'input-order-number'
-                            data.userId = customer.id
-                            // data.email = email
                             messages.push({ text: 'Vui lòng nhập mã đơn hàng', type: 'text', timestamp: new Date() })
                         }
                         else if (type === 'order' && orders && orders.length > 0) {
@@ -180,7 +167,12 @@ const generateBotAnswer = async (botData, socket) => {
                     }
                     else {
                         const customer = await shopifyService.getCustomer(store, email)
-                        if (customer && customer.orders_count) {
+
+                        if (customer) {
+                            if (customer.orders_count > 0) {
+                                data.email = email
+                                data.userId = customer.id
+                            }
                             const requestData = {
                                 sentence: data.botResponse.question,
                                 customer: customer.id + '',
@@ -194,8 +186,6 @@ const generateBotAnswer = async (botData, socket) => {
                             }
                             else if (!message && !orders.length) {
                                 state = 'input-order-number'
-                                data.userId = customer.id
-                                data.email = email
                                 messages.push({ timestamp: new Date(), text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
                             }
                             else if (type === 'order' && orders && orders.length > 0) {
@@ -207,7 +197,6 @@ const generateBotAnswer = async (botData, socket) => {
                                     }
                                 })
                                 const order = orderResponse.data.order
-                                data.email = email
                                 messages.push({ timestamp: new Date(), text: `Thông tin của đơn hàng ${order.name}`, type: 'text' })
                                 messages.push({ timestamp: new Date(), text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link' })
                                 state = null
@@ -426,18 +415,18 @@ const generateBotAnswer = async (botData, socket) => {
                     const checkEmail = util.extractEmail(question)
                     if (checkEmail) {
                         const customer = await shopifyService.getCustomer(store, checkEmail)
-                        if (customer && customer.orders_count > 0) {
+                        if (customer) {
+                            if (customer.orders_count > 0) {
+                                data.email = checkEmail
+                                data.userId = customer.id
+                            }
                             const { status, orderId } = await botService.getOrderId(question, customer.id, store)
                             if (status === 'has-order') {
-                                data.userId = customer.id
-                                data.email = checkEmail
                                 const order = await shopifyService.getOrderById(store, orderId)
                                 messages.push({ text: `Thông tin của đơn hàng ${order.name}`, type: 'text', timestamp: new Date() })
                                 messages.push({ text: 'Nhấn vào đây để xem thông tin đơn hàng', link: order.order_status_url, type: 'link', timestamp: new Date() })
                             } else if (status === 'no-order-number') {
                                 state = 'input-order-number'
-                                data.userId = customer.id
-                                data.email = checkEmail
                                 messages.push({ timestamp: new Date(), text: 'Vui lòng nhập mã đơn hàng', type: 'text' })
                             }
                             else {
