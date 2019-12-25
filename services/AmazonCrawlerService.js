@@ -7,6 +7,7 @@ const crawlData = async (keyword) => {
     try {
         const chromeOptions = {
             devtools: true,
+            headless: false,
             defaultViewport: { width: 1280, height: 1080 },
         };
         // create a new browser instance
