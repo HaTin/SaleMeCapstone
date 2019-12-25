@@ -3,12 +3,13 @@ const domain = "https://www.amazon.com";
 const UserAgent = require('user-agents')
 const crawlData = async (keyword) => {
     // wrapper to catch errors
+    let browser = null
     try {
         const chromeOptions = {
             defaultViewport: { width: 1280, height: 1080 },
         };
         // create a new browser instance
-        const browser = await puppeteer.launch(chromeOptions);
+        browser = await puppeteer.launch(chromeOptions);
         // create a page inside the browser;
         const page = await browser.newPage();
         const user = new UserAgent()
@@ -48,6 +49,7 @@ const crawlData = async (keyword) => {
     } catch (error) {
         // display errors
         console.log(error)
+        browser.close()
     }
 }
 module.exports = {
