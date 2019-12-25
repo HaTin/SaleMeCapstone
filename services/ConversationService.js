@@ -658,15 +658,16 @@ const insertBotMessage = async (messages, conversation) => {
 
 
 
-const getConversations = async (shopId, pageNumber, rowPage, deletedCount) => {
-    const offset = ((pageNumber - 1) * rowPage) - deletedCount
-    const limit = rowPage
-    const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime', 'lastMessage')
+const getConversations = async (shopId, pageNumber, rowPage, deletedCount, currentTotalCount = 0) => {
     const countResult = await knex('conversation').count('id', { as: 'count' }).where({ shopId, isDeleted: false })
     const total = countResult[0].count
+    if (!currentTotalCount) currentTotalCount = total
+    const offset = ((pageNumber - 1) * rowPage) + (total - currentTotalCount)
+    const limit = rowPage
+    const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').limit(limit).offset(offset).select('id', 'userName', 'lastMessageTime', 'lastMessage')
     // const result = await knex('conversation').where({ shopId, isDeleted: false }).orderBy('lastMessageTime', 'desc').select('id', 'userName', 'lastMessageTime', 'lastMessage')
     const response = util.createList(result, 'conversations')
-    response.total = total
+    response.total = currentTotalCount || total
     if (result.length) {
         response.pageNumber = pageNumber + 1
         // response.end = true

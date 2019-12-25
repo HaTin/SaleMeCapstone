@@ -45,7 +45,7 @@
 
 .chat-sidenav-header .search-wrapper {
   @include display-flex(flex, column, nowrap);
-  margin-bottom: 25px;
+  margin-bottom: 28px;
 
   & .search-bar.right-side-icon {
     @include flex();
