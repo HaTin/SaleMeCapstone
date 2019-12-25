@@ -338,7 +338,7 @@ const generateBotAnswer = async (botData, socket) => {
                     if (!util.validateEmail(userEmail)) {
                         suggestedActions = [
                             {
-                                type: 'show-product',
+                                type: 'ignore-email',
                                 value: 'Hủy'
                             }
                         ]
@@ -364,10 +364,12 @@ const generateBotAnswer = async (botData, socket) => {
                                 customer: customer.id + '',
                                 shop: store.name
                             }
-                            const response = await axios.post(BOT_URL, requestData)
+                            const [response, customerOrders] = await Promise.all([
+                                axios.post(BOT_URL, requestData),
+                                await shopifyService.getOrderByCustomerId(store, customer.id)
+                            ])
                             const { question, type, products, orders, collections, message, report } = response.data
                             if (type === "product") {
-                                const customerOrders = await shopifyService.getOrderByCustomerId(store, customer.id)
                                 const customerProducts = []
                                 customerOrders.map(o => {
                                     o.line_items.map(item => {
@@ -383,14 +385,11 @@ const generateBotAnswer = async (botData, socket) => {
                         else {
                             const suggestedActions = [
                                 {
-                                    type: 'input-email-for-product-suggestion',
-                                    value: 'Nhập lại email'
-                                }, {
                                     type: 'ignore-email',
                                     value: 'Không nhập email nữa'
                                 }
                             ]
-                            messages.push({ timestamp: new Date(), text: 'Không tìm thấy khách hàng', suggestedActions, type: 'text' })
+                            messages.push({ timestamp: new Date(), text: 'Không tìm thấy khách hàng, vui lòng nhập lại email', suggestedActions, type: 'text' })
                         }
                     }
                     break;
@@ -516,12 +515,14 @@ const generateBotAnswer = async (botData, socket) => {
                             shop: store.name
                         }
 
-                        const response = await axios.post(BOT_URL, requestData)
+                        const [response, customerOrders] = await Promise.all([
+                            axios.post(BOT_URL, requestData),
+                            shopifyService.getOrderByCustomerId(store, data.userId)
+                        ])
                         data.botResponse = response.data
                         const { products, report } = response.data
-
                         messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report })
-                        const customerOrders = await shopifyService.getOrderByCustomerId(store, data.userId)
+                        // const customerOrders = await 
                         const customerProducts = []
                         customerOrders.map(o => {
                             o.line_items.map(item => {
