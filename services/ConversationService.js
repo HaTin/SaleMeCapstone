@@ -390,6 +390,7 @@ const generateBotAnswer = async (botData, socket) => {
                     data.noEmailRequire = true
                     messages.push({ timestamp: new Date(), text: 'Những sản phẩm tìm thấy', type: 'text', report: data.botResponse.report })
                     await showProducts(messages, data.botResponse.products, store, data)
+                    botResponses.push(data.botResponse)
                     state = null
                     break;
                 // case 'show-product':
