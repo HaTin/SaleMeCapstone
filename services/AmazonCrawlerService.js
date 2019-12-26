@@ -5,7 +5,8 @@ const domain = "https://www.amazon.com";
 const UserAgent = require('user-agents')
 const crawlData = async (keyword) => {
     // const newProxyUrl = '172.104.35.250:3128'
-    const proxyURLs = ['172.104.35.250:3128', '139.162.38.253:1028', '172.104.59.178:1028']
+    //172.104.170.96:1028
+    const proxyURLs = ['172.105.121.202:1028', '139.162.38.253:1028', '172.104.59.178:1028', '172.104.170.96:1028']
     const url = proxyURLs[Math.floor(Math.random() * proxyURLs.length)];
     console.log(url)
     let browser = null
